@@ -21,17 +21,29 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Breeds } from "@/lib/types/breed-types";
+
+// Ensure Breeds is an array
+const breedsArray = Object.values(Breeds);
 
 function AddPets() {
   const form = useForm({
     shouldFocusError: true,
     values: {
-        "pet-name": "",
-        "pet-species": "",
-        "pet-breed": "",
-        "pet-age": "",
-        weight: "",
-        color: "",
+      "pet-name": "",
+      "pet-species": "",
+      "pet-breed": "",
+      "pet-age": "",
+      weight: "",
+      color: "",
     },
     defaultValues: {
       "pet-name": "",
@@ -61,7 +73,8 @@ function AddPets() {
                   )}
                 />
               </FormItem>
-
+            </FormControl>
+            <FormControl>
               <FormItem>
                 <FormLabel>Species</FormLabel>
                 <FormField
@@ -71,17 +84,28 @@ function AddPets() {
                   )}
                 />
               </FormItem>
-
+            </FormControl>
+            <FormControl>
               <FormItem>
                 <FormLabel>Breed</FormLabel>
                 <FormField
                   name="pet-breed"
                   render={({ field, fieldState, formState }) => (
-                    <Input type="text" placeholder="Enter your pet's breed" />
+                    <Select>
+                      <SelectTrigger>Select Breed</SelectTrigger>
+                      <SelectContent>
+                        {breedsArray.map((breed) => (
+                          <SelectItem value={breed} key={breed}>
+                            {breed.replaceAll("_", " ").toLocaleUpperCase()}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   )}
                 />
               </FormItem>
-
+            </FormControl>
+            <FormControl>
               <FormItem>
                 <FormLabel>Age</FormLabel>
                 <FormField
@@ -91,7 +115,8 @@ function AddPets() {
                   )}
                 />
               </FormItem>
-
+            </FormControl>
+            <FormControl>
               <FormItem>
                 <FormLabel>Weight</FormLabel>
                 <FormField
@@ -104,7 +129,8 @@ function AddPets() {
                   )}
                 />
               </FormItem>
-
+            </FormControl>
+            <FormControl>
               <FormItem>
                 <FormLabel>Color</FormLabel>
                 <FormField
@@ -114,7 +140,6 @@ function AddPets() {
                   )}
                 />
               </FormItem>
-              
             </FormControl>
           </Form>
         </CardContent>
