@@ -1,6 +1,6 @@
 "use client";
 import ResponsiveContainer from "@/components/shared/layout/responsive-container";
-import React from "react";
+import React, { useState } from "react";
 import {
   Card,
   CardContent,
@@ -30,8 +30,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Breeds } from "@/lib/types/breed-types";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { Calendar } from "@/components/ui/calendar";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
 
-// Ensure Breeds is an array
 const breedsArray = Object.values(Breeds);
 
 function AddPets() {
@@ -54,6 +62,7 @@ function AddPets() {
       color: "",
     },
   });
+  const [date, setDate] = useState(new Date());
   return (
     <ResponsiveContainer>
       <Card>
@@ -80,7 +89,14 @@ function AddPets() {
                 <FormField
                   name="pet-species"
                   render={({ field, fieldState, formState }) => (
-                    <Input type="text" placeholder="Enter your pet's species" />
+                    <Select required>
+                      <SelectTrigger>Species</SelectTrigger>
+                      <SelectValue>Species</SelectValue>
+                      <SelectContent>
+                        <SelectItem value="dog">Dog</SelectItem>
+                        <SelectItem value="cat">Cat</SelectItem>
+                      </SelectContent>
+                    </Select>
                   )}
                 />
               </FormItem>
@@ -91,7 +107,7 @@ function AddPets() {
                 <FormField
                   name="pet-breed"
                   render={({ field, fieldState, formState }) => (
-                    <Select>
+                    <Select required>
                       <SelectTrigger>Select Breed</SelectTrigger>
                       <SelectContent>
                         {breedsArray.map((breed) => (
@@ -107,11 +123,40 @@ function AddPets() {
             </FormControl>
             <FormControl>
               <FormItem>
-                <FormLabel>Age</FormLabel>
+                <FormLabel>Date of Birth</FormLabel>
                 <FormField
-                  name="pet-age"
+                  name="date-of-birth"
                   render={({ field, fieldState, formState }) => (
-                    <Input type="number" placeholder="Enter your pet's age" />
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-[280px] justify-start text-left font-normal",
+                            !date && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {date ? (
+                            format(date, "PPP")
+                          ) : (
+                            <span>Pick a date</span>
+                          )}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          required
+                          className="bg-white"
+                          mode="single"
+                          selected={date}
+                          onSelect={(day) => {
+                            setDate(day ? day : new Date());
+                          }}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
                   )}
                 />
               </FormItem>
@@ -123,6 +168,7 @@ function AddPets() {
                   name="weight"
                   render={({ field, fieldState, formState }) => (
                     <Input
+                      required
                       type="number"
                       placeholder="Enter your pet's weight"
                     />
@@ -134,9 +180,48 @@ function AddPets() {
               <FormItem>
                 <FormLabel>Color</FormLabel>
                 <FormField
-                  name="color"
+                  name="sex"
                   render={({ field, fieldState, formState }) => (
-                    <Input type="text" placeholder="Enter your pet's color" />
+                    <Select>
+                      <SelectTrigger>Sex</SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="male">Male</SelectItem>
+                        <SelectItem value="female">Female</SelectItem>
+                        <SelectItem value="prefer-not-to-say">
+                          Prefer not to say
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </FormItem>
+            </FormControl>
+            <FormControl>
+              <FormItem>
+                <FormLabel>Medical History</FormLabel>
+                <FormField
+                  name="medical-history"
+                  render={({ field, fieldState, formState }) => (
+                    <Input
+                      required
+                      type="text"
+                      placeholder="Enter your pet's medical history"
+                    />
+                  )}
+                />
+              </FormItem>
+            </FormControl>
+            <FormControl>
+              <FormItem>
+                <FormLabel>Vaccination Status</FormLabel>
+                <FormField
+                  name="vaccination-status"
+                  render={({ field, fieldState, formState }) => (
+                    <Input
+                      required
+                      type="text"
+                      placeholder="Enter your pet's vaccination status"
+                    />
                   )}
                 />
               </FormItem>

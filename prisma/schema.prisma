@@ -1,0 +1,109 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Users {
+    user_id Int @id @default(autoincrement())
+    user_uuid String @unique
+    email String @unique
+    password_hash String
+    first_name String
+    last_name String
+    phone_number String
+    created_at DateTime
+    updated_at DateTime
+    pets Pets[]
+}
+
+model Pets {
+    pet_id Int @id @default(autoincrement())
+    user_id Int @unique
+    pet_uuid String @unique
+    name String
+    species String
+    breed String
+    date_of_birth DateTime
+    weight_kg Int
+    sex String
+    medical_history String
+    medical_records MedicalRecords[]
+    vaccination_history String
+    created_at DateTime
+    updated_at DateTime
+    users Users @relation(fields: [user_id], references: [user_id])
+    appointments Appointments[] @relation("PetAppointments")
+
+}
+
+model Appointments {
+  appointment_id Int @id @default(autoincrement())
+  appointment_uuid String @unique
+  pet_id Int
+  pet Pets @relation("PetAppointments", fields: [pet_id], references: [pet_id])
+  appointment_date DateTime
+  appointment_type String
+  status String
+  notes String
+  created_at DateTime
+  updated_at DateTime
+}
+
+model MedicalRecords {
+  record_id Int @id @default(autoincrement())
+  record_uuid String @unique
+  visit_date DateTime
+  diagnosis String
+  treatment String
+  notes String
+  created_at DateTime
+  pet_id Int
+  pet Pets @relation(fields: [pet_id], references: [pet_id])
+}
+
+model Medications {
+  medication_id Int @id @default(autoincrement())
+  name String
+  description String
+  usage_instructions String
+  side_effects String
+  created_at DateTime
+  updated_at DateTime
+}
+
+model Veterinarians {
+  vet_id Int @id @default(autoincrement())
+  vet_uuid String @unique
+  first_name String
+  last_name String
+  phone_number String
+  email String
+  clinic_name String
+  clinic_address String
+  created_at DateTime
+  updated_at DateTime
+  vaccinations Vaccinations[]
+}
+
+model Vaccinations {
+  vaccination_id Int @id @default(autoincrement())
+  vaccine_name String
+  administered_date DateTime
+  next_due_date DateTime
+  administered_by Int
+  description String
+  created_at DateTime
+  updated_at DateTime
+  veterinarian Veterinarians @relation(fields: [administered_by], references: [vet_id])
+}
+
