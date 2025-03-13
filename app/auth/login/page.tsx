@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { type FormEventHandler } from 'react';
 import {
 	Card,
 	CardContent,
@@ -25,6 +25,7 @@ import {
 	FormMessage,
 } from '@/components/ui/form';
 import { signIn } from 'next-auth/react';
+import toast from 'react-hot-toast';
 
 const LoginPage = () => {
 	const form = useForm({
@@ -34,12 +35,13 @@ const LoginPage = () => {
 		},
 		progressive: true,
 	});
-	const handleLogin = async () => {
+	const handleLogin = async (e: FormEventHandler) => {
 		const email = form.getValues('email') as string;
 		const password = form.getValues('password') as string;
+		toast.loading('Logging in...');
 		const data = LoginSchema.safeParse(form.getValues());
-		console.log(data);
-		await signIn('credentials', { email, password });
+		const d = await signIn('credentials', { email, password });
+		console.log(d);
 	};
 	return (
 		<ResponsiveContainer className='flex justify-center items-center'>
@@ -96,7 +98,7 @@ const LoginPage = () => {
 						</Form>
 					</CardContent>
 					<CardFooter className='flex flex-col gap-4'>
-						<Button onClick={handleLogin}>Login</Button>
+						<Button type='submit'>Login</Button>
 						<Link href={'/auth/sign-up'}>Sign up instead</Link>
 					</CardFooter>
 				</Card>

@@ -9,6 +9,9 @@ const prisma = new PrismaClient();
 const handler = NextAuth({
 	adapter: PrismaAdapter(prisma),
 	session: { strategy: 'jwt' },
+	pages: {
+		signIn: '/auth/login',
+	},
 	providers: [
 		CredentialsProvider({
 			name: 'Credentials',
@@ -21,7 +24,14 @@ const handler = NextAuth({
 				password: { label: 'Password', type: 'password' },
 			},
 			async authorize(credentials) {
-				if (!credentials.email || !credentials.password) {
+				if (!credentials) {
+					throw new Error('Missing credentials');
+				}
+				if (
+					!credentials.email ||
+					!credentials.password ||
+					!credentials
+				) {
 					throw new Error('Missing credentials');
 				}
 				console.log('credentials: ', credentials);
@@ -34,9 +44,12 @@ const handler = NextAuth({
 
 				if (
 					!user ||
-					!(await bcrypt.compare(credentials.password, user.password))
+					!(await verifyPassword(
+						credentials.password,
+						user.password_hash,
+					))
 				) {
-					throw new Error('Invalid credentials');
+					return null;
 				}
 				console.log("after checking user's password");
 
@@ -47,6 +60,7 @@ const handler = NextAuth({
 	callbacks: {
 		async session({ session, token }) {
 			if (token) session.user.id = token.sub;
+			console.log(token);
 			return session;
 		},
 	},

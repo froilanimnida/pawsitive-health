@@ -142,17 +142,17 @@ const data = {
 	projects: [
 		{
 			name: 'My Pets',
-			url: 'u/pets',
+			url: '/u/pets',
 			icon: Dog,
 		},
 		{
 			name: 'Settings',
-			url: 'u/settings',
+			url: '/u/settings',
 			icon: Settings2,
 		},
 		{
 			name: 'My Booking',
-			url: 'u/appointments',
+			url: '/u/appointments',
 			icon: BookmarkCheckIcon,
 		},
 	],
@@ -167,7 +167,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 				<TeamSwitcher teams={data.teams} />
 			</SidebarHeader>
 			<SidebarContent>
-				<NavMain items={data.navMain} />
 				<NavProjects projects={data.projects} />
 			</SidebarContent>
 			<SidebarFooter>
