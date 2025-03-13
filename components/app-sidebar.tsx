@@ -142,17 +142,17 @@ const data = {
 	projects: [
 		{
 			name: 'My Pets',
-			url: '#',
+			url: 'u/pets',
 			icon: Dog,
 		},
 		{
 			name: 'Settings',
-			url: '#',
+			url: 'u/settings',
 			icon: Settings2,
 		},
 		{
 			name: 'My Booking',
-			url: '#',
+			url: 'u/appointments',
 			icon: BookmarkCheckIcon,
 		},
 	],
