@@ -19,6 +19,20 @@ import { LoginSchema } from '@/lib/auth-definitions';
 import { z } from 'zod';
 
 function UserLoginForm() {
+	const loginFormFields = [
+		{
+			label: 'Email',
+			placeholder: 'Email',
+			name: 'email',
+			description: 'The email you use when you register an account.',
+		},
+		{
+			label: 'Password',
+			placeholder: 'Password',
+			name: 'password',
+			description: 'The password you use when you register an account.',
+		},
+	];
 	const form = useForm({
 		defaultValues: {
 			email: '',
@@ -32,57 +46,48 @@ function UserLoginForm() {
 		console.log(values);
 	};
 	return (
-		<form
-			onSubmit={form.handleSubmit(onSubmit)}
-			className='space-y-8'>
-			<Form {...form}>
-				<CardContent className='space-y-8'>
-					<FormControl>
-						<FormItem>
-							<FormLabel>Email</FormLabel>
-							<FormField
-								control={form.control}
-								name='email'
-								render={({ field, fieldState, formState }) => (
-									<Input
-										type='text'
-										placeholder='Email'
-										className='mb-4'
-										{...field}
-									/>
-								)}
-							/>
-							<FormDescription>
-								The email you use when you register an account.
-							</FormDescription>
-							<FormMessage />
-						</FormItem>
-					</FormControl>
-					<FormControl>
-						<FormItem>
-							<FormLabel>Password</FormLabel>
-							<FormField
-								control={form.control}
-								name='password'
-								render={({ field, fieldState, formState }) => (
-									<Input
-										type='password'
-										placeholder='Password'
-										className='mb-4'
-										{...field}
-									/>
-								)}
-							/>
-						</FormItem>
-					</FormControl>
+		<CardContent className='space-y-8'>
+			<form
+				onSubmit={form.handleSubmit(onSubmit)}
+				className='space-y-8'>
+				<Form {...form}>
+					{loginFormFields.map((field, index) => (
+						<FormControl key={index}>
+							<FormItem>
+								<FormLabel>{field.label}</FormLabel>
+								<FormField
+									control={form.control}
+									name={field.name as 'email' | 'password'}
+									render={({
+										field,
+										fieldState,
+										formState,
+									}) => (
+										<Input
+											type='text'
+											placeholder={
+												loginFormFields[index]
+													.placeholder
+											}
+											{...field}
+										/>
+									)}
+								/>
+								<FormDescription>
+									{field.description}
+								</FormDescription>
+								<FormMessage />
+							</FormItem>
+						</FormControl>
+					))}
 					<Button
 						className='w-full'
 						type='submit'>
 						Login
 					</Button>
-				</CardContent>
-			</Form>
-		</form>
+				</Form>
+			</form>
+		</CardContent>
 	);
 }
 
