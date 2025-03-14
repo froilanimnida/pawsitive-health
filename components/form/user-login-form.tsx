@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { CardContent } from '@/components/ui/card';
 import { useForm } from 'react-hook-form';
-import { signIn } from 'next-auth/react';
+// import { signIn } from 'next-auth/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { LoginSchema } from '@/lib/auth-definitions';
 import { z } from 'zod';
@@ -72,7 +72,7 @@ function UserLoginForm() {
 								<FormDescription>
 									{field.description}
 								</FormDescription>
-								{/* <FormMessage /> */}
+								<FormMessage />
 							</FormItem>
 						</FormControl>
 					))}

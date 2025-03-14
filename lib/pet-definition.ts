@@ -9,9 +9,11 @@ for (const breed in Breeds) {
 
 export const PetSchema = z.object({
     name: z.string().min(1).max(50),
-    species: z.enum(['male', 'female', 'prefer-not-to-say']),
+    sex: z.enum(['male', 'female', 'prefer-not-to-say']),
+    species: z.string().min(1).max(50),
     breed: z.string(),
-    weight: z.number(),
-    "medical-history": z.string(),
-    "vaccination-status": z.string()
+    date_of_birth: z.date(),
+    weight_kg: z.number(),
+    medical_history: z.string(),
+    vaccination_status: z.string()
 })

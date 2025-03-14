@@ -80,7 +80,7 @@ function ClinicSignUp() {
 	};
 	return (
 		<CardContent className='space-y-8'>
-			<form>
+			<form onSubmit={clinicSignUpForm.handleSubmit(onSubmit)}>
 				<Form {...clinicSignUpForm}>
 					{formFieldsArray.map((field, index) => (
 						<FormControl key={index}>
@@ -117,6 +117,7 @@ function ClinicSignUp() {
 						</FormControl>
 					))}
 				</Form>
+				<Button type='submit'>Sign Up</Button>
 			</form>
 		</CardContent>
 	);

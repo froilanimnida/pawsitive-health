@@ -109,6 +109,7 @@ function UserSignUpForm() {
 					))}
 					<Button className='w-full'>Create account</Button>
 				</Form>
+				<Button type='submit'>Sign Up</Button>
 			</form>
 		</CardContent>
 	);
