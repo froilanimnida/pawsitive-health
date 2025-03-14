@@ -98,11 +98,7 @@ function ClinicSignUp() {
 											| 'phone_number'
 											| 'emergency_services'
 									}
-									render={({
-										field,
-										fieldState,
-										formState,
-									}) => (
+									render={({ field }) => (
 										<Input
 											type='text'
 											placeholder={

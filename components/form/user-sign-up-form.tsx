@@ -68,105 +68,6 @@ function UserSignUpForm() {
 		<CardContent className='space-y-6'>
 			<form onSubmit={signUpForm.handleSubmit(onSubmit)}>
 				<Form {...signUpForm}>
-					{/* <FormControl>
-						<FormItem>
-							<FormLabel>First Name</FormLabel>
-							<FormField
-								control={signUpForm.control}
-								name='first_name'
-								render={({ field, fieldState, formState }) => (
-									<Input
-										type='text'
-										placeholder='First Name'
-										className='mb-4'
-										{...field}
-									/>
-								)}
-							/>
-							<FormDescription>Your first name</FormDescription>
-							<FormMessage />
-						</FormItem>
-					</FormControl>
-					<FormControl>
-						<FormItem>
-							<FormLabel>Last Name</FormLabel>
-							<FormField
-								control={signUpForm.control}
-								name='last_name'
-								render={({ field, fieldState, formState }) => (
-									<Input
-										type='text'
-										placeholder='Last Name'
-										className='mb-4'
-										{...field}
-									/>
-								)}
-							/>
-							<FormDescription>Your Last name</FormDescription>
-							<FormMessage />
-						</FormItem>
-					</FormControl>
-					<FormControl>
-						<FormItem>
-							<FormLabel>Email</FormLabel>
-							<FormField
-								control={signUpForm.control}
-								name='email'
-								render={({ field, fieldState, formState }) => (
-									<Input
-										type='text'
-										placeholder='Email'
-										className='mb-4'
-										{...field}
-									/>
-								)}
-							/>
-							<FormDescription>
-								Your valid email address
-							</FormDescription>
-							<FormMessage />
-						</FormItem>
-					</FormControl>
-					<FormControl>
-						<FormItem>
-							<FormLabel>Password</FormLabel>
-							<FormField
-								control={signUpForm.control}
-								name='password'
-								render={({ field, fieldState, formState }) => (
-									<Input
-										type='password'
-										placeholder='Password'
-										className='mb-4'
-										{...field}
-									/>
-								)}
-							/>
-							<FormDescription>Your password</FormDescription>
-							<FormMessage />
-						</FormItem>
-					</FormControl>
-					<FormControl>
-						<FormItem>
-							<FormLabel>Confirm your password</FormLabel>
-							<FormField
-								control={signUpForm.control}
-								name='confirm_password'
-								render={({ field, fieldState, formState }) => (
-									<Input
-										type='password'
-										placeholder='Confirm Password'
-										className='mb-4'
-										{...field}
-									/>
-								)}
-							/>
-							<FormDescription>
-								Retype your password
-							</FormDescription>
-							<FormMessage />
-						</FormItem>
-					</FormControl> */}
 					{signUpFormField.map((field, index) => (
 						<FormControl key={index}>
 							<FormItem>
@@ -181,11 +82,7 @@ function UserSignUpForm() {
 											| 'password'
 											| 'confirm_password'
 									}
-									render={({
-										field,
-										fieldState,
-										formState,
-									}) => (
+									render={({ field }) => (
 										<Input
 											type={
 												field.name === 'password' ||
