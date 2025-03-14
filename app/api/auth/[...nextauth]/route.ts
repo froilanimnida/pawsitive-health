@@ -23,7 +23,7 @@ const handler = NextAuth({
 				},
 				password: { label: 'Password', type: 'password' },
 			},
-			async authorize(credentials) {
+			async authorize(credentials, req) {
 				if (!credentials) {
 					throw new Error('Missing credentials');
 				}

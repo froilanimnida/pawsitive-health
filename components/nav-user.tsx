@@ -109,7 +109,7 @@ export function NavUser({
 							</DropdownMenuItem>
 							<DropdownMenuItem>
 								<Bell />
-								Notifications
+								Notifications 
 							</DropdownMenuItem>
 						</DropdownMenuGroup>
 						<DropdownMenuSeparator />
