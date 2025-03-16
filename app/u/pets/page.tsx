@@ -46,13 +46,7 @@ const PetList = () => {
 						<CardTitle>{pet.name}</CardTitle>
 						<CardDescription>{pet.breed}</CardDescription>
 					</CardHeader>
-					<CardContent>
-						<img
-							className='w-full h-40 object-cover'
-							src={pet.image}
-							alt={pet.name}
-						/>
-					</CardContent>
+					<CardContent></CardContent>
 					<CardFooter>
 						<Button>Manage</Button>
 					</CardFooter>

@@ -47,10 +47,10 @@ function UserLoginForm() {
 	};
 	return (
 		<CardContent className='space-y-8'>
-			<form
-				onSubmit={form.handleSubmit(onSubmit)}
-				className='space-y-8'>
-				<Form {...form}>
+			<Form {...form}>
+				<form
+					onSubmit={form.handleSubmit(onSubmit)}
+					className='space-y-8'>
 					{loginFormFields.map((field, index) => (
 						<FormControl key={index}>
 							<FormItem>
@@ -81,8 +81,8 @@ function UserLoginForm() {
 						type='submit'>
 						Login
 					</Button>
-				</Form>
-			</form>
+				</form>
+			</Form>
 		</CardContent>
 	);
 }

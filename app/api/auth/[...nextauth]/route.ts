@@ -1,7 +1,7 @@
 import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
-import bcrypt from 'bcryptjs';
+// import bcrypt from 'bcryptjs';
 import { PrismaClient } from '@prisma/client';
 import { verifyPassword } from '@/utils/security/password-check';
 
@@ -24,6 +24,7 @@ const handler = NextAuth({
 				password: { label: 'Password', type: 'password' },
 			},
 			async authorize(credentials, req) {
+				console.log(req);
 				if (!credentials) {
 					throw new Error('Missing credentials');
 				}
