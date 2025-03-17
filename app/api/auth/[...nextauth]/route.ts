@@ -38,18 +38,6 @@ const handler = NextAuth({
 				const user = await prisma.users.findUnique({
 					where: { email: credentials.email },
 				});
-
-				// if (
-				// 	!user ||
-				// 	user.user_id ||
-				// 	!(await verifyPassword(
-				// 		credentials.password,
-				// 		user.password_hash,
-				// 	))
-				// ) {
-				// 	console.log('inside if');
-				// 	return null;
-				// }
 				if (user === null) {
 					return null;
 				}
@@ -69,9 +57,10 @@ const handler = NextAuth({
 				return {
 					id: user.user_id.toString(),
 					email: user.email,
-					name: user.first_name
-						? `${user.first_name} ${user.last_name || ''}`.trim()
-						: null,
+					name:
+						user.first_name ?
+							`${user.first_name} ${user.last_name || ''}`.trim()
+						:	null,
 				};
 			},
 		}),

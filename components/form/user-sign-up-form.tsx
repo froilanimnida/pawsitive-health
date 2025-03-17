@@ -103,8 +103,10 @@ function UserSignUpForm() {
 		});
 	};
 	return (
-		<form onSubmit={signUpForm.handleSubmit(onSubmit)}>
-			<Form {...signUpForm}>
+		<Form {...signUpForm}>
+			<form
+				onSubmit={signUpForm.handleSubmit(onSubmit)}
+				className='space-y-8'>
 				{signUpFormField.map((signUpFormField) => (
 					<FormField
 						key={signUpFormField.name}
@@ -118,12 +120,14 @@ function UserSignUpForm() {
 									</FormLabel>
 									<Input
 										type={
-											signUpFormField.name ===
-												'password' ||
-											signUpFormField.name ===
-												'confirm_password'
-												? 'password'
-												: 'text'
+											(
+												signUpFormField.name ===
+													'password' ||
+												signUpFormField.name ===
+													'confirm_password'
+											) ?
+												'password'
+											:	'text'
 										}
 										placeholder={
 											signUpFormField.placeholder
@@ -142,8 +146,8 @@ function UserSignUpForm() {
 					/>
 				))}
 				<Button className='w-full'>Create account</Button>
-			</Form>
-		</form>
+			</form>
+		</Form>
 	);
 }
 

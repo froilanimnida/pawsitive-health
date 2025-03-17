@@ -13,8 +13,8 @@ import ResponsiveContainer from '@/components/shared/layout/responsive-container
 import UserSignUpForm from '@/components/form/user-sign-up-form';
 
 export const metadata: Metadata = {
-	title: 'PawsitiveHealth | Sign Up Schema',
-	description: 'PawsitiveHealth is a pet health care service.',
+	title: 'PawsitiveHealth | Sign Up',
+	description: 'Create your account',
 };
 
 const SignUp = () => {
@@ -30,8 +30,12 @@ const SignUp = () => {
 				<CardContent>
 					<UserSignUpForm />
 				</CardContent>
-				<CardFooter className='flex flex-col gap-4'>
-					<Link href={'/auth/login'}>Login instead</Link>
+				<CardFooter className='flex justify-center'>
+					<Link
+						href={'/auth/login'}
+						className='text-sm'>
+						Login instead
+					</Link>
 				</CardFooter>
 			</Card>
 		</ResponsiveContainer>
