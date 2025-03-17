@@ -19,7 +19,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select';
-import { Breeds } from '@/lib/types/breed-types';
+import { Breeds, CatBreeds, DogBreeds } from '@/lib/types/breed-types';
 import {
 	Popover,
 	PopoverContent,
@@ -34,6 +34,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import type { z } from 'zod';
 
 const breedsArray = Object.values(Breeds);
+const dogBreedsArray = Object.values(DogBreeds);
+const catBreedsArray = Object.values(CatBreeds);
 
 const AddPetForm = () => {
 	const [date, setDate] = useState<Date | undefined>(undefined);
@@ -42,6 +44,15 @@ const AddPetForm = () => {
 	);
 	const [selectedSpecies, setSelectedSpecies] = useState<string>('dog');
 
+	// Get breeds based on selected species
+	const getBreedOptions = () => {
+		if (selectedSpecies === 'dog') {
+			return Object.values(DogBreeds);
+		} else if (selectedSpecies === 'cat') {
+			return Object.values(CatBreeds);
+		}
+		return [];
+	};
 	const form = useForm({
 		shouldFocusError: true,
 		defaultValues: {
@@ -131,7 +142,7 @@ const AddPetForm = () => {
 			label: 'Breed',
 			placeholder: 'Breed',
 			description: 'Select the breed of your pet',
-			options: breedsArray.map((breed) => ({
+			options: getBreedOptions().map((breed) => ({
 				value: breed,
 				label: breed.replaceAll('_', ' ').toLocaleUpperCase(),
 			})),
