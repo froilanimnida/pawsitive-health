@@ -37,12 +37,16 @@ const breedsArray = Object.values(Breeds);
 
 const AddPetForm = () => {
 	const [date, setDate] = useState<Date | undefined>(undefined);
+	const [selectedBreed, setSelectedBreed] = useState<string | undefined>(
+		undefined,
+	);
+	const [selectedSpecies, setSelectedSpecies] = useState<string>('dog');
 
 	const form = useForm({
 		shouldFocusError: true,
 		defaultValues: {
 			name: '',
-			species: '',
+			species: 'dog',
 			breed: '',
 			weight_kg: 0,
 			sex: 'prefer-not-to-say',
@@ -104,6 +108,8 @@ const AddPetForm = () => {
 		placeholder: string;
 		description: string;
 		options: { value: string; label: string }[];
+		defaultValue?: string;
+		onChange?: (value: string) => void;
 	}[] = [
 		{
 			name: 'species',
@@ -114,6 +120,11 @@ const AddPetForm = () => {
 				{ value: 'cat', label: 'Cat' },
 			],
 			description: 'Select the species of your pet',
+			defaultValue: selectedSpecies,
+			onChange: (value) => {
+				setSelectedSpecies(value);
+				form.setValue('breed', '');
+			},
 		},
 		{
 			name: 'breed',
@@ -124,6 +135,10 @@ const AddPetForm = () => {
 				value: breed,
 				label: breed.replaceAll('_', ' ').toLocaleUpperCase(),
 			})),
+			defaultValue: selectedBreed,
+			onChange: (value) => {
+				setSelectedBreed(value);
+			},
 		},
 		{
 			name: 'sex',
@@ -151,16 +166,7 @@ const AddPetForm = () => {
 					<FormField
 						key={field.name}
 						control={form.control}
-						name={
-							field.name as
-								| 'name'
-								| 'species'
-								| 'breed'
-								| 'sex'
-								| 'medical_history'
-								| 'vaccination_status'
-								| 'weight_kg'
-						}
+						name={field.name}
 						render={({ field: formField }) => (
 							<FormItem>
 								<FormLabel>{field.label}</FormLabel>
@@ -183,7 +189,7 @@ const AddPetForm = () => {
 					name='date_of_birth'
 					control={form.control}
 					render={({ field }) => (
-						<FormItem>
+						<FormItem {...field}>
 							<FormLabel>Date of Birth</FormLabel>
 							<FormControl>
 								<Popover>
@@ -220,26 +226,28 @@ const AddPetForm = () => {
 							<FormMessage />
 						</FormItem>
 					)}></FormField>
-				{selectFields.map((field) => (
+				{selectFields.map((selectField) => (
 					<FormField
-						key={field.name}
+						key={selectField.name}
 						control={form.control}
-						name={field.name}
-						render={({ field: formField }) => (
-							<FormItem>
-								<FormLabel>{field.label}</FormLabel>
+						name={selectField.name}
+						render={({ field }) => (
+							<FormItem {...field}>
+								<FormLabel>{selectField.label}</FormLabel>
 								<Select
-									onValueChange={formField.onChange}
-									defaultValue={formField.value}>
+									onValueChange={selectField.onChange}
+									defaultValue={selectField.defaultValue}>
 									<FormControl>
 										<SelectTrigger>
 											<SelectValue
-												placeholder={field.placeholder}
+												placeholder={
+													selectField.placeholder
+												}
 											/>
 										</SelectTrigger>
 									</FormControl>
 									<SelectContent>
-										{field.options.map((option) => (
+										{selectField.options.map((option) => (
 											<SelectItem
 												key={option.value}
 												value={option.value}>
@@ -249,7 +257,7 @@ const AddPetForm = () => {
 									</SelectContent>
 								</Select>
 								<FormDescription>
-									{field.description}
+									{selectField.description}
 								</FormDescription>
 								<FormMessage />
 							</FormItem>
