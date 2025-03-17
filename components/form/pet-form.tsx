@@ -31,6 +31,7 @@ import { Calendar as CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { PetSchema } from '@/lib/pet-definition';
 import { zodResolver } from '@hookform/resolvers/zod';
+import type { z } from 'zod';
 
 const breedsArray = Object.values(Breeds);
 
@@ -43,8 +44,8 @@ const AddPetForm = () => {
 			name: '',
 			species: '',
 			breed: '',
-			weight: '',
-			sex: '',
+			weight_kg: 0,
+			sex: 'prefer-not-to-say',
 			medical_history: '',
 			vaccination_status: '',
 			date_of_birth: undefined,
@@ -53,7 +54,20 @@ const AddPetForm = () => {
 		resolver: zodResolver(PetSchema),
 	});
 
-	const textFields = [
+	const textFields: {
+		name:
+			| 'name'
+			| 'species'
+			| 'breed'
+			| 'sex'
+			| 'medical_history'
+			| 'vaccination_status'
+			| 'weight_kg';
+		label: string;
+		placeholder: string;
+		description: string;
+		type: string;
+	}[] = [
 		{
 			name: 'name',
 			label: 'Name',
@@ -62,7 +76,7 @@ const AddPetForm = () => {
 			type: 'text',
 		},
 		{
-			name: 'weight',
+			name: 'weight_kg',
 			label: 'Weight (kg)',
 			placeholder: 'Weight',
 			description: "Enter your pet's weight in kilograms",
@@ -73,16 +87,24 @@ const AddPetForm = () => {
 			label: 'Medical History',
 			placeholder: 'Medical history',
 			description: "Enter your pet's medical history",
+			type: 'text',
 		},
 		{
 			name: 'vaccination_status',
 			label: 'Vaccination Status',
 			placeholder: 'Vaccination status',
 			description: "Enter your pet's vaccination status",
+			type: 'text',
 		},
 	];
 
-	const selectFields = [
+	const selectFields: {
+		name: 'species' | 'breed' | 'sex';
+		label: string;
+		placeholder: string;
+		description: string;
+		options: { value: string; label: string }[];
+	}[] = [
 		{
 			name: 'species',
 			label: 'Species',
@@ -116,12 +138,8 @@ const AddPetForm = () => {
 		},
 	];
 
-	const onSubmit = (data: FormData) => {
-		const formData = {
-			...data,
-			date_of_birth: date,
-		};
-		console.log('Form submitted:', formData);
+	const onSubmit = (values: z.infer<typeof PetSchema>) => {
+		console.log('Form submitted:', values);
 	};
 
 	return (
@@ -136,9 +154,12 @@ const AddPetForm = () => {
 						name={
 							field.name as
 								| 'name'
-								| 'weight'
+								| 'species'
+								| 'breed'
+								| 'sex'
 								| 'medical_history'
 								| 'vaccination_status'
+								| 'weight_kg'
 						}
 						render={({ field: formField }) => (
 							<FormItem>
@@ -158,8 +179,47 @@ const AddPetForm = () => {
 						)}
 					/>
 				))}
-
-				{/* Render select fields */}
+				<FormField
+					name='date_of_birth'
+					control={form.control}
+					render={({ field }) => (
+						<FormItem>
+							<FormLabel>Date of Birth</FormLabel>
+							<FormControl>
+								<Popover>
+									<PopoverTrigger asChild>
+										<Button
+											variant='outline'
+											className={cn(
+												'w-full justify-start text-left font-normal',
+												!date &&
+													'text-muted-foreground',
+											)}>
+											<CalendarIcon className='mr-2 h-4 w-4' />
+											{date ? (
+												format(date, 'PPP')
+											) : (
+												<span>Pick a date</span>
+											)}
+										</Button>
+									</PopoverTrigger>
+									<PopoverContent className='w-auto p-0'>
+										<Calendar
+											mode='single'
+											selected={date}
+											onSelect={setDate}
+											initialFocus
+											className='bg-white'
+										/>
+									</PopoverContent>
+								</Popover>
+							</FormControl>
+							<FormDescription>
+								Enter your pet&apos;s date of birth
+							</FormDescription>
+							<FormMessage />
+						</FormItem>
+					)}></FormField>
 				{selectFields.map((field) => (
 					<FormField
 						key={field.name}
@@ -196,46 +256,6 @@ const AddPetForm = () => {
 						)}
 					/>
 				))}
-				<FormField
-					control={form.control}
-					name='date_of_birth'
-					render={() => (
-						<FormItem>
-							<FormLabel>Date of Birth</FormLabel>
-							<FormControl>
-								<Popover>
-									<PopoverTrigger asChild>
-										<Button
-											variant='outline'
-											className={cn(
-												'w-full justify-start text-left font-normal',
-												!date &&
-													'text-muted-foreground',
-											)}>
-											<CalendarIcon className='mr-2 h-4 w-4' />
-											{date ?
-												format(date, 'PPP')
-											:	<span>Pick a date</span>}
-										</Button>
-									</PopoverTrigger>
-									<PopoverContent className='w-auto p-0'>
-										<Calendar
-											mode='single'
-											selected={date}
-											onSelect={setDate}
-											initialFocus
-											className='bg-white'
-										/>
-									</PopoverContent>
-								</Popover>
-							</FormControl>
-							<FormDescription>
-								Enter your pet&apos;s date of birth
-							</FormDescription>
-							<FormMessage />
-						</FormItem>
-					)}
-				/>
 				<Button
 					type='submit'
 					className='mt-6'>
