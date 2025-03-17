@@ -54,13 +54,20 @@ const handler = NextAuth({
 				}
 				console.log("after checking user's password");
 
-				return user;
+				return {
+					id: user.user_id.toString(),
+					email: user.email,
+					name: user.first_name
+						? `${user.first_name} ${user.last_name || ''}`.trim()
+						: null,
+				};
 			},
 		}),
 	],
 	callbacks: {
 		async session({ session, token }) {
-			if (token) session.user.id = token.sub;
+			if (token && session && session.user)
+				session.user.email = token.sub;
 			console.log(token);
 			return session;
 		},
