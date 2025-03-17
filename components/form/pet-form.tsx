@@ -33,18 +33,12 @@ import { PetSchema } from '@/lib/pet-definition';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { z } from 'zod';
 
-const breedsArray = Object.values(Breeds);
-const dogBreedsArray = Object.values(DogBreeds);
-const catBreedsArray = Object.values(CatBreeds);
-
 const AddPetForm = () => {
-	const [date, setDate] = useState<Date | undefined>(undefined);
 	const [selectedBreed, setSelectedBreed] = useState<string | undefined>(
 		undefined,
 	);
 	const [selectedSpecies, setSelectedSpecies] = useState<string>('dog');
 
-	// Get breeds based on selected species
 	const getBreedOptions = () => {
 		if (selectedSpecies === 'dog') {
 			return Object.values(DogBreeds);
@@ -161,6 +155,7 @@ const AddPetForm = () => {
 				{ value: 'female', label: 'Female' },
 				{ value: 'prefer_not_to_say', label: 'Prefer not to say' },
 			],
+			defaultValue: 'prefer_not_to_say',
 		},
 	];
 
@@ -226,7 +221,10 @@ const AddPetForm = () => {
 											)}>
 											<CalendarIcon className='mr-2 h-4 w-4' />
 											{field.value ? (
-												format(field.value, 'PPP')
+												format(
+													field.value,
+													'MM/dd/yyyy',
+												)
 											) : (
 												<span>Pick a date</span>
 											)}
@@ -236,8 +234,28 @@ const AddPetForm = () => {
 										<Calendar
 											mode='single'
 											selected={field.value}
-											onSelect={field.onChange}
+											onSelect={(date) => {
+												// If date is null, pass null
+												if (!date) {
+													field.onChange(null);
+													return;
+												}
+
+												// Reset time to midnight to store date only
+												const dateOnly = new Date(
+													date.getFullYear(),
+													date.getMonth(),
+													date.getDate(),
+												);
+
+												field.onChange(dateOnly);
+											}}
 											initialFocus
+											toDate={new Date()}
+											toMonth={new Date()}
+											toYear={
+												new Date().getFullYear() + 1
+											}
 											className='bg-white'
 										/>
 									</PopoverContent>
