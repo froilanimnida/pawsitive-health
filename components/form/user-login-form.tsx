@@ -11,7 +11,6 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { CardContent } from '@/components/ui/card';
 import { useForm } from 'react-hook-form';
 // import { signIn } from 'next-auth/react';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -19,7 +18,12 @@ import { LoginSchema } from '@/lib/auth-definitions';
 import { z } from 'zod';
 
 function UserLoginForm() {
-	const loginFormFields = [
+	const loginFormFields: {
+		label: string;
+		placeholder: string;
+		name: 'email' | 'password';
+		description: string;
+	}[] = [
 		{
 			label: 'Email',
 			placeholder: 'Email',
@@ -40,50 +44,52 @@ function UserLoginForm() {
 		},
 		progressive: true,
 		resolver: zodResolver(LoginSchema),
+		shouldFocusError: true,
+		mode: 'onBlur',
 	});
 
 	const onSubmit = (values: z.infer<typeof LoginSchema>) => {
+		alert('Form submitted');
 		console.log(values);
 	};
+
 	return (
-		<CardContent className='space-y-8'>
-			<Form {...form}>
-				<form
-					onSubmit={form.handleSubmit(onSubmit)}
-					className='space-y-8'>
-					{loginFormFields.map((field, index) => (
-						<FormControl key={index}>
+		<Form {...form}>
+			<form
+				onSubmit={form.handleSubmit(onSubmit)}
+				className='space-y-8'>
+				{loginFormFields.map((loginField) => (
+					<FormField
+						key={loginField.name}
+						control={form.control}
+						name={loginField.name}
+						render={({ field, fieldState }) => (
 							<FormItem>
-								<FormLabel>{field.label}</FormLabel>
-								<FormField
-									control={form.control}
-									name={field.name as 'email' | 'password'}
-									render={({ field }) => (
-										<Input
-											type='text'
-											placeholder={
-												loginFormFields[index]
-													.placeholder
-											}
-											{...field}
-										/>
-									)}
-								/>
+								<FormLabel>{loginField.label}</FormLabel>
+								<FormControl>
+									<Input
+										type='text'
+										placeholder={loginField.placeholder}
+										{...field}
+									/>
+								</FormControl>
 								<FormDescription>
-									{field.description}
+									{loginField.description}
 								</FormDescription>
-								<FormMessage />
+								<FormMessage>
+									{fieldState.error?.message}
+								</FormMessage>
 							</FormItem>
-						</FormControl>
-					))}
-					<Button
-						className='w-full'
-						type='submit'>
-						Login
-					</Button>
-				</form>
-			</Form>
-		</CardContent>
+						)}
+					/>
+				))}
+				<Button
+					className='w-full'
+					type='submit'>
+					Login
+				</Button>
+			</form>
+		</Form>
 	);
 }
 

@@ -174,7 +174,7 @@ const AddPetForm = () => {
 						key={textField.name}
 						control={form.control}
 						name={textField.name}
-						render={({ field, fieldState, formState }) => (
+						render={({ field, formState }) => (
 							<FormItem>
 								<FormLabel>{textField.label}</FormLabel>
 								<FormControl>
@@ -235,13 +235,11 @@ const AddPetForm = () => {
 											mode='single'
 											selected={field.value}
 											onSelect={(date) => {
-												// If date is null, pass null
 												if (!date) {
 													field.onChange(null);
 													return;
 												}
 
-												// Reset time to midnight to store date only
 												const dateOnly = new Date(
 													date.getFullYear(),
 													date.getMonth(),
@@ -264,7 +262,9 @@ const AddPetForm = () => {
 							<FormDescription>
 								Enter your pet&apos;s date of birth
 							</FormDescription>
-							<FormMessage />
+							<FormMessage>
+								{fieldState.error?.message}
+							</FormMessage>
 						</FormItem>
 					)}
 				/>
@@ -273,7 +273,7 @@ const AddPetForm = () => {
 						key={selectField.name}
 						control={form.control}
 						name={selectField.name}
-						render={({ field }) => (
+						render={({ field, fieldState }) => (
 							<FormItem>
 								<FormLabel>{selectField.label}</FormLabel>
 								<Select
@@ -308,7 +308,9 @@ const AddPetForm = () => {
 								<FormDescription>
 									{selectField.description}
 								</FormDescription>
-								<FormMessage />
+								<FormMessage>
+									{fieldState.error?.message}
+								</FormMessage>
 							</FormItem>
 						)}
 					/>

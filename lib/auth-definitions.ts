@@ -9,6 +9,14 @@ export const SignUpSchema = z.object({
 });
 
 export const LoginSchema = z.object({
-	email: z.string().email().nonempty().max(255),
-	password: z.string().min(8).max(255).nonempty(),
+	email: z
+		.string()
+		.email({ message: 'Please enter a valid email.' })
+		.nonempty()
+		.max(255),
+	password: z
+		.string()
+		.min(8, { message: 'Password must be 8 characters long.' })
+		.max(255)
+		.nonempty(),
 });
