@@ -12,10 +12,11 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useForm } from 'react-hook-form';
-// import { signIn } from 'next-auth/react';
+import { signIn } from 'next-auth/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { LoginSchema } from '@/lib/auth-definitions';
 import { z } from 'zod';
+import toast from 'react-hot-toast';
 
 function UserLoginForm() {
 	const loginFormFields: {
@@ -48,9 +49,27 @@ function UserLoginForm() {
 		mode: 'onBlur',
 	});
 
-	const onSubmit = (values: z.infer<typeof LoginSchema>) => {
-		alert('Form submitted');
-		console.log(values);
+	const onSubmit = async (values: z.infer<typeof LoginSchema>) => {
+		toast.promise(
+			async () => {
+				const result = await signIn('credentials', {
+					email: values.email,
+					password: values.password,
+					callbackUrl: '/',
+					redirect: false,
+				});
+				console.log('Result: ', result?.error);
+				if (!result?.ok) {
+					return Promise.reject();
+				}
+				return result;
+			},
+			{
+				loading: 'Signing in...',
+				success: 'Signed in successfully!',
+				error: 'Failed to sign in. Please check your credentials.',
+			},
+		);
 	};
 
 	return (

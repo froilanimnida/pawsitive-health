@@ -80,7 +80,7 @@ enum SpeciesType {
 enum UserRoleType {
 	User = 'user',
 	Client = 'client',
-	Vet = 'vet',
+	Veterinarian = 'veterinarian',
 	Admin = 'admin',
 }
 

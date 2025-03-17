@@ -15,21 +15,18 @@ import UserLoginForm from '@/components/form/user-login-form';
 const LoginPage = () => {
 	return (
 		<ResponsiveContainer className='flex justify-center items-center'>
-			<>
-				<section className='flex justify-center items-center max-w-1/2 mx-auto'></section>
-				<Card>
-					<CardHeader>
-						<CardTitle>Login</CardTitle>
-						<CardDescription>Login to continue</CardDescription>
-					</CardHeader>
-					<CardContent className='space-y-8'>
-						<UserLoginForm />
-					</CardContent>
-					<CardFooter className='flex flex-col gap-4'>
-						<Link href={'/auth/sign-up'}>Sign up instead</Link>
-					</CardFooter>
-				</Card>
-			</>
+			<Card>
+				<CardHeader>
+					<CardTitle>Login</CardTitle>
+					<CardDescription>Login to continue</CardDescription>
+				</CardHeader>
+				<CardContent className='space-y-8'>
+					<UserLoginForm />
+				</CardContent>
+				<CardFooter className='flex flex-col gap-4'>
+					<Link href={'/auth/sign-up'}>Sign up instead</Link>
+				</CardFooter>
+			</Card>
 		</ResponsiveContainer>
 	);
 };

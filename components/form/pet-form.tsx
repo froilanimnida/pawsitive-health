@@ -19,7 +19,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select';
-import { Breeds, CatBreeds, DogBreeds } from '@/lib/types/breed-types';
+import { CatBreeds, DogBreeds } from '@/lib/types/breed-types';
 import {
 	Popover,
 	PopoverContent,

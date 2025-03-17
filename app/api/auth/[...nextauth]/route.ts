@@ -23,37 +23,49 @@ const handler = NextAuth({
 				},
 				password: { label: 'Password', type: 'password' },
 			},
-			async authorize(credentials, req) {
-				console.log(req);
+			async authorize(credentials) {
 				if (!credentials) {
-					throw new Error('Missing credentials');
+					return null;
 				}
 				if (
 					!credentials.email ||
 					!credentials.password ||
 					!credentials
 				) {
-					throw new Error('Missing credentials');
+					return null;
 				}
-				console.log('credentials: ', credentials);
 
 				const user = await prisma.users.findUnique({
 					where: { email: credentials.email },
 				});
-				console.log(user);
-				console.log('after finding user');
 
+				// if (
+				// 	!user ||
+				// 	user.user_id ||
+				// 	!(await verifyPassword(
+				// 		credentials.password,
+				// 		user.password_hash,
+				// 	))
+				// ) {
+				// 	console.log('inside if');
+				// 	return null;
+				// }
+				if (user === null) {
+					return null;
+				}
 				if (
-					!user ||
 					!(await verifyPassword(
 						credentials.password,
 						user.password_hash,
 					))
 				) {
-					return null;
+					throw new Error(
+						JSON.stringify({
+							status: 401,
+							errors: 'Invalid password',
+						}),
+					);
 				}
-				console.log("after checking user's password");
-
 				return {
 					id: user.user_id.toString(),
 					email: user.email,
@@ -66,6 +78,7 @@ const handler = NextAuth({
 	],
 	callbacks: {
 		async session({ session, token }) {
+			console.log('console log from session ');
 			if (token && session && session.user)
 				session.user.email = token.sub;
 			console.log(token);
