@@ -15,7 +15,7 @@ import {
 
 const prisma = new PrismaClient();
 
-export const config = {
+const config = {
 	providers: [
 		CredentialsProvider({
 			name: 'Credentials',
