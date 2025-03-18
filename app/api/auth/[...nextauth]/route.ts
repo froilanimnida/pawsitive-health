@@ -1,12 +1,11 @@
 import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
-// import bcrypt from 'bcryptjs';
 import { PrismaClient } from '@prisma/client';
 import { verifyPassword } from '@/utils/security/password-check';
 
 const prisma = new PrismaClient();
-const handler = NextAuth({
+export const { auth, handlers, signIn, signOut } = NextAuth({
 	adapter: PrismaAdapter(prisma),
 	session: { strategy: 'jwt' },
 	pages: {
@@ -57,24 +56,19 @@ const handler = NextAuth({
 				return {
 					id: user.user_id.toString(),
 					email: user.email,
-					name:
-						user.first_name ?
-							`${user.first_name} ${user.last_name || ''}`.trim()
-						:	null,
+					name: user.first_name
+						? `${user.first_name} ${user.last_name || ''}`.trim()
+						: null,
 				};
 			},
 		}),
 	],
 	callbacks: {
 		async session({ session, token }) {
-			console.log('console log from session ');
 			if (token && session && session.user)
 				session.user.email = token.sub;
-			console.log(token);
 			return session;
 		},
 	},
 	secret: process.env.NEXTAUTH_SECRET,
 });
-
-export { handler as GET, handler as POST };

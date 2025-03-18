@@ -4,7 +4,7 @@ import { SignUpSchema } from '@/lib/auth-definitions';
 import bcrypt from 'bcryptjs';
 import type { z } from 'zod';
 import { UserRoleType } from '@/lib/types/constants';
-import { redirect } from 'next/navigation';
+import { signIn, signOut } from '@/app/api/auth/[...nextauth]/route';
 
 export const createAccount = async (values: z.infer<typeof SignUpSchema>) => {
 	const formData = await SignUpSchema.parseAsync(values);
@@ -38,4 +38,8 @@ export const createAccount = async (values: z.infer<typeof SignUpSchema>) => {
 		return Promise.reject('Failed to create account');
 	}
 	return Promise.resolve(result);
+};
+
+export const logout = async () => {
+	await signOut({ redirectTo: '/auth/login' });
 };

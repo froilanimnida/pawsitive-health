@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 	description: 'Login to your account',
 };
 
-const LoginPage = () => {
+const LoginPage = async () => {
 	return (
 		<ResponsiveContainer className='flex justify-center items-center'>
 			<Card>
