@@ -4,7 +4,7 @@ import { SignUpSchema } from '@/lib/auth-definitions';
 import bcrypt from 'bcryptjs';
 import type { z } from 'zod';
 import { UserRoleType } from '@/lib/types/constants';
-import { signIn, signOut } from '@/app/api/auth/[...nextauth]/route';
+import { signOut } from 'next-auth/react';
 
 export const createAccount = async (values: z.infer<typeof SignUpSchema>) => {
 	const formData = await SignUpSchema.parseAsync(values);
@@ -41,5 +41,7 @@ export const createAccount = async (values: z.infer<typeof SignUpSchema>) => {
 };
 
 export const logout = async () => {
-	await signOut({ redirectTo: '/auth/login' });
+	const prisma = new PrismaClient();
+	await prisma.$disconnect();
+	signOut({ callbackUrl: '/auth/login' });
 };

@@ -1,16 +1,21 @@
-import NextAuth from 'next-auth';
+import NextAuth, {
+	type AuthOptions,
+	getServerSession,
+	type NextAuthOptions,
+} from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import { PrismaClient } from '@prisma/client';
 import { verifyPassword } from '@/utils/security/password-check';
+import {
+	GetServerSidePropsContext,
+	NextApiResponse,
+	NextApiRequest,
+} from 'next';
 
 const prisma = new PrismaClient();
-export const { auth, handlers, signIn, signOut } = NextAuth({
-	adapter: PrismaAdapter(prisma),
-	session: { strategy: 'jwt' },
-	pages: {
-		signIn: '/auth/login',
-	},
+
+export const config = {
 	providers: [
 		CredentialsProvider({
 			name: 'Credentials',
@@ -23,6 +28,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
 				password: { label: 'Password', type: 'password' },
 			},
 			async authorize(credentials) {
+				console.log('I am running on route.ts');
 				if (!credentials) {
 					return null;
 				}
@@ -56,6 +62,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
 				return {
 					id: user.user_id.toString(),
 					email: user.email,
+					role: user.role,
 					name: user.first_name
 						? `${user.first_name} ${user.last_name || ''}`.trim()
 						: null,
@@ -63,12 +70,44 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
 			},
 		}),
 	],
+} satisfies NextAuthOptions;
+
+export const authOptions: AuthOptions = {
+	adapter: PrismaAdapter(prisma),
+	pages: {
+		signIn: '/auth/login',
+	},
+	providers: config.providers,
 	callbacks: {
+		async jwt({ token, user }) {
+			if (user) {
+				token.sub = user.id;
+				// token.role = user.role;
+			}
+			return token;
+		},
 		async session({ session, token }) {
-			if (token && session && session.user)
+			if (token && session && session.user) {
 				session.user.email = token.sub;
+				// session.user.role = token.role as string;
+			}
 			return session;
+		},
+		signIn() {
+			return true;
 		},
 	},
 	secret: process.env.NEXTAUTH_SECRET,
-});
+};
+
+const handler = NextAuth(authOptions);
+
+const auth = (
+	...args:
+		| [GetServerSidePropsContext['req'], GetServerSidePropsContext['res']]
+		| [NextApiRequest, NextApiResponse]
+		| []
+) => {
+	return getServerSession(...args, config);
+};
+export { handler as GET, handler as POST, auth };

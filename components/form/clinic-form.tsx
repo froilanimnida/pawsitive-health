@@ -11,14 +11,31 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { CardContent } from '@/components/ui/card';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { ClinicSignUpSchema } from '@/lib/clinic-signup-definition';
+import { NewClinicAccountSchema } from '@/lib/clinic-signup-definition';
+import { Checkbox } from '../ui/checkbox';
 
 function ClinicSignUp() {
-	const formFieldsArray = [
+	const clinicSignUpFields: {
+		label: string;
+		placeholder: string;
+		name:
+			| 'name'
+			| 'address'
+			| 'city'
+			| 'state'
+			| 'postal_code'
+			| 'phone_number'
+			| 'first_name'
+			| 'last_name'
+			| 'email'
+			| 'password'
+			| 'confirm_password';
+
+		description: string;
+	}[] = [
 		{
 			label: 'Clinic Name',
 			placeholder: 'Clinic Name',
@@ -56,10 +73,34 @@ function ClinicSignUp() {
 			description: 'The phone number of your clinic.',
 		},
 		{
-			label: 'Emergency Services',
-			placeholder: 'Emergency Services',
-			name: 'emergency_services',
-			description: 'The emergency services your clinic provides.',
+			label: 'First Name',
+			placeholder: 'First Name',
+			name: 'first_name',
+			description: 'The first name of the clinic owner.',
+		},
+		{
+			label: 'Last Name',
+			placeholder: 'Last Name',
+			name: 'last_name',
+			description: 'The last name of the clinic owner.',
+		},
+		{
+			label: 'Email',
+			placeholder: 'Email',
+			name: 'email',
+			description: 'The email of the clinic owner.',
+		},
+		{
+			label: 'Password',
+			placeholder: 'Password',
+			name: 'password',
+			description: 'The password of the clinic owner.',
+		},
+		{
+			label: 'Confirm Password',
+			placeholder: 'Confirm Password',
+			name: 'confirm_password',
+			description: 'Confirm the password of the clinic owner.',
 		},
 	];
 	const clinicSignUpForm = useForm({
@@ -70,56 +111,75 @@ function ClinicSignUp() {
 			state: '',
 			postal_code: '',
 			phone_number: '',
-			emergency_services: '',
+			emergency_services: false,
+			first_name: '',
+			last_name: '',
+			email: '',
+			password: '',
+			confirm_password: '',
 		},
-		resolver: zodResolver(ClinicSignUpSchema),
+		resolver: zodResolver(NewClinicAccountSchema),
 		progressive: true,
 	});
-	const onSubmit = (values: z.infer<typeof ClinicSignUpSchema>) => {
+	const onSubmit = (values: z.infer<typeof NewClinicAccountSchema>) => {
 		console.log(values);
 	};
 	return (
-		<CardContent className='space-y-8'>
+		<Form {...clinicSignUpForm}>
 			<form onSubmit={clinicSignUpForm.handleSubmit(onSubmit)}>
-				<Form {...clinicSignUpForm}>
-					{formFieldsArray.map((field, index) => (
-						<FormControl key={index}>
+				{clinicSignUpFields.map((clinicSignUpField) => (
+					<FormField
+						key={clinicSignUpField.name}
+						control={clinicSignUpForm.control}
+						name={clinicSignUpField.name}
+						render={({ field, fieldState }) => (
 							<FormItem className='mb-5'>
-								<FormLabel>{field.label}</FormLabel>
-								<FormField
-									control={clinicSignUpForm.control}
-									name={
-										field.name as
-											| 'name'
-											| 'address'
-											| 'city'
-											| 'state'
-											| 'postal_code'
-											| 'phone_number'
-											| 'emergency_services'
-									}
-									render={({ field }) => (
-										<Input
-											type='text'
-											placeholder={
-												formFieldsArray[index]
-													.placeholder
-											}
-											{...field}
-										/>
-									)}
-								/>
+								<FormLabel>{clinicSignUpField.label}</FormLabel>
+								<FormControl>
+									<Input
+										type={
+											clinicSignUpField.name.includes(
+												'password',
+											)
+												? 'password'
+												: 'text'
+										}
+										placeholder={
+											clinicSignUpField.placeholder
+										}
+										{...field}
+									/>
+								</FormControl>
 								<FormDescription>
-									{field.description}
+									{clinicSignUpField.description}
 								</FormDescription>
-								<FormMessage />
+								<FormMessage className='text-red-500'>
+									{fieldState.error?.message}
+								</FormMessage>
 							</FormItem>
-						</FormControl>
-					))}
-				</Form>
+						)}
+					/>
+				))}
+				<FormField
+					name='emergency_services'
+					render={({ field, fieldState }) => (
+						<FormItem>
+							<FormLabel>Emergency Services</FormLabel>
+							<FormControl>
+								<Checkbox {...field} />
+							</FormControl>
+							<FormDescription>
+								Do you provide emergency services?
+							</FormDescription>
+							<FormMessage className='text-red-500'>
+								{fieldState.error?.message}
+							</FormMessage>
+						</FormItem>
+					)}
+				/>
 				<Button type='submit'>Sign Up</Button>
 			</form>
-		</CardContent>
+		</Form>
 	);
 }
 

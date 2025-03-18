@@ -58,15 +58,15 @@ function UserLoginForm() {
 					callbackUrl: '/',
 					redirect: false,
 				});
-				console.log('Result: ', result?.error);
 				if (!result?.ok) {
 					return Promise.reject();
 				}
+				console.log('Result: ', result);
 				return result;
 			},
 			{
 				loading: 'Signing in...',
-				success: 'Signed in successfully!',
+				success: 'Successfully signed in',
 				error: 'Failed to sign in. Please check your credentials.',
 			},
 		);
@@ -95,7 +95,7 @@ function UserLoginForm() {
 								<FormDescription>
 									{loginField.description}
 								</FormDescription>
-								<FormMessage>
+								<FormMessage className='text-red-500'>
 									{fieldState.error?.message}
 								</FormMessage>
 							</FormItem>
