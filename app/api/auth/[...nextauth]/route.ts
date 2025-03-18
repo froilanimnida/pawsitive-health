@@ -63,7 +63,7 @@ const config = {
 	],
 } satisfies NextAuthOptions;
 
-export const authOptions: AuthOptions = {
+const authOptions: AuthOptions = {
 	adapter: PrismaAdapter(prisma),
 	pages: {
 		signIn: '/auth/login',
