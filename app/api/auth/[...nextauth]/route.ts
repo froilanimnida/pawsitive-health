@@ -1,17 +1,8 @@
-import NextAuth, {
-	type AuthOptions,
-	getServerSession,
-	type NextAuthOptions,
-} from 'next-auth';
+import NextAuth, { type AuthOptions, type NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import { PrismaClient } from '@prisma/client';
 import { verifyPassword } from '@/utils/security/password-check';
-import {
-	GetServerSidePropsContext,
-	NextApiResponse,
-	NextApiRequest,
-} from 'next';
 
 const prisma = new PrismaClient();
 
@@ -102,12 +93,12 @@ export const authOptions: AuthOptions = {
 
 const handler = NextAuth(authOptions);
 
-const auth = (
-	...args:
-		| [GetServerSidePropsContext['req'], GetServerSidePropsContext['res']]
-		| [NextApiRequest, NextApiResponse]
-		| []
-) => {
-	return getServerSession(...args, config);
-};
-export { handler as GET, handler as POST, auth };
+// const auth = (
+// 	...args:
+// 		| [GetServerSidePropsContext['req'], GetServerSidePropsContext['res']]
+// 		| [NextApiRequest, NextApiResponse]
+// 		| []
+// ) => {
+// 	return getServerSession(...args, config);
+// };
+export { handler as GET, handler as POST };
