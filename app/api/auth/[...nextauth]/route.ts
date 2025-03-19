@@ -50,6 +50,7 @@ const config = {
 						}),
 					);
 				}
+				console.log('User: ', user);
 				return {
 					id: user.user_id.toString(),
 					email: user.email,
@@ -69,18 +70,20 @@ const authOptions: AuthOptions = {
 		signIn: '/auth/login',
 	},
 	providers: config.providers,
+
 	callbacks: {
 		async jwt({ token, user }) {
 			if (user) {
 				token.sub = user.id;
-				// token.role = user.role;
 			}
 			return token;
 		},
 		async session({ session, token }) {
+			// const user: User
+			console.log('Session: ', session.role);
 			if (token && session && session.user) {
 				session.user.email = token.sub;
-				// session.user.role = token.role as string;
+				session.role = token.role as string;
 			}
 			return session;
 		},

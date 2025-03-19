@@ -1,11 +1,11 @@
 'use server';
 import { PrismaClient } from '@prisma/client';
 import { SignUpSchema } from '@/lib/auth-definitions';
-import bcrypt from 'bcryptjs';
 import type { z } from 'zod';
 import { UserRoleType } from '@/lib/types/constants';
 import { signOut } from 'next-auth/react';
 import { NewClinicAccountSchema } from '@/lib/clinic-signup-definition';
+import { hashPassword } from '@/utils/security/password-check';
 
 export const createAccount = async (values: z.infer<typeof SignUpSchema>) => {
 	const formData = await SignUpSchema.parseAsync(values);
@@ -21,10 +21,7 @@ export const createAccount = async (values: z.infer<typeof SignUpSchema>) => {
 	if (user !== null) {
 		return Promise.reject('User already exists');
 	}
-	const hashedPassword = await bcrypt.hash(
-		values.password,
-		bcrypt.genSaltSync(),
-	);
+	const hashedPassword = await hashPassword(formData.password);
 	const result = await prisma.users.create({
 		data: {
 			email: formData.email,
@@ -63,10 +60,7 @@ export const createClinicAccount = async (
 	if (user !== null) {
 		return Promise.reject('User already exists');
 	}
-	const hashedPassword = await bcrypt.hash(
-		values.password,
-		bcrypt.genSaltSync(),
-	);
+	const hashedPassword = await hashPassword(values.password);
 	const result = await prisma.users.create({
 		data: {
 			email: formData.email,
@@ -89,7 +83,7 @@ export const createClinicAccount = async (
 			postal_code: formData.postal_code,
 			phone_number: formData.phone_number,
 			emergency_services: formData.emergency_services,
-			// user_id: result.user_id,
+			user_id: result.user_id,
 		},
 	});
 	if (clinicResult.clinic_id === null) {

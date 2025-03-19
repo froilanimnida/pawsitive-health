@@ -120,23 +120,28 @@ function ClinicSignUp() {
 		},
 		resolver: zodResolver(NewClinicAccountSchema),
 		progressive: true,
+		shouldFocusError: true,
+		mode: 'onBlur',
 	});
 	const onSubmit = (values: z.infer<typeof NewClinicAccountSchema>) => {
 		console.log(values);
 	};
 	return (
 		<Form {...clinicSignUpForm}>
-			<form onSubmit={clinicSignUpForm.handleSubmit(onSubmit)}>
+			<form
+				onSubmit={clinicSignUpForm.handleSubmit(onSubmit)}
+				className='space-y-8'>
 				{clinicSignUpFields.map((clinicSignUpField) => (
 					<FormField
 						key={clinicSignUpField.name}
 						control={clinicSignUpForm.control}
 						name={clinicSignUpField.name}
 						render={({ field, fieldState }) => (
-							<FormItem className='mb-5'>
+							<FormItem>
 								<FormLabel>{clinicSignUpField.label}</FormLabel>
 								<FormControl>
 									<Input
+										required
 										type={
 											clinicSignUpField.name.includes(
 												'password',
@@ -166,7 +171,10 @@ function ClinicSignUp() {
 						<FormItem>
 							<FormLabel>Emergency Services</FormLabel>
 							<FormControl>
-								<Checkbox {...field} />
+								<Checkbox
+									required
+									{...field}
+								/>
 							</FormControl>
 							<FormDescription>
 								Do you provide emergency services?
