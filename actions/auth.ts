@@ -5,7 +5,7 @@ import type { z } from 'zod';
 import { UserRoleType } from '@/lib/types/constants';
 import { signOut } from 'next-auth/react';
 import { NewClinicAccountSchema } from '@/lib/clinic-signup-definition';
-import { hashPassword } from '@/utils/security/password-check';
+import { hashPassword, verifyPassword } from '@/utils/security/password-check';
 
 export const createAccount = async (values: z.infer<typeof SignUpSchema>) => {
 	const formData = await SignUpSchema.parseAsync(values);
@@ -90,6 +90,22 @@ export const createClinicAccount = async (
 		return Promise.reject('Failed to create clinic account');
 	}
 	return Promise.resolve(result);
+};
+
+export const loginAccount = async (email: string, password: string) => {
+	const prisma = new PrismaClient();
+	const user = await prisma.users.findFirst({
+		where: {
+			email: email,
+		},
+	});
+	if (user === null) {
+		return Promise.reject('User not found');
+	}
+	if (!(await verifyPassword(password, user.password_hash))) {
+		return Promise.reject('Invalid password');
+	}
+	return Promise.resolve(user);
 };
 
 // export const createVeterinarianAccount

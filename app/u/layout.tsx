@@ -1,6 +1,8 @@
 import React from 'react';
 import { AppSidebar } from '@/components/app-sidebar';
 import { SidebarProvider } from '@/components/ui/sidebar';
+import SessionProviderWrapper from '@/context/session-provider-context';
+
 async function UserLayout({
 	children,
 }: Readonly<{
@@ -8,10 +10,12 @@ async function UserLayout({
 }>) {
 	return (
 		<div className='flex h-screen'>
-			<SidebarProvider>
-				<AppSidebar />
-			</SidebarProvider>
-			{children}
+			<SessionProviderWrapper>
+				<SidebarProvider>
+					<AppSidebar />
+				</SidebarProvider>
+				{children}
+			</SessionProviderWrapper>
 		</div>
 	);
 }

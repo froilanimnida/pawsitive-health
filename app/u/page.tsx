@@ -1,10 +1,15 @@
-import React from 'react';
-import { getServerSession } from 'next-auth';
+'use client';
+import { useSession } from 'next-auth/react';
 
-const UserDashboard = async () => {
-	const session = await getServerSession();
-	console.log(session);
-	return <div></div>;
-};
+function UserDashboard() {
+	const { data: session } = useSession();
+
+	return (
+		<div>
+			<h1>Welcome, {session?.user?.name || 'Guest'}!</h1>
+			<p>Your role: {session?.user?.role || 'No role assigned'}</p>
+		</div>
+	);
+}
 
 export default UserDashboard;

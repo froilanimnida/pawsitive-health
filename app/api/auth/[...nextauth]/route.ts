@@ -1,71 +1,13 @@
-import NextAuth, { type AuthOptions, type NextAuthOptions } from 'next-auth';
-import CredentialsProvider from 'next-auth/providers/credentials';
+import NextAuth, { type AuthOptions } from 'next-auth';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import { PrismaClient } from '@prisma/client';
-import { verifyPassword } from '@/utils/security/password-check';
+import { config } from '@/lib/config/next-auth-config';
 
 const prisma = new PrismaClient();
 
-const config = {
-	providers: [
-		CredentialsProvider({
-			name: 'Credentials',
-			credentials: {
-				email: {
-					label: 'Email',
-					type: 'email',
-					placeholder: 'yourmail@example.com',
-				},
-				password: { label: 'Password', type: 'password' },
-			},
-			async authorize(credentials) {
-				console.log('I am running on route.ts');
-				if (!credentials) {
-					return null;
-				}
-				if (
-					!credentials.email ||
-					!credentials.password ||
-					!credentials
-				) {
-					return null;
-				}
-
-				const user = await prisma.users.findUnique({
-					where: { email: credentials.email },
-				});
-				if (user === null) {
-					return null;
-				}
-				if (
-					!(await verifyPassword(
-						credentials.password,
-						user.password_hash,
-					))
-				) {
-					throw new Error(
-						JSON.stringify({
-							status: 401,
-							errors: 'Invalid password',
-						}),
-					);
-				}
-				console.log('User: ', user);
-				return {
-					id: user.user_id.toString(),
-					email: user.email,
-					role: user.role,
-					name: user.first_name
-						? `${user.first_name} ${user.last_name || ''}`.trim()
-						: null,
-				};
-			},
-		}),
-	],
-} satisfies NextAuthOptions;
-
 const authOptions: AuthOptions = {
 	adapter: PrismaAdapter(prisma),
+	session: { strategy: 'jwt' },
 	pages: {
 		signIn: '/auth/login',
 	},
@@ -73,17 +15,21 @@ const authOptions: AuthOptions = {
 
 	callbacks: {
 		async jwt({ token, user }) {
+			console.log('Running at jwt callback');
+			console.log(user);
 			if (user) {
-				token.sub = user.id;
+				token.id = user.id;
+				token.email = user.email;
+				token.role = user.role;
 			}
 			return token;
 		},
-		async session({ session, token }) {
-			// const user: User
-			console.log('Session: ', session.role);
-			if (token && session && session.user) {
-				session.user.email = token.sub;
-				session.role = token.role as string;
+		session({ session, token, user }) {
+			console.log('Running at session callback');
+			console.log(user);
+			if (token && session.user) {
+				session.user.email = token.email;
+				session.user.role = token.role;
 			}
 			return session;
 		},
@@ -95,13 +41,4 @@ const authOptions: AuthOptions = {
 };
 
 const handler = NextAuth(authOptions);
-
-// const auth = (
-// 	...args:
-// 		| [GetServerSidePropsContext['req'], GetServerSidePropsContext['res']]
-// 		| [NextApiRequest, NextApiResponse]
-// 		| []
-// ) => {
-// 	return getServerSession(...args, config);
-// };
 export { handler as GET, handler as POST };
