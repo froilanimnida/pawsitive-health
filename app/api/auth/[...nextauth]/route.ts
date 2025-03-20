@@ -15,8 +15,6 @@ const authOptions: AuthOptions = {
 
 	callbacks: {
 		async jwt({ token, user }) {
-			console.log('Running at jwt callback');
-			console.log(user);
 			if (user) {
 				token.id = user.id;
 				token.email = user.email;
@@ -24,9 +22,7 @@ const authOptions: AuthOptions = {
 			}
 			return token;
 		},
-		session({ session, token, user }) {
-			console.log('Running at session callback');
-			console.log(user);
+		session({ session, token }) {
 			if (token && session.user) {
 				session.user.email = token.email;
 				session.user.role = token.role;
