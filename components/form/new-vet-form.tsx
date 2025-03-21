@@ -147,9 +147,10 @@ const NewVeterinaryForm = () => {
 								<FormLabel>Specialization</FormLabel>
 								<FormControl>
 									<Select
-										onValueChange={(value) =>
-											field.onChange(value)
-										}>
+										defaultValue={field.value}
+										onValueChange={(value) => {
+											field.onChange(value);
+										}}>
 										<SelectTrigger>
 											<SelectValue>
 												{field.value ||
@@ -166,7 +167,12 @@ const NewVeterinaryForm = () => {
 														<SelectItem
 															key={option}
 															value={option}>
-															{option}
+															{option
+																.replaceAll(
+																	'_',
+																	' ',
+																)
+																.toUpperCase()}
 														</SelectItem>
 													),
 												)}
