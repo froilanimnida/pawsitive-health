@@ -1,3 +1,4 @@
+'use client';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -109,27 +110,31 @@ const NewVeterinaryForm = () => {
 			<form
 				onSubmit={newVeterinaryForm.handleSubmit(onSubmit)}
 				className='space-y-8'>
-				{newVetFields.map((newVetField, index) => (
+				{newVetFields.map((newVetField) => (
 					<FormField
 						control={newVeterinaryForm.control}
 						key={newVetField.name}
 						name={newVetField.name}
 						render={({ field, fieldState }) => {
 							return (
-								<FormControl>
+								<FormItem>
 									<FormLabel>{newVetField.label}</FormLabel>
-									<Input
-										{...field}
-										placeholder={newVetField.placeholder}
-										name={newVetField.name}
-									/>
+									<FormControl>
+										<Input
+											{...field}
+											placeholder={
+												newVetField.placeholder
+											}
+											name={newVetField.name}
+										/>
+									</FormControl>
 									<FormDescription>
 										{newVetField.description}
 									</FormDescription>
 									<FormMessage>
 										{fieldState.error?.message}
 									</FormMessage>
-								</FormControl>
+								</FormItem>
 							);
 						}}
 					/>
@@ -138,39 +143,41 @@ const NewVeterinaryForm = () => {
 					name='specialization'
 					render={({ field, fieldState }) => {
 						return (
-							<FormControl>
+							<FormItem>
 								<FormLabel>Specialization</FormLabel>
-								<Select
-									onValueChange={(value) =>
-										field.onChange(value)
-									}>
-									<SelectTrigger>
-										<SelectValue>
-											{field.value ||
-												'Select a specialization'}
-										</SelectValue>
-									</SelectTrigger>
-									<SelectContent>
-										<SelectGroup>
-											<SelectLabel>
-												Specialization
-											</SelectLabel>
-											{specializationOptions.map(
-												(option) => (
-													<SelectItem
-														key={option}
-														value={option}>
-														{option}
-													</SelectItem>
-												),
-											)}
-										</SelectGroup>
-									</SelectContent>
-								</Select>
+								<FormControl>
+									<Select
+										onValueChange={(value) =>
+											field.onChange(value)
+										}>
+										<SelectTrigger>
+											<SelectValue>
+												{field.value ||
+													'Select a specialization'}
+											</SelectValue>
+										</SelectTrigger>
+										<SelectContent>
+											<SelectGroup>
+												<SelectLabel>
+													Specialization
+												</SelectLabel>
+												{specializationOptions.map(
+													(option) => (
+														<SelectItem
+															key={option}
+															value={option}>
+															{option}
+														</SelectItem>
+													),
+												)}
+											</SelectGroup>
+										</SelectContent>
+									</Select>
+								</FormControl>
 								<FormMessage>
 									{fieldState.error?.message}
 								</FormMessage>
-							</FormControl>
+							</FormItem>
 						);
 					}}
 				/>
