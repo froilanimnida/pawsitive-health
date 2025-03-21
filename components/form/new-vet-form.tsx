@@ -23,9 +23,23 @@ import {
 	FormLabel,
 	FormMessage,
 } from '../ui/form';
+import { VeterinarySpecialization } from '@/lib/types/constants';
 
 const NewVeterinaryForm = () => {
-	const newVetFields = [
+	const newVetFields: {
+		label: string;
+		placeholder: string;
+		name:
+			| 'first_name'
+			| 'last_name'
+			| 'email'
+			| 'phone_number'
+			| 'password'
+			| 'confirm_password'
+			| 'license_number'
+			| 'specialization';
+		description: string;
+	}[] = [
 		{
 			label: 'First Name',
 			placeholder: 'First Name',
@@ -69,9 +83,12 @@ const NewVeterinaryForm = () => {
 			description: 'The license number of the veterinarian.',
 		},
 	];
+	const specializationOptions = Object.values(VeterinarySpecialization);
 	const newVeterinaryForm = useForm({
 		resolver: zodResolver(VeterinarianSchema),
 		mode: 'onBlur',
+		progressive: true,
+		shouldFocusError: true,
 		defaultValues: {
 			first_name: '',
 			last_name: '',
@@ -89,95 +106,74 @@ const NewVeterinaryForm = () => {
 	};
 	return (
 		<Form {...newVeterinaryForm}>
-			<form onSubmit={newVeterinaryForm.handleSubmit(onSubmit)}>
-				{newVetFields.map((field) => (
-					<FormItem key={field.name}>
-						<FormLabel>{field.label}</FormLabel>
-						<FormField>
-							<Input
-								placeholder={field.placeholder}
-								name={field.name}
-								{...newVeterinaryForm.register(field.name)}
-							/>
-						</FormField>
-						<FormDescription>{field.description}</FormDescription>
-						<FormMessage>
-							{
-								newVeterinaryForm.formState.errors[field.name]
-									?.message
-							}
-						</FormMessage>
-					</FormItem>
+			<form
+				onSubmit={newVeterinaryForm.handleSubmit(onSubmit)}
+				className='space-y-8'>
+				{newVetFields.map((newVetField, index) => (
+					<FormField
+						control={newVeterinaryForm.control}
+						key={newVetField.name}
+						name={newVetField.name}
+						render={({ field, fieldState }) => {
+							return (
+								<FormControl>
+									<FormLabel>{newVetField.label}</FormLabel>
+									<Input
+										{...field}
+										placeholder={newVetField.placeholder}
+										name={newVetField.name}
+									/>
+									<FormDescription>
+										{newVetField.description}
+									</FormDescription>
+									<FormMessage>
+										{fieldState.error?.message}
+									</FormMessage>
+								</FormControl>
+							);
+						}}
+					/>
 				))}
-				<FormItem>
-					<FormLabel>Specialization</FormLabel>
-					<FormField>
-						<Select
-							name='specialization'
-							{...newVeterinaryForm.register('specialization')}>
-							<SelectTrigger>
-								<SelectValue>
-									{newVeterinaryForm.getValues(
-										'specialization',
-									)}
-								</SelectValue>
-							</SelectTrigger>
-							<SelectContent>
-								<SelectGroup>
-									<SelectLabel>Specialization</SelectLabel>
-									<SelectItem value='General'>
-										General
-									</SelectItem>
-									<SelectItem value='Surgery'>
-										Surgery
-									</SelectItem>
-									<SelectItem value='Dentistry'>
-										Dentistry
-									</SelectItem>
-									<SelectItem value='Dermatology'>
-										Dermatology
-									</SelectItem>
-									<SelectItem value='Internal Medicine'>
-										Internal Medicine
-									</SelectItem>
-									<SelectItem value='Oncology'>
-										Oncology
-									</SelectItem>
-									<SelectItem value='Ophthalmology'>
-										Ophthalmology
-									</SelectItem>
-									<SelectItem value='Radiology'>
-										Radiology
-									</SelectItem>
-									<SelectItem value='Rehabilitation'>
-										Rehabilitation
-									</SelectItem>
-									<SelectItem value='Behavior'>
-										Behavior
-									</SelectItem>
-									<SelectItem value='Cardiology'>
-										Cardiology
-									</SelectItem>
-									<SelectItem value='Neurology'>
-										Neurology
-									</SelectItem>
-									<SelectItem value='Nutrition'>
-										Nutrition
-									</SelectItem>
-									<SelectItem value='Pathology'>
-										Pathology
-									</SelectItem>
-								</SelectGroup>
-							</SelectContent>
-						</Select>
-					</FormField>
-					<FormMessage>
-						{
-							newVeterinaryForm.formState.errors['specialization']
-								?.message
-						}
-					</FormMessage>
-				</FormItem>
+				<FormField
+					name='specialization'
+					render={({ field, fieldState }) => {
+						return (
+							<FormControl>
+								<FormLabel>Specialization</FormLabel>
+								<Select
+									onValueChange={(value) =>
+										field.onChange(value)
+									}>
+									<SelectTrigger>
+										<SelectValue>
+											{field.value ||
+												'Select a specialization'}
+										</SelectValue>
+									</SelectTrigger>
+									<SelectContent>
+										<SelectGroup>
+											<SelectLabel>
+												Specialization
+											</SelectLabel>
+											{specializationOptions.map(
+												(option) => (
+													<SelectItem
+														key={option}
+														value={option}>
+														{option}
+													</SelectItem>
+												),
+											)}
+										</SelectGroup>
+									</SelectContent>
+								</Select>
+								<FormMessage>
+									{fieldState.error?.message}
+								</FormMessage>
+							</FormControl>
+						);
+					}}
+				/>
 			</form>
 		</Form>
 	);
