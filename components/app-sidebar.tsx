@@ -23,13 +23,9 @@ import {
 	SidebarHeader,
 	SidebarRail,
 } from '@/components/ui/sidebar';
+import { useAuthStore } from '@/store/authStore';
 
 const data = {
-	user: {
-		name: 'shadcn',
-		email: 'm@example.com',
-		avatar: '/avatars/shadcn.jpg',
-	},
 	teams: [
 		{
 			name: 'Acme Inc',
@@ -154,9 +150,14 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+	const userStore = useAuthStore();
+	const userData = {
+		name: userStore.user?.email,
+		email: userStore.user?.email,
+	};
 	return (
 		<Sidebar
-			collapsible='icon'
+			collapsible='offcanvas'
 			{...props}>
 			<SidebarHeader>
 				<TeamSwitcher teams={data.teams} />
@@ -165,7 +166,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 				<NavProjects projects={data.projects} />
 			</SidebarContent>
 			<SidebarFooter>
-				<NavUser user={data.user} />
+				<NavUser user={userData} />
 			</SidebarFooter>
 			<SidebarRail />
 		</Sidebar>

@@ -16,8 +16,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { NewClinicAccountSchema } from '@/lib/clinic-signup-definition';
 import { Checkbox } from '../ui/checkbox';
+import toast from 'react-hot-toast';
+import { createClinicAccount } from '@/actions/auth';
 
-function ClinicSignUp() {
+const ClinicSignUp = () => {
 	const clinicSignUpFields: {
 		label: string;
 		placeholder: string;
@@ -124,7 +126,23 @@ function ClinicSignUp() {
 		mode: 'onBlur',
 	});
 	const onSubmit = (values: z.infer<typeof NewClinicAccountSchema>) => {
-		console.log(values);
+		toast.promise(createClinicAccount(values), {
+			loading: 'Creating account...',
+			success: 'Successfully created account',
+			error: (error) => {
+				const errorMessage =
+					error instanceof Error ? error.message : String(error);
+
+				if (
+					errorMessage.includes(
+						'email_or_phone_number_already_exists',
+					)
+				) {
+					return 'Email or phone number already exists';
+				}
+				return errorMessage;
+			},
+		});
 	};
 	return (
 		<Form {...clinicSignUpForm}>
@@ -189,6 +207,6 @@ function ClinicSignUp() {
 			</form>
 		</Form>
 	);
-}
+};
 
 export default ClinicSignUp;

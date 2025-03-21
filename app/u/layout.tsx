@@ -12,7 +12,7 @@ async function UserLayout({
 		<div className='flex h-screen'>
 			<SessionProviderWrapper>
 				<SidebarProvider>
-					<AppSidebar />
+					<AppSidebar variant='floating' />
 				</SidebarProvider>
 				{children}
 			</SessionProviderWrapper>

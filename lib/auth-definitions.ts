@@ -28,7 +28,9 @@ export const SignUpSchema = z.object({
 		.min(8, { message: 'Password must be 8 characters long.' }),
 	confirm_password: z
 		.string()
-		.nonempty({})
+		.nonempty({
+			message: 'Confirm password is required',
+		})
 		.max(255)
 		.min(8, { message: 'Password must be 8 characters long.' }),
 	phone_number: z
