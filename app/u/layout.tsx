@@ -9,9 +9,9 @@ async function UserLayout({
 	children: React.ReactNode;
 }>) {
 	return (
-		<div className='flex h-screen'>
+		<div className='flex h-screen justify-start'>
 			<SessionProviderWrapper>
-				<SidebarProvider>
+				<SidebarProvider defaultOpen>
 					<AppSidebar variant='floating' />
 				</SidebarProvider>
 				{children}

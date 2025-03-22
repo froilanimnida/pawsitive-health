@@ -23,7 +23,7 @@ import {
 	FormItem,
 	FormLabel,
 	FormMessage,
-} from '../ui/form';
+} from '@/components/ui/form';
 import { VeterinarySpecialization } from '@/lib/types/constants';
 
 const NewVeterinaryForm = () => {
@@ -131,7 +131,7 @@ const NewVeterinaryForm = () => {
 									<FormDescription>
 										{newVetField.description}
 									</FormDescription>
-									<FormMessage>
+									<FormMessage className='text-red-500'>
 										{fieldState.error?.message}
 									</FormMessage>
 								</FormItem>
@@ -153,7 +153,9 @@ const NewVeterinaryForm = () => {
 										}}>
 										<SelectTrigger>
 											<SelectValue>
-												{field.value ||
+												{field.value
+													.toString()
+													.toUpperCase() ||
 													'Select a specialization'}
 											</SelectValue>
 										</SelectTrigger>
@@ -187,6 +189,7 @@ const NewVeterinaryForm = () => {
 						);
 					}}
 				/>
+				<Button type='submit'>Submit</Button>
 			</form>
 		</Form>
 	);

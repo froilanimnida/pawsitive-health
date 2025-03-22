@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import { useState } from 'react';
 import {
 	Form,
 	FormControl,
@@ -12,14 +12,16 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useForm } from 'react-hook-form';
-import { signIn } from 'next-auth/react';
+import { getSession, signIn, useSession } from 'next-auth/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { LoginSchema } from '@/lib/auth-definitions';
 import { z } from 'zod';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '@/store/authStore';
 
-function UserLoginForm() {
+const UserLoginForm = () => {
+	const [isLoading, setIsLoading] = useState(false);
+	const [isLoggedIn, setIsLoggedIn] = useState(false);
 	const loginFormFields: {
 		label: string;
 		placeholder: string;
@@ -51,6 +53,7 @@ function UserLoginForm() {
 	});
 
 	const onSubmit = async (values: z.infer<typeof LoginSchema>) => {
+		setIsLoading(true);
 		toast.promise(
 			async () => {
 				const result = await signIn('credentials', {
@@ -67,10 +70,20 @@ function UserLoginForm() {
 			},
 			{
 				loading: 'Signing in...',
-				success: 'Successfully signed in',
+				success: () => {
+					setIsLoggedIn(true);
+					return 'Successfully signed in';
+				},
 				error: 'Failed to sign in. Please check your credentials.',
 			},
 		);
+		setIsLoading(false);
+		if (isLoggedIn) {
+			const session = await getSession();
+			if (session) {
+				console.log('Session: ', session.user);
+			}
+		}
 	};
 
 	return (
@@ -104,13 +117,14 @@ function UserLoginForm() {
 					/>
 				))}
 				<Button
-					className='w-full'
+					disabled={isLoading}
+					className='w-full disabled:opacity-50'
 					type='submit'>
 					Login
 				</Button>
 			</form>
 		</Form>
 	);
-}
+};
 
 export default UserLoginForm;

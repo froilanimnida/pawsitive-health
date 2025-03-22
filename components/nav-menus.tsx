@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 
-export function NavProjects({
+export function NavMenus({
 	projects,
 }: {
 	projects: {

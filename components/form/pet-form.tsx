@@ -155,7 +155,7 @@ const AddPetForm = () => {
 				{ value: 'female', label: 'Female' },
 				{ value: 'prefer_not_to_say', label: 'Prefer not to say' },
 			],
-			defaultValue: 'prefer_not_to_say',
+			defaultValue: 'male',
 		},
 	];
 
@@ -182,15 +182,15 @@ const AddPetForm = () => {
 										{...field}
 										type={textField.type || 'text'}
 										placeholder={textField.placeholder}
-										{...(textField.type === 'number'
-											? {
-													onChange: (e) =>
-														field.onChange(
-															+e.target.value,
-														),
-													value: field.value,
-											  }
-											: {})}
+										{...(textField.type === 'number' ?
+											{
+												onChange: (e) =>
+													field.onChange(
+														+e.target.value,
+													),
+												value: field.value,
+											}
+										:	{})}
 									/>
 								</FormControl>
 								<FormDescription>
@@ -220,14 +220,12 @@ const AddPetForm = () => {
 													'text-muted-foreground',
 											)}>
 											<CalendarIcon className='mr-2 h-4 w-4' />
-											{field.value ? (
+											{field.value ?
 												format(
 													field.value,
 													'MM/dd/yyyy',
 												)
-											) : (
-												<span>Pick a date</span>
-											)}
+											:	<span>Pick a date</span>}
 										</Button>
 									</PopoverTrigger>
 									<PopoverContent className='w-auto p-0'>

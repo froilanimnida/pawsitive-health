@@ -346,3 +346,35 @@ enum veterinary_specialization {
   emergency_and_critical_care
   behaviorist
 }
+
+enum appointment_type {
+  wellness_exam
+  vaccination
+  sick_visit
+  follow_up
+  surgery
+  dental_cleaning
+  emergency
+  laboratory_work
+  imaging
+  grooming
+  physical_therapy
+  behavioral_consultation
+  nutrition_consultation
+  euthanasia
+  new_pet_consultation
+  senior_pet_care
+  parasite_control
+  microchipping
+  medication_refill
+  spay_neuter
+  allergy_testing
+  orthopedic_evaluation
+  ophthalmology
+  dermatology
+  cardiology
+  neurology
+  oncology
+  hospice_care
+  telemedicine
+}

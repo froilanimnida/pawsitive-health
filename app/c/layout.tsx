@@ -1,4 +1,4 @@
-import React from 'react';
+import { ReactNode } from 'react';
 import { AppSidebar } from '@/components/app-sidebar';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import SessionProviderWrapper from '@/context/session-provider-context';
@@ -6,7 +6,7 @@ import SessionProviderWrapper from '@/context/session-provider-context';
 async function ClientLayout({
 	children,
 }: Readonly<{
-	children: React.ReactNode;
+	children: ReactNode;
 }>) {
 	return (
 		<div className='min-h-screen flex'>
