@@ -18,6 +18,12 @@ import {
 	DialogTrigger,
 } from '@/components/ui/dialog';
 import AddPetForm from '@/components/form/pet-form';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+	title: 'PawsitiveHealth | User Pets',
+	description: 'PawsitiveHealth is a pet health care service.',
+};
 
 const PetList = () => {
 	const pets = [

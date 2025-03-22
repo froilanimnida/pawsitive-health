@@ -12,12 +12,11 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useForm } from 'react-hook-form';
-import { getSession, signIn, useSession } from 'next-auth/react';
+import { getSession, signIn } from 'next-auth/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { LoginSchema } from '@/lib/auth-definitions';
 import { z } from 'zod';
 import toast from 'react-hot-toast';
-import { useAuthStore } from '@/store/authStore';
 
 const UserLoginForm = () => {
 	const [isLoading, setIsLoading] = useState(false);

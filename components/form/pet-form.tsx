@@ -155,7 +155,7 @@ const AddPetForm = () => {
 				{ value: 'female', label: 'Female' },
 				{ value: 'prefer_not_to_say', label: 'Prefer not to say' },
 			],
-			defaultValue: 'male',
+			defaultValue: 'prefer_not_to_say',
 		},
 	];
 
@@ -247,10 +247,8 @@ const AddPetForm = () => {
 												field.onChange(dateOnly);
 											}}
 											initialFocus
-											toDate={new Date()}
-											toMonth={new Date()}
-											toYear={
-												new Date().getFullYear() + 1
+											disabled={(date) =>
+												date > new Date()
 											}
 											className='bg-white'
 										/>

@@ -2,15 +2,12 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { VeterinarianSchema } from '@/lib/veterinarian-definition';
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import {
 	Select,
 	SelectContent,
-	SelectGroup,
 	SelectItem,
-	SelectLabel,
 	SelectValue,
 	SelectTrigger,
 } from '@/components/ui/select';
@@ -26,8 +23,17 @@ import {
 } from '@/components/ui/form';
 import { AppointmentType } from '@/lib/types/constants';
 import { AppointmentSchema } from '@/lib/appointment-definition';
+import { cn } from '@/lib/utils';
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { Calendar as CalendarIcon } from 'lucide-react';
+import { format } from 'date-fns';
 
-function AppointmentForm() {
+const AppointmentForm = () => {
 	const newAppointmentFields: {
 		label: string;
 		placeholder: string;
@@ -53,6 +59,8 @@ function AppointmentForm() {
 		name: 'appointment_type' | 'vet_id' | 'pet_id';
 		description: string;
 		options: string[];
+		defaultValue?: string;
+		onChange?: (value: string) => void;
 	}[] = [
 		{
 			label: 'Appointment Type',
@@ -60,6 +68,9 @@ function AppointmentForm() {
 			name: 'appointment_type',
 			description: 'The type of the appointment.',
 			options: Object.values(AppointmentType),
+			defaultValue: AppointmentType.BehavioralConsultation,
+			onChange: (value) =>
+				newAppointmentForm.setValue('appointment_type', value),
 		},
 		{
 			label: 'Veterinarian',
@@ -67,6 +78,8 @@ function AppointmentForm() {
 			name: 'vet_id',
 			description: 'The veterinarian of the appointment.',
 			options: ['John Doe', 'Jane Doe'],
+			defaultValue: 'John Doe',
+			onChange: (value) => newAppointmentForm.setValue('vet_id', value),
 		},
 		{
 			label: 'Pet',
@@ -74,6 +87,8 @@ function AppointmentForm() {
 			name: 'pet_id',
 			description: 'The pet of the appointment.',
 			options: ['Buddy', 'Milo', 'Charlie', 'Max'],
+			defaultValue: 'Buddy',
+			onChange: (value) => newAppointmentForm.setValue('pet_id', value),
 		},
 	];
 	const newAppointmentForm = useForm({
@@ -96,6 +111,67 @@ function AppointmentForm() {
 			<form
 				onSubmit={newAppointmentForm.handleSubmit(onSubmit)}
 				className='space-y-8'>
+				<FormField
+					name='appointment_date'
+					control={newAppointmentForm.control}
+					render={({ field, fieldState }) => (
+						<FormItem>
+							<FormLabel>Date of Birth</FormLabel>
+							<FormControl>
+								<Popover>
+									<PopoverTrigger asChild>
+										<Button
+											variant='outline'
+											className={cn(
+												'w-full justify-start text-left font-normal',
+												!field.value &&
+													'text-muted-foreground',
+											)}>
+											<CalendarIcon className='mr-2 h-4 w-4' />
+											{field.value ?
+												format(
+													field.value,
+													'MM/dd/yyyy',
+												)
+											:	<span>Pick a date</span>}
+										</Button>
+									</PopoverTrigger>
+									<PopoverContent className='w-auto p-0'>
+										<Calendar
+											mode='single'
+											selected={field.value}
+											onSelect={(date) => {
+												if (!date) {
+													field.onChange(null);
+													return;
+												}
+
+												const dateOnly = new Date(
+													date.getFullYear(),
+													date.getMonth(),
+													date.getDate(),
+												);
+
+												field.onChange(dateOnly);
+											}}
+											initialFocus
+											disabled={(date) =>
+												date < new Date()
+											}
+											className='bg-white'
+										/>
+									</PopoverContent>
+								</Popover>
+							</FormControl>
+							<FormDescription>
+								Enter the date of the appointment.
+							</FormDescription>
+							<FormMessage>
+								{fieldState.error?.message}
+							</FormMessage>
+						</FormItem>
+					)}
+				/>
 				{newAppointmentFields.map((newAppointmentField) => {
 					return (
 						<FormField
@@ -129,53 +205,73 @@ function AppointmentForm() {
 						/>
 					);
 				})}
-				{newAppointmentSelectFields.map((newAppointmentSelectField) => {
-					return (
-						<FormField
-							key={newAppointmentSelectField.name}
-							control={newAppointmentForm.control}
-							name={newAppointmentSelectField.name}
-							render={({ field }) => {
-								return (
-									<FormItem>
-										<FormLabel>
-											{newAppointmentSelectField.label}
-										</FormLabel>
-										<Select {...field}>
+				{newAppointmentSelectFields.map((newAppointmentSelectField) => (
+					<FormField
+						key={newAppointmentSelectField.name}
+						control={newAppointmentForm.control}
+						name={newAppointmentSelectField.name}
+						render={({ field, fieldState }) => {
+							return (
+								<FormItem>
+									<FormLabel>
+										{newAppointmentSelectField.label}
+									</FormLabel>
+									<Select
+										onValueChange={(value) => {
+											field.onChange(value);
+											if (
+												newAppointmentSelectField.onChange
+											)
+												newAppointmentSelectField.onChange(
+													value,
+												);
+										}}
+										value={field.value}
+										defaultValue={
+											field.value ||
+											newAppointmentSelectField.defaultValue
+										}>
+										<FormControl>
 											<SelectTrigger>
-												<Button variant='outline'>
-													{
-														newAppointmentSelectField.placeholder
+												<SelectValue
+													placeholder={
+														field.value
+															.toString()
+															.toUpperCase() ||
+														'Select an option'
 													}
-												</Button>
+												/>
 											</SelectTrigger>
-											<SelectContent>
-												{newAppointmentSelectField.options.map(
-													(option) => {
-														return (
-															<SelectGroup
-																key={option}>
-																<SelectLabel>
-																	{option}
-																</SelectLabel>
-																<SelectValue>
-																	{option}
-																</SelectValue>
-															</SelectGroup>
-														);
-													},
-												)}
-											</SelectContent>
-										</Select>
-									</FormItem>
-								);
-							}}
-						/>
-					);
-				})}
+										</FormControl>
+										<SelectContent>
+											{newAppointmentSelectField.options.map(
+												(option) => {
+													return (
+														<SelectItem
+															key={option}
+															value={option}>
+															{option}
+														</SelectItem>
+													);
+												},
+											)}
+										</SelectContent>
+									</Select>
+									<FormDescription>
+										{newAppointmentSelectField.description}
+									</FormDescription>
+									<FormMessage>
+										{fieldState.error?.message}
+									</FormMessage>
+								</FormItem>
+							);
+						}}
+					/>
+				))}
+				<Button type='submit'>Add Appointment</Button>
 			</form>
 		</Form>
 	);
-}
+};
 
 export default AppointmentForm;

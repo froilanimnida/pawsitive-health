@@ -7,7 +7,7 @@ import {
 	CreditCard,
 	Sparkles,
 } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -21,7 +21,6 @@ import {
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
-	useSidebar,
 } from '@/components/ui/sidebar';
 import LogoutButton from './shared/logout';
 import { useAuthStore } from '@/store/authStore';
@@ -34,7 +33,6 @@ export function NavUser({
 		email: string;
 	};
 }) {
-	const { isMobile } = useSidebar();
 	const store = useAuthStore();
 	console.log(store.user.email);
 
