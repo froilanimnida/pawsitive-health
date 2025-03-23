@@ -130,6 +130,13 @@ enum AppointmentType {
 	Telemedicine = 'telemedicine',
 }
 
+enum Role {
+	User = 'user',
+	Admin = 'admin',
+	Veterinarian = 'veterinarian',
+	Client = 'client',
+}
+
 export {
 	BreedType,
 	PetSexType,
@@ -137,4 +144,5 @@ export {
 	UserRoleType,
 	VeterinarySpecialization,
 	AppointmentType,
+	Role,
 };

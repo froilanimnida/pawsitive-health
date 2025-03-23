@@ -327,12 +327,6 @@ enum species_type {
   cat
 }
 
-enum user_role_type {
-  user
-  vet
-  admin
-}
-
 enum veterinary_specialization {
   general_practitioner
   surgeon

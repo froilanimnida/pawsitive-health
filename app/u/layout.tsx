@@ -1,6 +1,5 @@
 import React from 'react';
 import { AppSidebar } from '@/components/app-sidebar';
-import { SidebarProvider } from '@/components/ui/sidebar';
 
 async function UserLayout({
 	children,
@@ -9,9 +8,7 @@ async function UserLayout({
 }>) {
 	return (
 		<div className='flex h-screen justify-start'>
-			<SidebarProvider defaultOpen>
-				<AppSidebar variant='floating' />
-			</SidebarProvider>
+			<AppSidebar variant='floating' />
 			{children}
 		</div>
 	);

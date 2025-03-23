@@ -1,13 +1,15 @@
-'use client';
-import { useSession } from 'next-auth/react';
+import type { Metadata } from 'next';
 
-function UserDashboard() {
-	const { data: session } = useSession();
+export const metadata: Metadata = {
+	title: 'PawsitiveHealth | User Dashboard',
+	description: 'User dashboard for PawsitiveHealth.',
+};
 
+const UserDashboard = () => {
 	return (
 		<div>
-			<h1>Welcome, {session?.user?.name || 'Guest'}!</h1>
-			<p>Your role: {session?.user?.role || 'No role assigned'}</p>
+			{/* <h1>Welcome, {session?.user?.name || 'Guest'}!</h1>
+			<p>Your role: {session?.user?.role || 'No role assigned'}</p> */}
 		</div>
 	);
 }
