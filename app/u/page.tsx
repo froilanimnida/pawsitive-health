@@ -1,13 +1,15 @@
-import { AppSidebar } from '@/components/app-sidebar';
-import { SidebarProvider } from '@/components/ui/sidebar';
-import React from 'react';
+import type { Metadata } from 'next';
 
-function UserDashboard() {
+export const metadata: Metadata = {
+	title: 'PawsitiveHealth | User Dashboard',
+	description: 'User dashboard for PawsitiveHealth.',
+};
+
+const UserDashboard = () => {
 	return (
 		<div>
-			<SidebarProvider>
-				<AppSidebar />
-			</SidebarProvider>
+			{/* <h1>Welcome, {session?.user?.name || 'Guest'}!</h1>
+			<p>Your role: {session?.user?.role || 'No role assigned'}</p> */}
 		</div>
 	);
 }

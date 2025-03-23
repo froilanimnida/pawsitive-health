@@ -1,139 +1,19 @@
 'use client';
 
 import * as React from 'react';
-import {
-	AudioWaveform,
-	BookOpen,
-	Bot,
-	Command,
-	GalleryVerticalEnd,
-	Settings2,
-	SquareTerminal,
-	Dog,
-	BookmarkCheckIcon,
-} from 'lucide-react';
+import { Settings2, Dog, BookmarkCheckIcon, Stethoscope } from 'lucide-react';
 
-import { NavProjects } from '@/components/nav-projects';
+import { NavMenus } from '@/components/nav-menus';
 import { NavUser } from '@/components/nav-user';
-import { TeamSwitcher } from '@/components/team-switcher';
 import {
 	Sidebar,
 	SidebarContent,
 	SidebarFooter,
-	SidebarHeader,
 	SidebarRail,
 } from '@/components/ui/sidebar';
+import { useSession } from 'next-auth/react';
 
 const data = {
-	user: {
-		name: 'shadcn',
-		email: 'm@example.com',
-		avatar: '/avatars/shadcn.jpg',
-	},
-	teams: [
-		{
-			name: 'Acme Inc',
-			logo: GalleryVerticalEnd,
-			plan: 'Enterprise',
-		},
-		{
-			name: 'Acme Corp.',
-			logo: AudioWaveform,
-			plan: 'Startup',
-		},
-		{
-			name: 'Evil Corp.',
-			logo: Command,
-			plan: 'Free',
-		},
-	],
-	navMain: [
-		{
-			title: 'Playground',
-			url: '#',
-			icon: SquareTerminal,
-			isActive: true,
-			items: [
-				{
-					title: 'History',
-					url: '#',
-				},
-				{
-					title: 'Starred',
-					url: '#',
-				},
-				{
-					title: 'Settings',
-					url: '#',
-				},
-			],
-		},
-		{
-			title: 'Models',
-			url: '#',
-			icon: Bot,
-			items: [
-				{
-					title: 'Genesis',
-					url: '#',
-				},
-				{
-					title: 'Explorer',
-					url: '#',
-				},
-				{
-					title: 'Quantum',
-					url: '#',
-				},
-			],
-		},
-		{
-			title: 'Documentation',
-			url: '#',
-			icon: BookOpen,
-			items: [
-				{
-					title: 'Introduction',
-					url: '#',
-				},
-				{
-					title: 'Get Started',
-					url: '#',
-				},
-				{
-					title: 'Tutorials',
-					url: '#',
-				},
-				{
-					title: 'Changelog',
-					url: '#',
-				},
-			],
-		},
-		{
-			title: 'Settings',
-			url: '#',
-			icon: Settings2,
-			items: [
-				{
-					title: 'General',
-					url: '#',
-				},
-				{
-					title: 'Team',
-					url: '#',
-				},
-				{
-					title: 'Billing',
-					url: '#',
-				},
-				{
-					title: 'Limits',
-					url: '#',
-				},
-			],
-		},
-	],
 	projects: [
 		{
 			name: 'My Pets',
@@ -153,19 +33,79 @@ const data = {
 	],
 };
 
+const userNavLinks = [
+	{
+		name: 'Settings',
+		url: '/u/settings',
+		icon: Settings2,
+	},
+	{
+		name: 'My Pets',
+		url: '/u/pets',
+		icon: Dog,
+	},
+	{
+		name: 'My Booking',
+		url: '/u/appointments',
+		icon: BookmarkCheckIcon,
+	},
+];
+
+const vetNavLinks = [
+	{
+		name: 'My Pets',
+		url: '/v/pets',
+		icon: Dog,
+	},
+	{
+		name: 'My Booking',
+		url: '/v/appointments',
+		icon: BookmarkCheckIcon,
+	},
+];
+
+const clientNavLinks = [
+	{
+		name: 'Clinic Appointments',
+		url: '/c/appointments',
+		icon: BookmarkCheckIcon,
+	},
+	{
+		name: 'Veterinaries',
+		url: '/c/vets',
+		icon: Stethoscope,
+	},
+];
+
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+	const { data: session } = useSession();
+	const userData = {
+		name: session?.user?.name ?? '',
+		email: session?.user?.email ?? '',
+		role: session?.user?.role ?? '',
+	};
+
+	const getNavLinks = () => {
+		if (session?.user?.role === 'user') {
+			return userNavLinks;
+		} else if (session?.user?.role === 'veterinarian') {
+			return vetNavLinks;
+		} else if (session?.user?.role === 'client') {
+			return clientNavLinks;
+		} else {
+			return data.projects; // Fallback to default links
+		}
+	};
+
 	return (
 		<Sidebar
-			collapsible='icon'
+			collapsible='offcanvas'
 			{...props}>
-			<SidebarHeader>
-				<TeamSwitcher teams={data.teams} />
-			</SidebarHeader>
 			<SidebarContent>
-				<NavProjects projects={data.projects} />
+				<NavMenus projects={getNavLinks()} />
 			</SidebarContent>
 			<SidebarFooter>
-				<NavUser user={data.user} />
+				<NavUser user={userData} />
 			</SidebarFooter>
 			<SidebarRail />
 		</Sidebar>
