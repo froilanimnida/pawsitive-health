@@ -11,7 +11,6 @@ import {
 	SidebarFooter,
 	SidebarRail,
 } from '@/components/ui/sidebar';
-import { useAuthStore } from '@/store/authStore';
 import { useSession } from 'next-auth/react';
 
 const data = {

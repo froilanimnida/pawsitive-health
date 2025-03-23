@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextRequest } from 'next/server';
 
-export default function middleware(request: NextRequest) {
+export default async function middleware(request: NextRequest) {
 	const PROTECTED_ROUTES = ['/u', '/a', '/d', '/c'];
 	const token = request.cookies.get('next-auth.session-token');
 	const isAuthPage = request.nextUrl.pathname.startsWith('/auth');
@@ -20,11 +20,5 @@ export default function middleware(request: NextRequest) {
 
 // See "Matching Paths" below to learn more
 export const config = {
-	matcher: [
-		'/auth/login',
-		'/u/:path*',
-		'/a/:path*',
-		'/d/:path*',
-		'/c/:path*',
-	],
+	matcher: ['/u/:path*', '/a/:path*', '/d/:path*', '/c/:path*'],
 };
