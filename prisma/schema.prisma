@@ -119,7 +119,7 @@ model notifications {
 model pets {
   pet_id             Int                 @id @default(autoincrement())
   user_id            Int?
-  pet_uuid           String              @db.Uuid
+  pet_uuid           String              @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   name               String              @db.VarChar(100)
   species            species_type?
   breed              breed_type?
