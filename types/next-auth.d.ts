@@ -7,9 +7,7 @@ interface IUser extends DefaultUser {
 	 * Role of user
 	 */
 	role?: Role;
-	/**
-	 * Field to check whether a user has a subscription
-	 */
+	id: string;
 }
 declare module 'next-auth' {
 	interface User extends IUser {}

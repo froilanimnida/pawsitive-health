@@ -32,6 +32,9 @@ import { format } from 'date-fns';
 import { PetSchema } from '@/lib/pet-definition';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { z } from 'zod';
+import toast from 'react-hot-toast';
+import { addPet } from '@/actions/pets';
+import { useSession } from 'next-auth/react';
 
 const AddPetForm = () => {
 	const [selectedBreed, setSelectedBreed] = useState<string | undefined>(
@@ -158,10 +161,14 @@ const AddPetForm = () => {
 			defaultValue: 'prefer_not_to_say',
 		},
 	];
+	const session = useSession();
 
 	const onSubmit = (values: z.infer<typeof PetSchema>) => {
-		alert('Form submitted! Check the console for the values');
-		console.log('Form submitted:', values);
+		toast.promise(addPet(values, Number(session.data?.user?.id)), {
+			loading: 'Adding pet...',
+			success: 'Pet added successfully',
+			error: 'Failed to add pet',
+		});
 	};
 
 	return (
