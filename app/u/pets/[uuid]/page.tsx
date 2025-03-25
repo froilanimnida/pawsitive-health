@@ -2,14 +2,21 @@ import React from 'react';
 import { notFound } from 'next/navigation';
 import { getPet } from '@/actions/pets';
 import { Metadata } from 'next';
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardFooter,
+	CardHeader,
+	CardTitle,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
-// Generate metadata dynamically
 export const metadata: Metadata = {
 	title: 'PawsitiveHealth | Pet Details',
 	description: 'Pet details page',
 };
 
-// Server Component with params access
 async function PetDetails({ params }: { params: { uuid: string } }) {
 	const uuid = params.uuid;
 	if (!uuid) {
@@ -24,68 +31,89 @@ async function PetDetails({ params }: { params: { uuid: string } }) {
 
 	return (
 		<div className='container mx-auto p-6'>
-			<div className='bg-white shadow-md rounded-lg p-6'>
-				<h1 className='text-2xl font-bold mb-4'>{pet.name}</h1>
+			<Card className='w-full'>
+				<CardHeader>
+					<CardTitle className='text-2xl'>{pet.name}</CardTitle>
+					<CardDescription>
+						{pet.species} • {pet.breed?.replace(/_/g, ' ')}
+					</CardDescription>
+				</CardHeader>
 
-				<div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-					<div>
-						<h2 className='text-xl font-semibold mb-2'>
-							Pet Information
-						</h2>
-						<div className='space-y-2'>
-							<p>
-								<span className='font-medium'>Species:</span>{' '}
-								{pet.species}
-							</p>
-							<p>
-								<span className='font-medium'>Breed:</span>{' '}
-								{pet.breed?.replace(/_/g, ' ')}
-							</p>
-							<p>
-								<span className='font-medium'>Sex:</span>{' '}
-								{pet.sex}
-							</p>
-							{pet.date_of_birth && (
-								<p>
-									<span className='font-medium'>
-										Date of Birth:
-									</span>{' '}
-									{new Date(
-										pet.date_of_birth,
-									).toLocaleDateString()}
-								</p>
-							)}
-							<p>
-								<span className='font-medium'>Weight:</span>{' '}
-								{pet.weight_kg?.toString()} kg
-							</p>
+				<CardContent>
+					<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+						<div className='space-y-4'>
+							<h3 className='text-lg font-semibold'>
+								Pet Information
+							</h3>
+							<div className='grid grid-cols-2 gap-2'>
+								<div className='text-sm font-medium text-muted-foreground'>
+									Species
+								</div>
+								<div>{pet.species}</div>
+
+								<div className='text-sm font-medium text-muted-foreground'>
+									Breed
+								</div>
+								<div>{pet.breed?.replace(/_/g, ' ')}</div>
+
+								<div className='text-sm font-medium text-muted-foreground'>
+									Sex
+								</div>
+								<div>{pet.sex}</div>
+
+								{pet.date_of_birth && (
+									<>
+										<div className='text-sm font-medium text-muted-foreground'>
+											Date of Birth
+										</div>
+										<div>
+											{new Date(
+												pet.date_of_birth,
+											).toLocaleDateString()}
+										</div>
+									</>
+								)}
+
+								<div className='text-sm font-medium text-muted-foreground'>
+									Weight
+								</div>
+								<div>{pet.weight_kg?.toString()} kg</div>
+							</div>
 						</div>
-					</div>
 
-					<div>
-						<h2 className='text-xl font-semibold mb-2'>
-							Medical Information
-						</h2>
-						<div className='space-y-2'>
-							<p>
-								<span className='font-medium'>
-									Vaccination Status:
-								</span>{' '}
-								{pet.vaccination_status || 'Unknown'}
-							</p>
-							<div>
-								<span className='font-medium'>
-									Medical History:
-								</span>
-								<p className='mt-1'>
-									{pet.medical_history ||
-										'No medical history available'}
-								</p>
+						<div className='space-y-4'>
+							<h3 className='text-lg font-semibold'>
+								Medical Information
+							</h3>
+							<div className='space-y-3'>
+								<div>
+									<div className='text-sm font-medium text-muted-foreground'>
+										Vaccination Status
+									</div>
+									<div className='mt-1'>
+										{pet.vaccination_status || 'Unknown'}
+									</div>
+								</div>
+
+								<div>
+									<div className='text-sm font-medium text-muted-foreground'>
+										Medical History
+									</div>
+									<div className='mt-1 text-sm'>
+										{pet.medical_history ||
+											'No medical history available'}
+									</div>
+								</div>
 							</div>
 						</div>
 					</div>
-				</div>
-			</div>
+				</CardContent>
+
+				<CardFooter className='flex justify-between'>
+					<Button variant='outline'>Edit Pet</Button>
+					<Button variant='default'>Schedule Appointment</Button>
+				</CardFooter>
+			</Card>
 		</div>
 	);
 }
