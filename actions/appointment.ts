@@ -1,6 +1,12 @@
 'use server';
 import { auth } from '@/auth';
-import { PrismaClient } from '@prisma/client';
+import { AppointmentSchema } from '@/lib/appointment-definition';
+import {
+	PrismaClient,
+	type appointment_status,
+	type appointment_type,
+} from '@prisma/client';
+import type { z } from 'zod';
 
 const getUserAppointments = async () => {
 	const session = await auth();
@@ -25,6 +31,28 @@ const getUserAppointments = async () => {
 	});
 
 	return Promise.resolve(appointments);
+};
+
+const createUserAppointment = async (
+	values: z.infer<typeof AppointmentSchema>,
+) => {
+	const session = await auth();
+	if (!session || !session.user || !session.user.email) {
+		throw new Error('User not found');
+	}
+	const prisma = new PrismaClient();
+	const appointment = await prisma.appointments.create({
+		data: {
+			appointment_date: values.appointment_date,
+			appointment_type: values.appointment_type as appointment_type,
+			status: values.status as appointment_status,
+			notes: values.notes,
+			pet_id: Number(values.pet_id),
+			vet_id: Number(values.vet_id),
+		},
+	});
+
+	return Promise.resolve(appointment);
 };
 
 export { getUserAppointments };

@@ -30,11 +30,12 @@ export const config = {
 					id: userData.user_id.toString(),
 					email: userData.email,
 					role: userData.role as Role,
-					name: userData.first_name
-						? `${userData.first_name} ${
+					name:
+						userData.first_name ?
+							`${userData.first_name} ${
 								userData.last_name || ''
-						  }`.trim()
-						: null,
+							}`.trim()
+						:	null,
 				};
 			},
 		}),

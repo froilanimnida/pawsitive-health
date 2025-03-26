@@ -18,6 +18,7 @@ import { NewClinicAccountSchema } from '@/lib/clinic-signup-definition';
 import { Checkbox } from '../ui/checkbox';
 import toast from 'react-hot-toast';
 import { createClinicAccount } from '@/actions/auth';
+import { OperatingHoursField } from './operating-hours-field';
 
 const ClinicSignUp = () => {
 	const clinicSignUpFields: {
@@ -119,6 +120,14 @@ const ClinicSignUp = () => {
 			email: '',
 			password: '',
 			confirm_password: '',
+			operating_hours: Array(7)
+				.fill(0)
+				.map((_, i) => ({
+					day_of_week: i,
+					opens_at: '09:00',
+					closes_at: '17:00',
+					is_closed: i === 0 || i === 6,
+				})),
 		},
 		resolver: zodResolver(NewClinicAccountSchema),
 		progressive: true,
@@ -161,11 +170,13 @@ const ClinicSignUp = () => {
 									<Input
 										required
 										type={
-											clinicSignUpField.name.includes(
-												'password',
-											)
-												? 'password'
-												: 'text'
+											(
+												clinicSignUpField.name.includes(
+													'password',
+												)
+											) ?
+												'password'
+											:	'text'
 										}
 										placeholder={
 											clinicSignUpField.placeholder
@@ -203,6 +214,7 @@ const ClinicSignUp = () => {
 						</FormItem>
 					)}
 				/>
+				<OperatingHoursField />
 				<Button type='submit'>Sign Up</Button>
 			</form>
 		</Form>

@@ -102,7 +102,7 @@ const AppointmentForm = () => {
 		defaultValues: {
 			status: '',
 			notes: '',
-			appointment_type: '',
+			appointment_type: appointment_type.behavioral_consultation,
 			vet_id: '',
 			pet_id: '',
 		},
