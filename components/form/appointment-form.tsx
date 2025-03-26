@@ -143,7 +143,7 @@ const AppointmentForm = ({
 					control={newAppointmentForm.control}
 					render={({ field, fieldState }) => (
 						<FormItem>
-							<FormLabel>Date of Birth</FormLabel>
+							<FormLabel>Appointment Date</FormLabel>
 							<FormControl>
 								<Popover>
 									<PopoverTrigger asChild>
