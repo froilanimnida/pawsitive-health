@@ -21,7 +21,7 @@ import {
 	FormLabel,
 	FormMessage,
 } from '@/components/ui/form';
-import { AppointmentType } from '@/lib/types/constants';
+import { appointment_type } from '@prisma/client';
 import { AppointmentSchema } from '@/lib/appointment-definition';
 import { cn } from '@/lib/utils';
 import {
@@ -39,18 +39,21 @@ const AppointmentForm = () => {
 		placeholder: string;
 		name: 'status' | 'notes';
 		description: string;
+		required: boolean;
 	}[] = [
 		{
 			label: 'Status',
 			placeholder: 'Status',
 			name: 'status',
 			description: 'The status of the appointment.',
+			required: true,
 		},
 		{
 			label: 'Notes',
 			placeholder: 'Notes',
 			name: 'notes',
 			description: 'The notes of the appointment.',
+			required: true,
 		},
 	];
 	const newAppointmentSelectFields: {
@@ -61,16 +64,18 @@ const AppointmentForm = () => {
 		options: string[];
 		defaultValue?: string;
 		onChange?: (value: string) => void;
+		required: boolean;
 	}[] = [
 		{
 			label: 'Appointment Type',
 			placeholder: 'Appointment Type',
 			name: 'appointment_type',
 			description: 'The type of the appointment.',
-			options: Object.values(AppointmentType),
-			defaultValue: AppointmentType.BehavioralConsultation,
+			options: Object.values(appointment_type),
+			defaultValue: appointment_type.behavioral_consultation,
 			onChange: (value) =>
 				newAppointmentForm.setValue('appointment_type', value),
+			required: true,
 		},
 		{
 			label: 'Veterinarian',
@@ -80,6 +85,7 @@ const AppointmentForm = () => {
 			options: ['John Doe', 'Jane Doe'],
 			defaultValue: 'John Doe',
 			onChange: (value) => newAppointmentForm.setValue('vet_id', value),
+			required: true,
 		},
 		{
 			label: 'Pet',
@@ -89,6 +95,7 @@ const AppointmentForm = () => {
 			options: ['Buddy', 'Milo', 'Charlie', 'Max'],
 			defaultValue: 'Buddy',
 			onChange: (value) => newAppointmentForm.setValue('pet_id', value),
+			required: true,
 		},
 	];
 	const newAppointmentForm = useForm({
@@ -139,6 +146,7 @@ const AppointmentForm = () => {
 									<PopoverContent className='w-auto p-0'>
 										<Calendar
 											mode='single'
+											required
 											selected={field.value}
 											onSelect={(date) => {
 												if (!date) {
@@ -187,6 +195,9 @@ const AppointmentForm = () => {
 										<FormControl>
 											<Input
 												{...field}
+												required={
+													newAppointmentField.required
+												}
 												type='text'
 												placeholder={
 													newAppointmentField.placeholder
@@ -217,6 +228,9 @@ const AppointmentForm = () => {
 										{newAppointmentSelectField.label}
 									</FormLabel>
 									<Select
+										required={
+											newAppointmentSelectField.required
+										}
 										onValueChange={(value) => {
 											field.onChange(value);
 											if (

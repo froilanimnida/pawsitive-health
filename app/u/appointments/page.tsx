@@ -1,4 +1,3 @@
-import { AppointmentType } from '@/lib/types/constants';
 import React, { Suspense } from 'react';
 import {
 	Card,
@@ -20,94 +19,42 @@ import {
 import { SkeletonCard } from '@/components/ui/skeleton-card';
 import AppointmentForm from '@/components/form/appointment-form';
 import type { Metadata } from 'next';
+import { getUserAppointments } from '@/actions/appointment';
 
 export const metadata: Metadata = {
 	title: 'PawsitiveHealth | Appointments',
 	description: 'PawsitiveHealth is a pet health care service.',
 };
 
-const AppointmentsHistory = () => {
-	const sampleAppointments: {
-		pet_name: string;
-		vet_name: string;
-		appointment_date: string;
-		appointment_type: AppointmentType;
-		status: string;
-		notes: string;
-	}[] = [
-		{
-			pet_name: 'Buddy',
-			vet_name: 'John Doe',
-			appointment_date: '2021-08-01',
-			appointment_type: AppointmentType.BehavioralConsultation,
-			status: 'Completed',
-			notes: 'Buddy is doing well',
-		},
-		{
-			pet_name: 'Milo',
-			vet_name: 'Jane Doe',
-			appointment_date: '2021-08-02',
-			appointment_type: AppointmentType.Vaccination,
-			status: 'Completed',
-			notes: 'Milo is healthy',
-		},
-		{
-			pet_name: 'Charlie',
-			vet_name: 'John Doe',
-			appointment_date: '2021-08-03',
-			appointment_type: AppointmentType.Euthanasia,
-			status: 'Completed',
-			notes: 'Charlie is doing well',
-		},
-		{
-			pet_name: 'Max',
-			vet_name: 'Jane Doe',
-			appointment_date: '2021-08-04',
-			appointment_type: AppointmentType.Vaccination,
-			status: 'Completed',
-			notes: 'Max is healthy',
-		},
-		{
-			pet_name: 'Max',
-			vet_name: 'John Doe',
-			appointment_date: '2021-08-05',
-			appointment_type: AppointmentType.SeniorPetCare,
-			status: 'Completed',
-			notes: 'Max is doing well',
-		},
-		{
-			pet_name: 'Max',
-			vet_name: 'Jane Doe',
-			appointment_date: '2021-08-06',
-			appointment_type: AppointmentType.LaboratoryWork,
-			status: 'Completed',
-			notes: 'Max is healthy',
-		},
-		{
-			pet_name: 'Max',
-			vet_name: 'John Doe',
-			appointment_date: '2021-08-07',
-			appointment_type: AppointmentType.ParasiteControl,
-			status: 'Completed',
-			notes: 'Max is doing well',
-		},
-	];
+const AppointmentsHistory = async () => {
+	const appointments = await getUserAppointments();
+	if (!appointments || appointments.length === 0) {
+		return (
+			<div className='text-center py-10 w-full mx-auto'>
+				<h3 className='text-lg font-medium'>No appointments found</h3>
+				<p className='text-muted-foreground'>
+					Add your first appointment to get started
+				</p>
+			</div>
+		);
+	}
 
 	return (
 		<div className='grid grid-cols-1 md:grid-cols-3 w-full lg:grid-cols-4 gap-4'>
-			{sampleAppointments.map((appointment, index) => (
-				<Card key={index}>
+			{appointments.map((appointment) => (
+				<Card key={appointment.appointment_id}>
 					<CardHeader>
-						<CardTitle>{appointment.pet_name}</CardTitle>
+						<CardTitle>{appointment.pets?.name}</CardTitle>
 						<CardDescription>
-							{appointment.vet_name}
+							{appointment.veterinarians?.users?.first_name}{' '}
+							{appointment.veterinarians?.users?.last_name}
 						</CardDescription>
 					</CardHeader>
 					<CardContent>
 						<div className='flex flex-col space-y-2'>
 							<div>
 								<span className='font-semibold'>Date:</span>{' '}
-								{appointment.appointment_date}
+								{appointment.appointment_date.toDateString()}
 							</div>
 							<div>
 								<span className='font-semibold'>Type:</span>{' '}
@@ -134,7 +81,7 @@ const AppointmentsHistory = () => {
 
 function Appointments() {
 	return (
-		<section className='p-4 w-full'>
+		<section className='p-4 w-full min-h-screen'>
 			<Suspense fallback={<SkeletonCard />}>
 				<AppointmentsHistory />
 			</Suspense>

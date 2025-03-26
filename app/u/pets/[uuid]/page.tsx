@@ -1,7 +1,7 @@
 import React from 'react';
 import { notFound } from 'next/navigation';
 import { getPet } from '@/actions/pets';
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
 import {
 	Card,
 	CardContent,
@@ -12,13 +12,29 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
-export const metadata: Metadata = {
-	title: 'PawsitiveHealth | Pet Details',
-	description: 'Pet details page',
-};
+export async function generateMetadata({
+	params,
+}: {
+	params: Promise<{ uuid: string }>;
+}): Promise<Metadata> {
+	const { uuid } = await params;
+	const pet = await getPet(uuid);
+	return {
+		title:
+			pet ?
+				`${pet.name.toUpperCase()} | ${pet.breed?.replaceAll('_', ' ').toUpperCase()} | PawsitiveHealth`
+			:	'Pet Details | PawsitiveHealth',
+		description: pet ? `Details for ${pet.name}` : 'Pet details page',
+	};
+}
 
-async function PetDetails({ params }: { params: { uuid: string } }) {
-	const uuid = params.uuid;
+export default async function PetDetails({
+	params,
+}: {
+	params: Promise<{ uuid: string }>;
+}) {
+	const { uuid } = await params;
+
 	if (!uuid) {
 		notFound();
 	}
@@ -117,5 +133,3 @@ async function PetDetails({ params }: { params: { uuid: string } }) {
 		</div>
 	);
 }
-
-export default PetDetails;

@@ -12,9 +12,9 @@ model appointments {
   appointment_uuid String         @default(dbgenerated("uuid_generate_v4()")) @db.Uuid @unique
   pet_id           Int?
   vet_id           Int?
-  appointment_date DateTime?      @db.Timestamptz(6)
-  appointment_type String?        @db.VarChar(50)
-  status           String?        @db.VarChar(20)
+  appointment_date DateTime      @db.Timestamptz(6)
+  appointment_type appointment_type
+  status           String        @db.VarChar(20)
   notes            String?
   created_at       DateTime?      @default(now()) @db.Timestamptz(6)
   pets             pets?          @relation(fields: [pet_id], references: [pet_id], onDelete: NoAction, onUpdate: NoAction)
@@ -26,7 +26,7 @@ model educational_content {
   content_uuid String    @default(dbgenerated("uuid_generate_v4()")) @db.Uuid @unique
   title        String    @db.VarChar(255)
   content      String
-  category     String?   @db.VarChar(50)
+  category     String   @db.VarChar(50)
   tags         String[]
   author_id    Int?
   published_at DateTime? @default(now()) @db.Timestamptz(6)
@@ -37,9 +37,9 @@ model educational_content {
 model emergency_contacts {
   contact_id   Int       @id @default(autoincrement())
   user_id      Int?
-  name         String?   @db.VarChar(100)
-  relationship String?   @db.VarChar(50)
-  phone_number String?   @db.VarChar(20)
+  name         String   @db.VarChar(100)
+  relationship String   @db.VarChar(50)
+  phone_number String  @db.VarChar(20)
   is_primary   Boolean?  @default(false)
   created_at   DateTime? @default(now()) @db.Timestamptz(6)
   users        users?    @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
@@ -62,8 +62,8 @@ model forum_posts {
   user_id        Int?
   title          String           @db.VarChar(255)
   content        String
-  category       String?          @db.VarChar(50)
-  created_at     DateTime?        @default(now()) @db.Timestamptz(6)
+  category       String          @db.VarChar(50)
+  created_at     DateTime        @default(now()) @db.Timestamptz(6)
   updated_at     DateTime?        @default(now()) @db.Timestamptz(6)
   forum_comments forum_comments[]
   users          users?           @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
@@ -87,9 +87,9 @@ model medical_records {
   record_uuid   String         @default(dbgenerated("uuid_generate_v4()")) @db.Uuid @unique
   pet_id        Int?
   vet_id        Int?
-  visit_date    DateTime?      @db.Timestamptz(6)
-  diagnosis     String?
-  treatment     String?
+  visit_date    DateTime      @db.Timestamptz(6)
+  diagnosis     String
+  treatment     String
   notes         String?
   created_at    DateTime?      @default(now()) @db.Timestamptz(6)
   pets          pets?          @relation(fields: [pet_id], references: [pet_id], onDelete: NoAction, onUpdate: NoAction)
@@ -99,9 +99,9 @@ model medical_records {
 model medications {
   medication_id      Int             @id @default(autoincrement())
   name               String          @db.VarChar(100)
-  description        String?
-  usage_instructions String?
-  side_effects       String?
+  description        String
+  usage_instructions String
+  side_effects       String
   created_at         DateTime?       @default(now()) @db.Timestamptz(6)
   prescriptions      prescriptions[]
 }
@@ -122,11 +122,11 @@ model pets {
   user_id            Int?
   pet_uuid           String              @default(dbgenerated("uuid_generate_v4()")) @db.Uuid @unique
   name               String              @db.VarChar(100)
-  species            species_type?
+  species            species_type
   breed              breed_type?
-  date_of_birth      DateTime?           @db.Date
-  weight_kg          Decimal?            @db.Decimal(5, 2)
-  sex                pet_sex_type?
+  date_of_birth      DateTime           @db.Date
+  weight_kg          Decimal            @db.Decimal(5, 2)
+  sex                pet_sex_type
   medical_history    String?
   vaccination_status String?             @db.VarChar(50)
   created_at         DateTime?           @default(now()) @db.Timestamptz(6)
@@ -145,8 +145,8 @@ model prescriptions {
   pet_id            Int?
   medication_id     Int?
   vet_id            Int?
-  dosage            String?        @db.VarChar(50)
-  frequency         String?        @db.VarChar(50)
+  dosage            String        @db.VarChar(50)
+  frequency         String        @db.VarChar(50)
   start_date        DateTime?      @db.Date
   end_date          DateTime?      @db.Date
   refills_remaining Int?
@@ -171,9 +171,9 @@ model users {
   user_uuid           String                @default(dbgenerated("uuid_generate_v4()")) @db.Uuid @unique
   email               String                @unique @db.VarChar(255)
   password_hash       String                @db.VarChar(255)
-  first_name          String?               @db.VarChar(100)
-  last_name           String?               @db.VarChar(100)
-  phone_number        String?               @db.VarChar(20)
+  first_name          String               @db.VarChar(100)
+  last_name           String               @db.VarChar(100)
+  phone_number        String               @db.VarChar(20)
   role               role_type             @default(user)
   created_at          DateTime?             @default(now()) @db.Timestamptz(6)
   updated_at          DateTime?             @default(now()) @db.Timestamptz(6)
@@ -230,11 +230,13 @@ model clinics {
   clinic_id            Int                    @id @default(autoincrement())
   clinic_uuid          String?                @default(dbgenerated("uuid_generate_v4()")) @db.Uuid @unique
   name                 String                 @db.VarChar(255)
-  address              String?
-  city                 String?                @db.VarChar(100)
-  state                String?                @db.VarChar(100)
-  postal_code          String?                @db.VarChar(20)
-  phone_number         String?                @db.VarChar(20)
+  address              String
+  city                 String                @db.VarChar(100)
+  state                String                @db.VarChar(100)
+  postal_code          String                @db.VarChar(20)
+  longitude            Float                @db.DoublePrecision @default(0)
+  latitude             Float                @db.DoublePrecision @default(0)
+  phone_number         String                @db.VarChar(20)
   emergency_services   Boolean?               @default(false)
   operating_hours      String?
   created_at           DateTime?              @default(now()) @db.Timestamptz(6)
