@@ -96,7 +96,10 @@ const getPets = async () => {
 	if (!pets) {
 		throw new Error('No pets found');
 	}
-	return pets;
+	return pets.map((pet) => ({
+		...pet,
+		weight_kg: pet.weight_kg.toNumber(),
+	}));
 };
 
 export { addPet, getPet, updatePet, getPets };

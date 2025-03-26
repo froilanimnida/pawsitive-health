@@ -11,6 +11,7 @@ import {
 	CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 export async function generateMetadata({
 	params,
@@ -127,7 +128,13 @@ export default async function PetDetails({
 
 				<CardFooter className='flex justify-between'>
 					<Button variant='outline'>Edit Pet</Button>
-					<Button variant='default'>Schedule Appointment</Button>
+					<Button
+						asChild
+						variant='default'>
+						<Link href={`/u/appointments/${pet.pet_uuid}`}>
+							Schedule Appointment
+						</Link>
+					</Button>
 				</CardFooter>
 			</Card>
 		</div>

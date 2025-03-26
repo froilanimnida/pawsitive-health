@@ -17,7 +17,7 @@ import {
 	DialogTrigger,
 } from '@/components/ui/dialog';
 import { SkeletonCard } from '@/components/ui/skeleton-card';
-import AppointmentForm from '@/components/form/appointment-form';
+// import AppointmentForm from '@/components/form/appointment-form';
 import type { Metadata } from 'next';
 import { getUserAppointments } from '@/actions/appointment';
 
@@ -97,7 +97,7 @@ function Appointments() {
 							veterinarian and other details.
 						</DialogDescription>
 					</DialogHeader>
-					<AppointmentForm />
+					{/* <AppointmentForm /> */}
 				</DialogContent>
 			</Dialog>
 		</section>

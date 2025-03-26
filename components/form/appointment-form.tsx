@@ -21,7 +21,7 @@ import {
 	FormLabel,
 	FormMessage,
 } from '@/components/ui/form';
-import { appointment_type } from '@prisma/client';
+import { appointment_type, type pets } from '@prisma/client';
 import { AppointmentSchema } from '@/lib/appointment-definition';
 import { cn } from '@/lib/utils';
 import {
@@ -32,8 +32,13 @@ import {
 import { Calendar } from '@/components/ui/calendar';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
+import { toTitleCase } from '@/utils/text/title-case';
 
-const AppointmentForm = () => {
+const AppointmentForm = ({
+	params,
+}: {
+	params: { uuid: string; pets: pets[] };
+}) => {
 	const newAppointmentFields: {
 		label: string;
 		placeholder: string;
@@ -59,30 +64,28 @@ const AppointmentForm = () => {
 	const newAppointmentSelectFields: {
 		label: string;
 		placeholder: string;
-		name: 'appointment_type' | 'vet_id' | 'pet_id';
+		name: 'appointment_type' | 'vet_id' | 'pet_uuid';
 		description: string;
-		options: string[];
+		options: { label: string; value: string }[];
 		defaultValue?: string;
 		onChange?: (value: string) => void;
 		required: boolean;
 	}[] = [
 		{
-			label: 'Appointment Type',
-			placeholder: 'Appointment Type',
-			name: 'appointment_type',
-			description: 'The type of the appointment.',
-			options: Object.values(appointment_type),
-			defaultValue: appointment_type.behavioral_consultation,
-			onChange: (value) =>
-				newAppointmentForm.setValue('appointment_type', value),
-			required: true,
-		},
-		{
 			label: 'Veterinarian',
 			placeholder: 'Veterinarian',
 			name: 'vet_id',
 			description: 'The veterinarian of the appointment.',
-			options: ['John Doe', 'Jane Doe'],
+			options: [
+				{
+					label: 'John Doe',
+					value: 'John Doe',
+				},
+				{
+					label: 'Jane Doe',
+					value: 'Jane Doe',
+				},
+			],
 			defaultValue: 'John Doe',
 			onChange: (value) => newAppointmentForm.setValue('vet_id', value),
 			required: true,
@@ -90,11 +93,28 @@ const AppointmentForm = () => {
 		{
 			label: 'Pet',
 			placeholder: 'Pet',
-			name: 'pet_id',
+			name: 'pet_uuid',
 			description: 'The pet of the appointment.',
-			options: ['Buddy', 'Milo', 'Charlie', 'Max'],
+			options: params.pets.map((pet) => ({
+				label: `${pet.name} (${pet.species})`,
+				value: pet.pet_uuid,
+			})),
 			defaultValue: 'Buddy',
-			onChange: (value) => newAppointmentForm.setValue('pet_id', value),
+			onChange: (value) => newAppointmentForm.setValue('pet_uuid', value),
+			required: true,
+		},
+		{
+			label: 'Appointment Type',
+			placeholder: 'Appointment Type',
+			name: 'appointment_type',
+			description: 'The type of the appointment.',
+			options: Object.values(appointment_type).map((type) => ({
+				label: toTitleCase(type),
+				value: type,
+			})),
+			defaultValue: appointment_type.behavioral_consultation,
+			onChange: (value) =>
+				newAppointmentForm.setValue('appointment_type', value),
 			required: true,
 		},
 	];
@@ -104,7 +124,7 @@ const AppointmentForm = () => {
 			notes: '',
 			appointment_type: appointment_type.behavioral_consultation,
 			vet_id: '',
-			pet_id: '',
+			pet_uuid: params.uuid,
 		},
 		resolver: zodResolver(AppointmentSchema),
 		progressive: true,
@@ -262,9 +282,11 @@ const AppointmentForm = () => {
 												(option) => {
 													return (
 														<SelectItem
-															key={option}
-															value={option}>
-															{option}
+															key={option.value}
+															value={
+																option.value
+															}>
+															{option.label}
 														</SelectItem>
 													);
 												},

@@ -7,6 +7,7 @@ import {
 	type appointment_type,
 } from '@prisma/client';
 import type { z } from 'zod';
+import { getPet } from './pets';
 
 const getUserAppointments = async () => {
 	const session = await auth();
@@ -41,13 +42,17 @@ const createUserAppointment = async (
 		throw new Error('User not found');
 	}
 	const prisma = new PrismaClient();
+	const pet = await getPet(values.pet_uuid);
+	if (!pet) {
+		throw Promise.reject('Pet not found');
+	}
 	const appointment = await prisma.appointments.create({
 		data: {
 			appointment_date: values.appointment_date,
 			appointment_type: values.appointment_type as appointment_type,
 			status: values.status as appointment_status,
 			notes: values.notes,
-			pet_id: Number(values.pet_id),
+			pet_id: pet?.pet_id,
 			vet_id: Number(values.vet_id),
 		},
 	});
