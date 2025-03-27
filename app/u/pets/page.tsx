@@ -19,99 +19,85 @@ import {
 } from '@/components/ui/dialog';
 import AddPetForm from '@/components/form/pet-form';
 import type { Metadata } from 'next';
+import { getPets } from '@/actions/pets';
+import { calculateAge } from '@/lib/functions/calculate-age';
+import Link from 'next/link';
 
 export const metadata: Metadata = {
 	title: 'PawsitiveHealth | User Pets',
 	description: 'PawsitiveHealth is a pet health care service.',
 };
 
-const PetList = () => {
-	const pets = [
-		{
-			name: 'Buddy',
-			breed: 'Golden Retriever',
-			age: 3,
-			image: '/images/buddy.jpg',
-		},
-		{
-			name: 'Milo',
-			breed: 'Beagle',
-			age: 2,
-			image: '/images/milo.jpg',
-		},
-		{
-			name: 'Charlie',
-			breed: 'Poodle',
-			age: 4,
-			image: '/images/charlie.jpg',
-		},
-		{
-			name: 'Max',
-			breed: 'Labrador',
-			age: 1,
-			image: '/images/max.jpg',
-		},
-		{
-			name: 'Max',
-			breed: 'Labrador',
-			age: 1,
-			image: '/images/max.jpg',
-		},
-		{
-			name: 'Max',
-			breed: 'Labrador',
-			age: 1,
-			image: '/images/max.jpg',
-		},
-		{
-			name: 'Max',
-			breed: 'Labrador',
-			age: 1,
-			image: '/images/max.jpg',
-		},
-	];
+async function PetList() {
+	const pets = await getPets();
+	if (!pets || pets.length === 0) {
+		return (
+			<div className='text-center py-10'>
+				<h3 className='text-lg font-medium'>No pets found</h3>
+				<p className='text-muted-foreground'>
+					Add your first pet to get started
+				</p>
+			</div>
+		);
+	}
 
 	return (
 		<div className='grid grid-cols-1 md:grid-cols-3 w-full lg:grid-cols-4 gap-4'>
-			{pets.map((pet, index) => (
-				<Card key={index}>
+			{pets.map((pet) => (
+				<Card key={pet.pet_id}>
 					<CardHeader>
-						<CardTitle>{pet.name}</CardTitle>
-						<CardDescription>{pet.breed}</CardDescription>
+						<CardTitle>{pet.name.toUpperCase()}</CardTitle>
+						<CardDescription>
+							{pet.breed?.toUpperCase().replaceAll('_', ' ')}
+						</CardDescription>
 					</CardHeader>
-					<CardContent></CardContent>
+					<CardContent>
+						<p>Species: {pet.species?.toUpperCase()}</p>
+						{pet.date_of_birth && (
+							<p>
+								Age: {calculateAge(new Date(pet.date_of_birth))}{' '}
+								years
+							</p>
+						)}
+					</CardContent>
 					<CardFooter>
-						<Button>Manage</Button>
+						<Link href={`/u/pets/${pet.pet_uuid}`}>
+							<Button>View</Button>
+						</Link>
 					</CardFooter>
 				</Card>
 			))}
 		</div>
 	);
-};
-
-function PetsPage() {
+}
+const PetsPage = () => {
 	return (
 		<section className='p-4 w-full'>
+			<div className='flex justify-between items-center mb-6'>
+				<h1 className='text-2xl font-bold'>My Pets</h1>
+				<Dialog>
+					<DialogTrigger asChild>
+						<Button>Add Pet</Button>
+					</DialogTrigger>
+					<DialogContent>
+						<DialogHeader>
+							<DialogTitle>
+								Add a new pet to your account
+							</DialogTitle>
+							<DialogDescription>
+								Please provide the details of your pet to add it
+								to your account.
+							</DialogDescription>
+						</DialogHeader>
+						<AddPetForm />
+					</DialogContent>
+				</Dialog>
+			</div>
 			<Suspense fallback={<SkeletonCard />}>
 				<PetList />
 			</Suspense>
-			<Dialog>
-				<DialogTrigger asChild>
-					<Button>Add Pet</Button>
-				</DialogTrigger>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>Add a new pet to your account</DialogTitle>
-						<DialogDescription>
-							Please provide the details of your pet to add it to
-							your account.
-						</DialogDescription>
-					</DialogHeader>
-					<AddPetForm />
-				</DialogContent>
-			</Dialog>
 		</section>
 	);
-}
+};
 
 export default PetsPage;

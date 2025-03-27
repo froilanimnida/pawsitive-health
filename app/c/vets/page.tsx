@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-import { VeterinarySpecialization } from '@/lib/types/constants';
+import { VeterinarySpecialization } from '@/types/constants';
 import {
 	Card,
 	CardContent,

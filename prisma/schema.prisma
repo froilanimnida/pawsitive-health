@@ -9,23 +9,27 @@ datasource db {
 
 model appointments {
   appointment_id   Int            @id @default(autoincrement())
-  appointment_uuid String         @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  appointment_uuid String         @default(dbgenerated("uuid_generate_v4()")) @db.Uuid @unique
   pet_id           Int?
   vet_id           Int?
-  appointment_date DateTime?      @db.Timestamptz(6)
-  appointment_type String?        @db.VarChar(50)
-  status           String?        @db.VarChar(20)
+  clinic_id        Int?
+  appointment_date DateTime       @db.Timestamptz(6)
+  duration_minutes Int            @default(30)
+  appointment_type appointment_type
+  status           appointment_status
   notes            String?
   created_at       DateTime?      @default(now()) @db.Timestamptz(6)
   pets             pets?          @relation(fields: [pet_id], references: [pet_id], onDelete: NoAction, onUpdate: NoAction)
   veterinarians    veterinarians? @relation(fields: [vet_id], references: [vet_id], onDelete: NoAction, onUpdate: NoAction)
+  clinics          clinics?       @relation(fields: [clinic_id], references: [clinic_id], onDelete: NoAction, onUpdate: NoAction) // New relation
 }
 
 model educational_content {
   content_id   Int       @id @default(autoincrement())
+  content_uuid String    @default(dbgenerated("uuid_generate_v4()")) @db.Uuid @unique
   title        String    @db.VarChar(255)
   content      String
-  category     String?   @db.VarChar(50)
+  category     String   @db.VarChar(50)
   tags         String[]
   author_id    Int?
   published_at DateTime? @default(now()) @db.Timestamptz(6)
@@ -36,9 +40,9 @@ model educational_content {
 model emergency_contacts {
   contact_id   Int       @id @default(autoincrement())
   user_id      Int?
-  name         String?   @db.VarChar(100)
-  relationship String?   @db.VarChar(50)
-  phone_number String?   @db.VarChar(20)
+  name         String   @db.VarChar(100)
+  relationship String   @db.VarChar(50)
+  phone_number String  @db.VarChar(20)
   is_primary   Boolean?  @default(false)
   created_at   DateTime? @default(now()) @db.Timestamptz(6)
   users        users?    @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
@@ -57,12 +61,12 @@ model forum_comments {
 
 model forum_posts {
   post_id        Int              @id @default(autoincrement())
-  post_uuid      String           @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  post_uuid      String           @default(dbgenerated("uuid_generate_v4()")) @db.Uuid @unique
   user_id        Int?
   title          String           @db.VarChar(255)
   content        String
-  category       String?          @db.VarChar(50)
-  created_at     DateTime?        @default(now()) @db.Timestamptz(6)
+  category       String          @db.VarChar(50)
+  created_at     DateTime        @default(now()) @db.Timestamptz(6)
   updated_at     DateTime?        @default(now()) @db.Timestamptz(6)
   forum_comments forum_comments[]
   users          users?           @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
@@ -70,7 +74,7 @@ model forum_posts {
 
 model health_monitoring {
   monitoring_id       Int       @id @default(autoincrement())
-  monitoring_uuid     String    @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  monitoring_uuid     String    @default(dbgenerated("uuid_generate_v4()")) @db.Uuid @unique
   pet_id              Int?
   activity_level      String?   @db.VarChar(20)
   weight_kg           Decimal?  @db.Decimal(5, 2)
@@ -83,12 +87,12 @@ model health_monitoring {
 
 model medical_records {
   record_id     Int            @id @default(autoincrement())
-  record_uuid   String         @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  record_uuid   String         @default(dbgenerated("uuid_generate_v4()")) @db.Uuid @unique
   pet_id        Int?
   vet_id        Int?
-  visit_date    DateTime?      @db.Timestamptz(6)
-  diagnosis     String?
-  treatment     String?
+  visit_date    DateTime      @db.Timestamptz(6)
+  diagnosis     String
+  treatment     String
   notes         String?
   created_at    DateTime?      @default(now()) @db.Timestamptz(6)
   pets          pets?          @relation(fields: [pet_id], references: [pet_id], onDelete: NoAction, onUpdate: NoAction)
@@ -98,9 +102,9 @@ model medical_records {
 model medications {
   medication_id      Int             @id @default(autoincrement())
   name               String          @db.VarChar(100)
-  description        String?
-  usage_instructions String?
-  side_effects       String?
+  description        String
+  usage_instructions String
+  side_effects       String
   created_at         DateTime?       @default(now()) @db.Timestamptz(6)
   prescriptions      prescriptions[]
 }
@@ -119,13 +123,13 @@ model notifications {
 model pets {
   pet_id             Int                 @id @default(autoincrement())
   user_id            Int?
-  pet_uuid           String              @db.Uuid
+  pet_uuid           String              @default(dbgenerated("uuid_generate_v4()")) @db.Uuid @unique
   name               String              @db.VarChar(100)
-  species            species_type?
+  species            species_type
   breed              breed_type?
-  date_of_birth      DateTime?           @db.Date
-  weight_kg          Decimal?            @db.Decimal(5, 2)
-  sex                pet_sex_type?
+  date_of_birth      DateTime           @db.Date
+  weight_kg          Decimal            @db.Decimal(5, 2)
+  sex                pet_sex_type
   medical_history    String?
   vaccination_status String?             @db.VarChar(50)
   created_at         DateTime?           @default(now()) @db.Timestamptz(6)
@@ -140,12 +144,12 @@ model pets {
 
 model prescriptions {
   prescription_id   Int            @id @default(autoincrement())
-  prescription_uuid String         @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  prescription_uuid String         @default(dbgenerated("uuid_generate_v4()")) @db.Uuid @unique
   pet_id            Int?
   medication_id     Int?
   vet_id            Int?
-  dosage            String?        @db.VarChar(50)
-  frequency         String?        @db.VarChar(50)
+  dosage            String        @db.VarChar(50)
+  frequency         String        @db.VarChar(50)
   start_date        DateTime?      @db.Date
   end_date          DateTime?      @db.Date
   refills_remaining Int?
@@ -167,12 +171,12 @@ model user_settings {
 
 model users {
   user_id             Int                   @id @default(autoincrement())
-  user_uuid           String                @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_uuid           String                @default(dbgenerated("uuid_generate_v4()")) @db.Uuid @unique
   email               String                @unique @db.VarChar(255)
   password_hash       String                @db.VarChar(255)
-  first_name          String?               @db.VarChar(100)
-  last_name           String?               @db.VarChar(100)
-  phone_number        String?               @db.VarChar(20)
+  first_name          String               @db.VarChar(100)
+  last_name           String               @db.VarChar(100)
+  phone_number        String               @db.VarChar(20)
   role               role_type             @default(user)
   created_at          DateTime?             @default(now()) @db.Timestamptz(6)
   updated_at          DateTime?             @default(now()) @db.Timestamptz(6)
@@ -203,7 +207,7 @@ model vaccinations {
 model veterinarians {
   user_id              Int?
   vet_id               Int                        @id @default(autoincrement())
-  vet_uuid             String?                    @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  vet_uuid             String?                    @default(dbgenerated("uuid_generate_v4()")) @db.Uuid @unique
   license_number       String                     @unique @db.VarChar(50)
   specialization       veterinary_specialization?
   created_at           DateTime?                  @default(now()) @db.Timestamptz(6)
@@ -213,6 +217,7 @@ model veterinarians {
   prescriptions        prescriptions[]
   vaccinations         vaccinations[]
   users                users?                     @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+  vet_availability     vet_availability[]
 }
 
 model clinic_veterinarians {
@@ -227,18 +232,48 @@ model clinic_veterinarians {
 model clinics {
   user_id              Int?
   clinic_id            Int                    @id @default(autoincrement())
-  clinic_uuid          String?                @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  clinic_uuid          String?                @default(dbgenerated("uuid_generate_v4()")) @db.Uuid @unique
   name                 String                 @db.VarChar(255)
-  address              String?
-  city                 String?                @db.VarChar(100)
-  state                String?                @db.VarChar(100)
-  postal_code          String?                @db.VarChar(20)
-  phone_number         String?                @db.VarChar(20)
+  address              String
+  city                 String                @db.VarChar(100)
+  state                String                @db.VarChar(100)
+  postal_code          String                @db.VarChar(20)
+  longitude            Float                @db.DoublePrecision @default(0)
+  latitude             Float                @db.DoublePrecision @default(0)
+  phone_number         String                @db.VarChar(20)
   emergency_services   Boolean?               @default(false)
   operating_hours      String?
   created_at           DateTime?              @default(now()) @db.Timestamptz(6)
   clinic_veterinarians clinic_veterinarians[]
   users                users[]
+  clinic_hours         clinic_hours[]
+  vet_availability     vet_availability[]
+  appointments         appointments[]
+}
+
+model clinic_hours {
+  id             Int       @id @default(autoincrement())
+  clinic_id      Int
+  day_of_week    Int       // 0-6 for Sunday-Saturday
+  opens_at       DateTime  @db.Time
+  closes_at      DateTime  @db.Time
+  is_closed      Boolean   @default(false)
+  clinics        clinics   @relation(fields: [clinic_id], references: [clinic_id], onDelete: Cascade)
+
+  @@unique([clinic_id, day_of_week])
+}
+model vet_availability {
+  availability_id   Int          @id @default(autoincrement())
+  vet_id           Int
+  clinic_id        Int
+  day_of_week      Int          // 0-6 for Sunday-Saturday
+  start_time       DateTime     @db.Time
+  end_time         DateTime     @db.Time
+  is_available     Boolean      @default(true)
+  veterinarians    veterinarians @relation(fields: [vet_id], references: [vet_id], onDelete: Cascade)
+  clinics          clinics       @relation(fields: [clinic_id], references: [clinic_id], onDelete: Cascade)
+
+  @@unique([vet_id, clinic_id, day_of_week, start_time, end_time])
 }
 
 enum breed_type {
@@ -371,4 +406,13 @@ enum appointment_type {
   oncology
   hospice_care
   telemedicine
+}
+
+enum appointment_status {
+  requested
+  confirmed
+  checked_in
+  completed
+  cancelled
+  no_show
 }

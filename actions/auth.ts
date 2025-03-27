@@ -1,11 +1,11 @@
 'use server';
 import { PrismaClient } from '@prisma/client';
-import { SignUpSchema } from '@/lib/auth-definitions';
+import { SignUpSchema } from '@/schemas/auth-definitions';
 import type { z } from 'zod';
-import { UserRoleType } from '@/lib/types/constants';
+import { UserRoleType } from '@/types/constants';
 import { signOut } from 'next-auth/react';
-import { NewClinicAccountSchema } from '@/lib/clinic-signup-definition';
-import { hashPassword, verifyPassword } from '@/utils/security/password-check';
+import { NewClinicAccountSchema } from '@/schemas/clinic-signup-definition';
+import { hashPassword, verifyPassword } from '@/lib/functions/security/password-check';
 
 export const createAccount = async (values: z.infer<typeof SignUpSchema>) => {
 	const formData = await SignUpSchema.parseAsync(values);
@@ -41,7 +41,7 @@ export const createAccount = async (values: z.infer<typeof SignUpSchema>) => {
 export const logout = async () => {
 	const prisma = new PrismaClient();
 	await prisma.$disconnect();
-	signOut({ callbackUrl: '/auth/login' });
+	await signOut({callbackUrl: '/auth/login'});
 };
 
 export const createClinicAccount = async (

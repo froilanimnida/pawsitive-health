@@ -12,7 +12,6 @@ const authOptions: AuthOptions = {
 		signIn: '/auth/login',
 	},
 	providers: config.providers,
-
 	callbacks: {
 		async jwt({ token, user }) {
 			if (user) {
@@ -22,15 +21,13 @@ const authOptions: AuthOptions = {
 			}
 			return token;
 		},
-		session({ session, token }) {
+		async session({ session, token }) {
 			if (token && session.user) {
 				session.user.email = token.email;
 				session.user.role = token.role;
+				session.user.id = token.id;
 			}
 			return session;
-		},
-		signIn() {
-			return true;
 		},
 	},
 	secret: process.env.NEXTAUTH_SECRET,

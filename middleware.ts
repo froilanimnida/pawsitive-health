@@ -1,5 +1,4 @@
-import { NextResponse } from 'next/server';
-import { NextRequest } from 'next/server';
+import {NextRequest, NextResponse} from 'next/server';
 
 export default async function middleware(request: NextRequest) {
 	const PROTECTED_ROUTES = ['/u', '/a', '/d', '/c'];
@@ -8,13 +7,12 @@ export default async function middleware(request: NextRequest) {
 	if (!token && !isAuthPage) {
 		const url = request.nextUrl.clone();
 		url.pathname = '/auth/login';
-		const r = NextResponse.redirect(url);
-		return r;
+        return NextResponse.redirect(url);
 	}
 	const isProtected = PROTECTED_ROUTES.some((route) =>
 		request.nextUrl.pathname.startsWith(route),
 	);
-	// if (isProtected) console.log('This route is protected');
+	if (isProtected) console.log('This route is protected');
 	return NextResponse.next();
 }
 

@@ -1,7 +1,7 @@
 import { loginAccount } from '@/actions/auth';
 import type { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { Role } from '../types/constants';
+import { Role } from '@/types/constants';
 
 export const config = {
 	providers: [
@@ -30,11 +30,12 @@ export const config = {
 					id: userData.user_id.toString(),
 					email: userData.email,
 					role: userData.role as Role,
-					name: userData.first_name
-						? `${userData.first_name} ${
+					name:
+						userData.first_name ?
+							`${userData.first_name} ${
 								userData.last_name || ''
-						  }`.trim()
-						: null,
+							}`.trim()
+						:	null,
 				};
 			},
 		}),

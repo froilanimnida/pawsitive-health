@@ -19,7 +19,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select';
-import { CatBreeds, DogBreeds } from '@/lib/types/breed-types';
+import { CatBreeds, DogBreeds } from '@/types/breed-types';
 import {
 	Popover,
 	PopoverContent,
@@ -29,9 +29,11 @@ import { cn } from '@/lib/utils';
 import { Calendar } from '@/components/ui/calendar';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
-import { PetSchema } from '@/lib/pet-definition';
+import { PetSchema } from '@/schemas/pet-definition';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { z } from 'zod';
+import toast from 'react-hot-toast';
+import { addPet } from '@/actions/pets';
 
 const AddPetForm = () => {
 	const [selectedBreed, setSelectedBreed] = useState<string | undefined>(
@@ -158,10 +160,12 @@ const AddPetForm = () => {
 			defaultValue: 'prefer_not_to_say',
 		},
 	];
-
 	const onSubmit = (values: z.infer<typeof PetSchema>) => {
-		alert('Form submitted! Check the console for the values');
-		console.log('Form submitted:', values);
+		toast.promise(addPet(values), {
+			loading: 'Adding pet...',
+			success: 'Pet added successfully',
+			error: 'Failed to add pet',
+		});
 	};
 
 	return (
