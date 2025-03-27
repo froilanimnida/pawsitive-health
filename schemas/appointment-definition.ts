@@ -15,6 +15,7 @@ const appointment_status_array = Object.values(appointment_status) as [
 export const AppointmentSchema = z.object({
 	pet_uuid: z.string(),
 	vet_id: z.string(),
+	clinic_id: z.string(),
 	appointment_date: z.date(),
 	appointment_type: z.enum(appointment_type_array),
 	notes: z.string(),

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { Breeds } from './types/breed-types';
-import { PetSexType } from './types/constants';
+import { PetSexType } from '../types/constants';
 
 const BREEDS = Object.values(Breeds) as [string, ...string[]];
 const PET_SEX_TYPE = Object.values(PetSexType) as [string, ...string[]];
