@@ -34,8 +34,11 @@ interface NewAppointmentSelectFields {
     onChange?: (value: string) => void;
     required: boolean;
 }
+interface PetWithStringWeight extends Omit<pets, "weight_kg"> {
+    weight_kg: string;
+}
 
-const AppointmentForm = ({ params }: { params: { uuid: string; pets: pets[]; clinics: clinics[] } }) => {
+const AppointmentForm = ({ params }: { params: { uuid: string; pets: PetWithStringWeight[]; clinics: clinics[] } }) => {
     const newAppointmentFields: NewAppointmentFields[] = [
         {
             label: "Status",
