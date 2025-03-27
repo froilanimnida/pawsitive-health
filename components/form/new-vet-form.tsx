@@ -31,6 +31,7 @@ const NewVeterinaryForm = () => {
             name: "first_name",
             description: "The first name of the veterinarian.",
             required: true,
+            type: "text",
         },
         {
             label: "Last Name",
@@ -38,6 +39,7 @@ const NewVeterinaryForm = () => {
             name: "last_name",
             description: "The last name of the veterinarian.",
             required: true,
+            type: "text",
         },
         {
             label: "Email",
@@ -45,6 +47,7 @@ const NewVeterinaryForm = () => {
             name: "email",
             description: "The email of the veterinarian.",
             required: true,
+            type: "email",
         },
         {
             label: "Phone Number",
@@ -52,6 +55,7 @@ const NewVeterinaryForm = () => {
             name: "phone_number",
             description: "The phone number of the veterinarian.",
             required: true,
+            type: "tel",
         },
         {
             label: "Password",
@@ -59,6 +63,7 @@ const NewVeterinaryForm = () => {
             name: "password",
             description: "The password of the veterinarian.",
             required: true,
+            type: "password",
         },
         {
             label: "Confirm Password",
@@ -66,6 +71,7 @@ const NewVeterinaryForm = () => {
             name: "confirm_password",
             description: "Confirm the password of the veterinarian.",
             required: true,
+            type: "password",
         },
         {
             label: "License Number",
@@ -73,6 +79,7 @@ const NewVeterinaryForm = () => {
             name: "license_number",
             description: "The license number of the veterinarian.",
             required: true,
+            type: "text",
         },
     ];
     const specializationOptions = Object.values(veterinary_specialization).map((specialization) => ({

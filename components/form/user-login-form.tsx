@@ -70,6 +70,7 @@ const UserLoginForm = () => {
             });
         const session = await getSession();
         if (session && session.user && session.user.role) {
+            setIsLoading(true);
             if (session.user?.role === "client") router.push("/c");
             else if (session.user?.role === "veterinarian") router.push("/v");
             else if (session.user?.role === "admin") router.push("/a");

@@ -15,6 +15,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { toTitleCase } from "@/lib/functions/text/title-case";
+// import { getClinicVeterinarians, getClinicVeterinariansAppointment } from "@/actions/veterinary";
 
 interface NewAppointmentFields {
     label: string;
@@ -39,6 +40,8 @@ interface PetWithStringWeight extends Omit<pets, "weight_kg"> {
 }
 
 const AppointmentForm = ({ params }: { params: { uuid: string; pets: PetWithStringWeight[]; clinics: clinics[] } }) => {
+    // const [clinicId, setClinicId] = React.useState("");
+    // const veterinarians = await getClinicVeterinariansAppointment(Number(clinicId));
     const newAppointmentFields: NewAppointmentFields[] = [
         {
             label: "Status",

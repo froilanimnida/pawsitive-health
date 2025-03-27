@@ -148,4 +148,31 @@ const getClinicVeterinarians = async () => {
     }
 };
 
-export { newVeterinarian, getClinicVeterinarians };
+const getClinicVeterinariansAppointment = async (clinic_id: number) => {
+    try {
+        const prisma = new PrismaClient();
+        const clinicVeterinarians = await prisma.clinic_veterinarians.findMany({
+            where: {
+                clinic_id: clinic_id,
+            },
+            include: {
+                veterinarians: {
+                    include: {
+                        users: true,
+                    },
+                },
+            },
+        });
+
+        const veterinarians = clinicVeterinarians.map((cv) => ({
+            ...cv.veterinarians,
+        }));
+
+        return Promise.resolve(veterinarians);
+    } catch (error) {
+        console.error("Error getting clinic veterinarians:", error);
+        return Promise.reject(error);
+    }
+};
+
+export { newVeterinarian, getClinicVeterinarians, getClinicVeterinariansAppointment };
