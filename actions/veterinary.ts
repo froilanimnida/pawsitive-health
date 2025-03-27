@@ -3,9 +3,9 @@
 import {
 	UserRoleType,
 	type VeterinarySpecialization,
-} from '@/lib/types/constants';
-import { VeterinarianSchema } from '@/lib/veterinarian-definition';
-import { hashPassword } from '@/utils/security/password-check';
+} from '@/types/constants';
+import { VeterinarianSchema } from '@/schemas/veterinarian-definition';
+import { hashPassword } from '@/lib/functions/security/password-check';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 

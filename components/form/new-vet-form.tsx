@@ -2,7 +2,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { VeterinarianSchema } from '@/lib/veterinarian-definition';
+import { VeterinarianSchema } from '@/schemas/veterinarian-definition';
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import {
@@ -24,7 +24,7 @@ import {
 	FormLabel,
 	FormMessage,
 } from '@/components/ui/form';
-import { VeterinarySpecialization } from '@/lib/types/constants';
+import { VeterinarySpecialization } from '@/types/constants';
 
 const NewVeterinaryForm = () => {
 	const newVetFields: {

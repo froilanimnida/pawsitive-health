@@ -1,6 +1,6 @@
 // nextauth.d.ts
 import { DefaultSession, DefaultUser } from 'next-auth';
-import { Role } from '@/lib/types/constants';
+import { Role } from '@/types/constants';
 
 interface IUser extends DefaultUser {
 	/**

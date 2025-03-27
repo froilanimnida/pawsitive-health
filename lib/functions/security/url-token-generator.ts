@@ -1,12 +1,2 @@
-export const urlTokenGenerator = (length = 256) => {
-	const characters =
-		'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-	const charactersLength = characters.length;
-	let result = '';
-	for (let i = 0; i < length; i++) {
-		result += characters.charAt(
-			Math.floor(Math.random() * charactersLength),
-		);
-	}
-	return result;
-};
+import { randomBytes } from 'crypto';
+export const urlTokenGenerator = (length = 256) => randomBytes(length).toString('base64url').slice(0, length);

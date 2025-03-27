@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { SignUpSchema } from '@/lib/auth-definitions';
+import { SignUpSchema } from '@/schemas/auth-definitions';
 import { z } from 'zod';
 import { createAccount } from '@/actions/auth';
 import toast from 'react-hot-toast';

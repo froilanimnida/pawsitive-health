@@ -1,6 +1,6 @@
 'use server';
 import { auth } from '@/auth';
-import type { PetSchema } from '@/lib/pet-definition';
+import type { PetSchema } from '@/schemas/pet-definition';
 import {
 	PrismaClient,
 	type breed_type,
@@ -32,7 +32,7 @@ const addPet = async (values: z.infer<typeof PetSchema>) => {
 			},
 		});
 		if (!pet) {
-			throw Promise.reject('Failed to add pet');
+			throw await Promise.reject('Failed to add pet');
 		}
 		return { success: true };
 	} catch (error) {

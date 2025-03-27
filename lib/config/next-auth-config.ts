@@ -1,7 +1,7 @@
 import { loginAccount } from '@/actions/auth';
 import type { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { Role } from '../types/constants';
+import { Role } from '@/types/constants';
 
 export const config = {
 	providers: [

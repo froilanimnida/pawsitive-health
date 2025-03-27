@@ -8,6 +8,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from '@/components/ui/card';
+import { getClinics } from '@/actions/clinic';
 
 const NewAppointment = async ({
 	params,
@@ -16,6 +17,7 @@ const NewAppointment = async ({
 }) => {
 	const { uuid } = await params;
 	const pets = await getPets();
+	const clinics = await getClinics();
 	return (
 		<Card>
 			<CardHeader>
@@ -23,7 +25,7 @@ const NewAppointment = async ({
 				<CardDescription>Book a new appointment</CardDescription>
 			</CardHeader>
 			<CardContent>
-				<AppointmentForm params={{ uuid, pets }} />
+				<AppointmentForm params={{ uuid, pets, clinics }} />
 			</CardContent>
 		</Card>
 	);

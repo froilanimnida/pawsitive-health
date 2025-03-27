@@ -20,7 +20,7 @@ import {
 import AddPetForm from '@/components/form/pet-form';
 import type { Metadata } from 'next';
 import { getPets } from '@/actions/pets';
-import { calculateAge } from '@/lib/functions/calculateAge';
+import { calculateAge } from '@/lib/functions/calculate-age';
 import Link from 'next/link';
 
 export const metadata: Metadata = {

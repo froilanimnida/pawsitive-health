@@ -1,6 +1,6 @@
 'use server';
 import { auth } from '@/auth';
-import { AppointmentSchema } from '@/lib/appointment-definition';
+import { AppointmentSchema } from '@/schemas/appointment-definition';
 import {
 	PrismaClient,
 	type appointment_status,
@@ -44,7 +44,7 @@ const createUserAppointment = async (
 	const prisma = new PrismaClient();
 	const pet = await getPet(values.pet_uuid);
 	if (!pet) {
-		throw Promise.reject('Pet not found');
+		throw await Promise.reject('Pet not found');
 	}
 	const appointment = await prisma.appointments.create({
 		data: {
@@ -60,4 +60,4 @@ const createUserAppointment = async (
 	return Promise.resolve(appointment);
 };
 
-export { getUserAppointments };
+export { getUserAppointments, createUserAppointment };

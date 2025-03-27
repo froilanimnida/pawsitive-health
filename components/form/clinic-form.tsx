@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { NewClinicAccountSchema } from '@/lib/clinic-signup-definition';
+import { NewClinicAccountSchema } from '@/schemas/clinic-signup-definition';
 import { Checkbox } from '../ui/checkbox';
 import toast from 'react-hot-toast';
 import { createClinicAccount } from '@/actions/auth';

@@ -1,9 +1,9 @@
 import { z } from 'zod';
-import { Breeds } from './types/breed-types';
-import { PetSexType } from '../types/constants';
+import { breed_type } from "@prisma/client";
+import { pet_sex_type } from "@prisma/client";
 
-const BREEDS = Object.values(Breeds) as [string, ...string[]];
-const PET_SEX_TYPE = Object.values(PetSexType) as [string, ...string[]];
+const BREEDS = Object.values(breed_type) as [string, ...string[]];
+const PET_SEX_TYPE = Object.values(pet_sex_type) as [string, ...string[]];
 
 export const PetSchema = z.object({
 	name: z.string().min(1).max(50),
