@@ -1,5 +1,4 @@
 import React, { Suspense } from "react";
-import { VeterinarySpecialization } from "@/types/constants";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SkeletonCard } from "@/components/ui/skeleton-card";

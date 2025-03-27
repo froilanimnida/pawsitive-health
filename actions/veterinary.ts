@@ -1,8 +1,8 @@
 "use server";
-import { UserRoleType, type VeterinarySpecialization } from "@/types/constants";
+import { role_type } from "@prisma/client";
 import { VeterinarianSchema } from "@/schemas/veterinarian-definition";
 import { hashPassword } from "@/lib/functions/security/password-check";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, type veterinary_specialization } from "@prisma/client";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { getUserId } from "./user";
@@ -48,7 +48,7 @@ const newVeterinarian = async (values: z.infer<typeof VeterinarianSchema>) => {
                 first_name: formData.first_name,
                 last_name: formData.last_name,
                 phone_number: formData.phone_number,
-                role: UserRoleType.Veterinarian,
+                role: role_type.veterinarian,
             },
         });
 
@@ -60,7 +60,7 @@ const newVeterinarian = async (values: z.infer<typeof VeterinarianSchema>) => {
             data: {
                 license_number: formData.license_number,
                 user_id: result.user_id,
-                specialization: formData.specialization as VeterinarySpecialization,
+                specialization: formData.specialization as veterinary_specialization,
             },
         });
 

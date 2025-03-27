@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { FormControl, Form, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { VeterinarySpecialization } from "@/types/constants";
+import { veterinary_specialization } from "@prisma/client";
 import type { TextFormField } from "@/types/forms/text-form-field";
 import { toTitleCase } from "@/lib/functions/text/title-case";
 import toast from "react-hot-toast";
@@ -75,7 +75,10 @@ const NewVeterinaryForm = () => {
             required: true,
         },
     ];
-    const specializationOptions = Object.values(VeterinarySpecialization);
+    const specializationOptions = Object.values(veterinary_specialization).map((specialization) => ({
+        label: toTitleCase(specialization),
+        value: specialization,
+    }));
     const newVeterinaryForm = useForm({
         resolver: zodResolver(VeterinarianSchema),
         mode: "onBlur",
@@ -167,8 +170,8 @@ const NewVeterinaryForm = () => {
                                             <SelectGroup>
                                                 <SelectLabel>Specialization</SelectLabel>
                                                 {specializationOptions.map((option) => (
-                                                    <SelectItem key={option} value={option}>
-                                                        {toTitleCase(option)}
+                                                    <SelectItem key={option.value} value={option.value}>
+                                                        {option.label}
                                                     </SelectItem>
                                                 ))}
                                             </SelectGroup>
