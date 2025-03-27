@@ -13,6 +13,7 @@ import {
 import NewVeterinaryForm from "@/components/form/new-vet-form";
 import type { Metadata } from "next";
 import { getClinicVeterinarians } from "@/actions/veterinary";
+import Link from "next/link";
 
 export const metadata: Metadata = {
     title: "PawsitiveHealth | Veterinaries",
@@ -21,6 +22,14 @@ export const metadata: Metadata = {
 
 const Veterinaries = async () => {
     const veterinaries = await getClinicVeterinarians();
+    if (!veterinaries || veterinaries.length === 0) {
+        return (
+            <div className="text-center py-10">
+                <h3 className="text-lg font-medium">No veterinaries found</h3>
+                <p className="text-muted-foreground">Add your first veterinary to get started</p>
+            </div>
+        );
+    }
     return (
         <div className="grid grid-cols-1 md:grid-cols-3 w-full lg:grid-cols-4 gap-4">
             {veterinaries.map((veterinary) => (
@@ -33,7 +42,9 @@ const Veterinaries = async () => {
                     </CardHeader>
                     <CardContent>{veterinary.license_number}</CardContent>
                     <CardFooter>
-                        <Button>Manage</Button>
+                        <Button asChild>
+                            <Link href={`/c/vets/${veterinary.vet_uuid}`}>Manage</Link>
+                        </Button>
                     </CardFooter>
                 </Card>
             ))}

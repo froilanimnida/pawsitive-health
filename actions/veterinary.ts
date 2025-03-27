@@ -10,9 +10,10 @@ import { getUserId } from "./user";
 const newVeterinarian = async (values: z.infer<typeof VeterinarianSchema>) => {
     try {
         const session = await auth();
-        if (!session || !session.user || !session.user.id) {
+        if (!session || !session.user || !session.user.email) {
             return Promise.reject("Not authorized to create a veterinarian");
         }
+        const user_id = await getUserId(session?.user?.email);
 
         const formData = await VeterinarianSchema.parseAsync(values);
         const prisma = new PrismaClient();
@@ -29,11 +30,7 @@ const newVeterinarian = async (values: z.infer<typeof VeterinarianSchema>) => {
 
         const clinic = await prisma.clinics.findFirst({
             where: {
-                users: {
-                    some: {
-                        user_id: Number(session.user.id),
-                    },
-                },
+                user_id: user_id,
             },
         });
 
@@ -110,12 +107,10 @@ const newVeterinarian = async (values: z.infer<typeof VeterinarianSchema>) => {
 const getClinicVeterinarians = async () => {
     try {
         const session = await auth();
-        console.log("session", session);
         if (!session || !session.user || !session.user.email) {
             return Promise.reject("Not authorized to view clinic veterinarians");
         }
         const user_id = await getUserId(session?.user?.email);
-        console.log("user_id", user_id);
 
         const prisma = new PrismaClient();
 
@@ -124,7 +119,6 @@ const getClinicVeterinarians = async () => {
                 user_id: user_id,
             },
         });
-        console.log("clinic", clinic);
 
         if (!clinic) {
             return Promise.reject("No clinic found for this user");
