@@ -254,7 +254,7 @@ model clinics {
 model clinic_hours {
   id             Int       @id @default(autoincrement())
   clinic_id      Int
-  day_of_week    Int       // 0-6 for Sunday-Saturday
+  day_of_week    Int
   opens_at       DateTime  @db.Time
   closes_at      DateTime  @db.Time
   is_closed      Boolean   @default(false)
@@ -266,7 +266,7 @@ model vet_availability {
   availability_id   Int          @id @default(autoincrement())
   vet_id           Int
   clinic_id        Int
-  day_of_week      Int          // 0-6 for Sunday-Saturday
+  day_of_week      Int
   start_time       DateTime     @db.Time
   end_time         DateTime     @db.Time
   is_available     Boolean      @default(true)

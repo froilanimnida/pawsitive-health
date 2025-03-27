@@ -70,15 +70,10 @@ const UserLoginForm = () => {
             });
         const session = await getSession();
         if (session && session.user && session.user.role) {
-            if (session.user?.role === "client") {
-                router.push("/c");
-            } else if (session.user?.role === "veterinarian") {
-                router.push("/v");
-            } else if (session.user?.role === "admin") {
-                router.push("/a");
-            } else if (session.user?.role === "user") {
-                router.push("/u");
-            }
+            if (session.user?.role === "client") router.push("/c");
+            else if (session.user?.role === "veterinarian") router.push("/v");
+            else if (session.user?.role === "admin") router.push("/a");
+            else if (session.user?.role === "user") router.push("/u");
         }
     };
 
@@ -106,6 +101,7 @@ const UserLoginForm = () => {
                                         autoComplete={loginField.autoComplete}
                                         placeholder={loginField.placeholder}
                                         {...field}
+                                        required={loginField.required}
                                         disabled={isLoading}
                                     />
                                 </FormControl>
