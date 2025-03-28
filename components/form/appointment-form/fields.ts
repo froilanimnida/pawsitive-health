@@ -3,16 +3,10 @@ import { toTitleCase } from "@/lib/functions/text/title-case";
 import { TextFormField } from "@/types/forms/text-form-field";
 import { SelectFormField } from "@/types/forms/select-form-field";
 import type { Pets } from "@/types/pets";
+import type { UseFormReturn } from "react-hook-form";
 
 export function getAppointmentFields(): TextFormField[] {
     return [
-        {
-            label: "Status",
-            placeholder: "Status",
-            name: "status",
-            description: "The status of the appointment.",
-            required: true,
-        },
         {
             label: "Notes",
             placeholder: "Notes",
@@ -40,7 +34,7 @@ export function getAppointmentSelectFields(
         isLoadingVets: boolean;
         handleClinicChange: (value: string) => void;
         handleVetChange: (value: string) => void;
-        form: any;
+        form: UseFormReturn<any>;
     },
 ): SelectFormField[] {
     return [

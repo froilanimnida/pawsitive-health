@@ -2,21 +2,20 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { appointment_type, type clinics, type vet_availability } from "@prisma/client";
+import { appointment_type, type vet_availability } from "@prisma/client";
 import { AppointmentSchema } from "@/schemas/appointment-definition";
 import { addMinutes, format } from "date-fns";
 import { getVeterinariansByClinic } from "@/actions/veterinary";
 import { getVeterinaryAvailability } from "@/actions/veterinarian-availability";
 import { getExistingAppointments } from "@/actions/appointment";
 import { toTitleCase } from "@/lib/functions/text/title-case";
-import type { Pets } from "@/types/pets";
 
 export interface TimeSlot {
     time: string;
     available: boolean;
 }
 
-export function useAppointmentForm({ uuid, pets, clinics }: { uuid: string; pets: Pets[]; clinics: clinics[] }) {
+export function useAppointmentForm(uuid: string) {
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
     const [selectedClinicId, setSelectedClinicId] = useState<string>("");
     const [selectedVetId, setSelectedVetId] = useState<string>("");
@@ -29,7 +28,6 @@ export function useAppointmentForm({ uuid, pets, clinics }: { uuid: string; pets
 
     const form = useForm({
         defaultValues: {
-            status: "",
             notes: "",
             appointment_type: appointment_type.behavioral_consultation,
             vet_id: "",
@@ -65,7 +63,6 @@ export function useAppointmentForm({ uuid, pets, clinics }: { uuid: string; pets
                 setIsLoadingVets(false);
             }
         };
-
         loadVeterinarians();
     }, [selectedClinicId]);
 
@@ -109,14 +106,12 @@ export function useAppointmentForm({ uuid, pets, clinics }: { uuid: string; pets
                 slotEndTime.setHours(endTime.getHours(), endTime.getMinutes(), 0, 0);
 
                 while (currentSlot < slotEndTime) {
-                    const appointmentEndTime = addMinutes(currentSlot, selectedDuration); // Use selected duration
+                    const appointmentEndTime = addMinutes(currentSlot, 30);
 
-                    // Check if this time slot works with the selected duration
                     const isAvailable = !appointments.some((appointment) => {
                         const appointmentTime = new Date(appointment.appointment_date);
                         const existingAppointmentEnd = addMinutes(appointmentTime, appointment.duration_minutes);
 
-                        // Check for overlap
                         return (
                             (currentSlot >= appointmentTime && currentSlot < existingAppointmentEnd) ||
                             (appointmentEndTime > appointmentTime && appointmentEndTime <= existingAppointmentEnd) ||
@@ -124,7 +119,6 @@ export function useAppointmentForm({ uuid, pets, clinics }: { uuid: string; pets
                         );
                     });
 
-                    // Also check if the appointment would extend beyond the vet's availability
                     const wouldExtendBeyondAvailability = appointmentEndTime > slotEndTime;
 
                     slots.push({

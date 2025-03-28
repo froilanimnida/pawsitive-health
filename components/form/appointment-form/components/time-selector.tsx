@@ -3,9 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TimeSlot } from "../use-appointment-form";
+import type { Control } from "react-hook-form";
 
 interface TimeSelectorProps {
-    control: any;
+    control: Control<any>;
     selectedDate?: Date;
     selectedVetId: string;
     timeSlots: TimeSlot[];

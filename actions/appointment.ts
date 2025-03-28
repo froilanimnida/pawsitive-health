@@ -1,7 +1,7 @@
 "use server";
 import { auth } from "@/auth";
 import { AppointmentSchema } from "@/schemas/appointment-definition";
-import { PrismaClient, type appointment_status, type appointment_type } from "@prisma/client";
+import { PrismaClient, type appointment_type } from "@prisma/client";
 import type { z } from "zod";
 import { getPet } from "./pets";
 import { getUserId } from "./user";
@@ -77,7 +77,7 @@ const createUserAppointment = async (values: z.infer<typeof AppointmentSchema>) 
             data: {
                 appointment_date: values.appointment_date,
                 appointment_type: values.appointment_type as appointment_type,
-                status: values.status as appointment_status,
+                status: "requested",
                 notes: values.notes,
                 pet_id: pet?.pet_id,
                 vet_id: Number(values.vet_id),
