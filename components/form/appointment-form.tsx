@@ -2,7 +2,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import React from "react";
+import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectValue, SelectTrigger } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { toTitleCase } from "@/lib/functions/text/title-case";
-// import { getClinicVeterinarians, getClinicVeterinariansAppointment } from "@/actions/veterinary";
+import { getVeterinariansByClinic } from "@/actions/veterinary";
 
 interface NewAppointmentFields {
     label: string;
@@ -40,8 +40,36 @@ interface PetWithStringWeight extends Omit<pets, "weight_kg"> {
 }
 
 const AppointmentForm = ({ params }: { params: { uuid: string; pets: PetWithStringWeight[]; clinics: clinics[] } }) => {
-    // const [clinicId, setClinicId] = React.useState("");
-    // const veterinarians = await getClinicVeterinariansAppointment(Number(clinicId));
+    const [selectedClinicId, setSelectedClinicId] = useState<string>("");
+    const [veterinarians, setVeterinarians] = useState<{ label: string; value: string }[]>([]);
+    const [isLoadingVets, setIsLoadingVets] = useState<boolean>(false);
+
+    // Load veterinarians when clinic changes
+    useEffect(() => {
+        const loadVeterinarians = async () => {
+            if (!selectedClinicId) {
+                setVeterinarians([]);
+                return;
+            }
+
+            setIsLoadingVets(true);
+            try {
+                const vets = await getVeterinariansByClinic(selectedClinicId);
+                setVeterinarians(
+                    vets.map((vet) => ({
+                        label: `${vet.name} (${toTitleCase(vet.specialization)})`,
+                        value: vet.id,
+                    })),
+                );
+            } catch (error) {
+                console.error("Failed to load veterinarians:", error);
+            } finally {
+                setIsLoadingVets(false);
+            }
+        };
+
+        loadVeterinarians();
+    }, [selectedClinicId]);
     const newAppointmentFields: NewAppointmentFields[] = [
         {
             label: "Status",
@@ -60,21 +88,29 @@ const AppointmentForm = ({ params }: { params: { uuid: string; pets: PetWithStri
     ];
     const newAppointmentSelectFields: NewAppointmentSelectFields[] = [
         {
+            label: "Clinic",
+            placeholder: "Select Clinic",
+            name: "clinic_id",
+            description: "The clinic of the appointment.",
+            options: params.clinics.map((clinic) => ({
+                label: clinic.name,
+                value: String(clinic.clinic_id),
+            })),
+            onChange: (value) => {
+                newAppointmentForm.setValue("clinic_id", value);
+                // Clear vet selection when clinic changes
+                newAppointmentForm.setValue("vet_id", "");
+                // Update selected clinic to trigger loading vets
+                setSelectedClinicId(value);
+            },
+            required: true,
+        },
+        {
             label: "Veterinarian",
-            placeholder: "Veterinarian",
+            placeholder: isLoadingVets ? "Loading veterinarians..." : "Select Veterinarian",
             name: "vet_id",
             description: "The veterinarian of the appointment.",
-            options: [
-                {
-                    label: "John Doe",
-                    value: "John Doe",
-                },
-                {
-                    label: "Jane Doe",
-                    value: "Jane Doe",
-                },
-            ],
-            defaultValue: "John Doe",
+            options: veterinarians,
             onChange: (value) => newAppointmentForm.setValue("vet_id", value),
             required: true,
         },
@@ -104,17 +140,6 @@ const AppointmentForm = ({ params }: { params: { uuid: string; pets: PetWithStri
             onChange: (value) => newAppointmentForm.setValue("appointment_type", value),
             required: true,
         },
-        {
-            label: "Clinic",
-            placeholder: "Clinic",
-            name: "clinic_id",
-            description: "The clinic of the appointment.",
-            options: params.clinics.map((clinic) => ({
-                label: clinic.name,
-                value: String(clinic.clinic_id),
-            })),
-            required: true,
-        },
     ];
     const newAppointmentForm = useForm({
         defaultValues: {
@@ -123,6 +148,7 @@ const AppointmentForm = ({ params }: { params: { uuid: string; pets: PetWithStri
             appointment_type: appointment_type.behavioral_consultation,
             vet_id: "",
             pet_uuid: params.uuid,
+            clinic_id: "",
         },
         resolver: zodResolver(AppointmentSchema),
         progressive: true,
@@ -217,6 +243,8 @@ const AppointmentForm = ({ params }: { params: { uuid: string; pets: PetWithStri
                         control={newAppointmentForm.control}
                         name={newAppointmentSelectField.name}
                         render={({ field, fieldState }) => {
+                            const isVetField = newAppointmentSelectField.name === "vet_id";
+                            const isDisabled = isVetField && (!selectedClinicId || isLoadingVets);
                             return (
                                 <FormItem>
                                     <FormLabel>{newAppointmentSelectField.label}</FormLabel>
@@ -229,20 +257,35 @@ const AppointmentForm = ({ params }: { params: { uuid: string; pets: PetWithStri
                                         }}
                                         value={field.value}
                                         defaultValue={field.value || newAppointmentSelectField.defaultValue}
+                                        disabled={isDisabled}
                                     >
                                         <FormControl>
                                             <SelectTrigger>
-                                                <SelectValue placeholder={field.value || "Select an option"} />
+                                                <SelectValue
+                                                    placeholder={
+                                                        isLoadingVets && isVetField
+                                                            ? "Loading veterinarians..."
+                                                            : field.value || "Select an option"
+                                                    }
+                                                />
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            {newAppointmentSelectField.options.map((option) => {
-                                                return (
+                                            {newAppointmentSelectField.options.length === 0 && isVetField ? (
+                                                <div className="p-2 text-center text-sm text-muted-foreground">
+                                                    {!selectedClinicId
+                                                        ? "Please select a clinic first"
+                                                        : isLoadingVets
+                                                          ? "Loading veterinarians..."
+                                                          : "No veterinarians found for this clinic"}
+                                                </div>
+                                            ) : (
+                                                newAppointmentSelectField.options.map((option) => (
                                                     <SelectItem key={option.value} value={option.value}>
                                                         {option.label}
                                                     </SelectItem>
-                                                );
-                                            })}
+                                                ))
+                                            )}
                                         </SelectContent>
                                     </Select>
                                     <FormDescription>{newAppointmentSelectField.description}</FormDescription>

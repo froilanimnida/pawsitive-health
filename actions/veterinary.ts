@@ -148,12 +148,13 @@ const getClinicVeterinarians = async () => {
     }
 };
 
-const getClinicVeterinariansAppointment = async (clinic_id: number) => {
+const getVeterinariansByClinic = async (clinicId: string) => {
     try {
+        if (!clinicId) return [];
         const prisma = new PrismaClient();
         const clinicVeterinarians = await prisma.clinic_veterinarians.findMany({
             where: {
-                clinic_id: clinic_id,
+                clinic_id: Number(clinicId),
             },
             include: {
                 veterinarians: {
@@ -163,16 +164,21 @@ const getClinicVeterinariansAppointment = async (clinic_id: number) => {
                 },
             },
         });
+        if (!clinicVeterinarians || clinicVeterinarians.length === 0) {
+            return [];
+        }
 
-        const veterinarians = clinicVeterinarians.map((cv) => ({
-            ...cv.veterinarians,
+        return clinicVeterinarians.map((cv) => ({
+            id: cv.veterinarians.vet_id.toString(),
+            name: cv.veterinarians.users
+                ? `${cv.veterinarians.users.first_name} ${cv.veterinarians.users.last_name}`
+                : "Unknown",
+            specialization: cv.veterinarians.specialization,
         }));
-
-        return Promise.resolve(veterinarians);
     } catch (error) {
-        console.error("Error getting clinic veterinarians:", error);
-        return Promise.reject(error);
+        console.error("Error fetching veterinarians:", error);
+        return [];
     }
 };
 
-export { newVeterinarian, getClinicVeterinarians, getClinicVeterinariansAppointment };
+export { newVeterinarian, getClinicVeterinarians, getVeterinariansByClinic };
