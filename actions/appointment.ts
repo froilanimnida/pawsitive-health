@@ -5,6 +5,33 @@ import { PrismaClient, type appointment_status, type appointment_type } from "@p
 import type { z } from "zod";
 import { getPet } from "./pets";
 import { getUserId } from "./user";
+import { endOfDay, startOfDay } from "date-fns";
+
+async function getExistingAppointments(date: Date, vetId: number) {
+    const prisma = new PrismaClient();
+
+    try {
+        const startDate = startOfDay(date);
+        const endDate = endOfDay(date);
+
+        const appointments = await prisma.appointments.findMany({
+            where: {
+                vet_id: vetId,
+                appointment_date: {
+                    gte: startDate,
+                    lte: endDate,
+                },
+            },
+        });
+
+        return appointments;
+    } catch (error) {
+        console.error("Error fetching appointments:", error);
+        return [];
+    } finally {
+        await prisma.$disconnect();
+    }
+}
 
 const getUserAppointments = async () => {
     try {
@@ -108,4 +135,4 @@ const getClinicAppointments = async () => {
     }
 };
 
-export { getUserAppointments, createUserAppointment, getClinicAppointments };
+export { getUserAppointments, createUserAppointment, getClinicAppointments, getExistingAppointments };

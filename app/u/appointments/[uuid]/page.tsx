@@ -1,8 +1,14 @@
 import { getPets } from "@/actions/pets";
-import AppointmentForm from "@/components/form/appointment-form";
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getClinics } from "@/actions/clinic";
+import type { Metadata } from "next";
+import AppointmentForm from "@/components/form/appointment-form/index";
+
+export const metadata: Metadata = {
+    title: "PawsitiveHealth | New Appointment",
+    description: "PawsitiveHealth is a pet health care service.",
+};
 
 const NewAppointment = async ({ params }: { params: Promise<{ uuid: string }> }) => {
     const { uuid } = await params;
