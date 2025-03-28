@@ -31,6 +31,8 @@ export function AppointmentForm({ params }: AppointmentFormProps) {
         handleClinicChange,
         handleDateSelect,
         handleVetChange,
+        selectedDuration,
+        handleAppointmentTypeChange,
     } = useAppointmentForm({ ...params });
 
     const textFields = getAppointmentFields();
@@ -39,6 +41,7 @@ export function AppointmentForm({ params }: AppointmentFormProps) {
         isLoadingVets,
         handleClinicChange,
         handleVetChange,
+        handleAppointmentTypeChange,
         form: form,
     });
 
@@ -63,6 +66,7 @@ export function AppointmentForm({ params }: AppointmentFormProps) {
                     timeSlots={timeSlots}
                     isLoadingTimeSlots={isLoadingTimeSlots}
                 />
+                <div className="text-sm text-muted-foreground">Appointment duration: {selectedDuration} minutes</div>
 
                 <Button type="submit">Add Appointment</Button>
             </form>

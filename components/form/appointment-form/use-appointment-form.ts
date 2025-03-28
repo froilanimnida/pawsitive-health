@@ -36,7 +36,7 @@ export function useAppointmentForm({ uuid, pets, clinics }: { uuid: string; pets
             pet_uuid: uuid,
             clinic_id: "",
             appointment_date: undefined,
-            appointment_time: "",
+            duration_minutes: 0,
         },
         resolver: zodResolver(AppointmentSchema),
         progressive: true,
@@ -109,25 +109,30 @@ export function useAppointmentForm({ uuid, pets, clinics }: { uuid: string; pets
                 slotEndTime.setHours(endTime.getHours(), endTime.getMinutes(), 0, 0);
 
                 while (currentSlot < slotEndTime) {
-                    const slotEndTime = addMinutes(currentSlot, 30);
+                    const appointmentEndTime = addMinutes(currentSlot, selectedDuration); // Use selected duration
 
+                    // Check if this time slot works with the selected duration
                     const isAvailable = !appointments.some((appointment) => {
                         const appointmentTime = new Date(appointment.appointment_date);
-                        const appointmentEndTime = addMinutes(appointmentTime, appointment.duration_minutes);
+                        const existingAppointmentEnd = addMinutes(appointmentTime, appointment.duration_minutes);
 
+                        // Check for overlap
                         return (
-                            (currentSlot >= appointmentTime && currentSlot < appointmentEndTime) ||
-                            (slotEndTime > appointmentTime && slotEndTime <= appointmentEndTime) ||
-                            (currentSlot <= appointmentTime && slotEndTime >= appointmentEndTime)
+                            (currentSlot >= appointmentTime && currentSlot < existingAppointmentEnd) ||
+                            (appointmentEndTime > appointmentTime && appointmentEndTime <= existingAppointmentEnd) ||
+                            (currentSlot <= appointmentTime && appointmentEndTime >= existingAppointmentEnd)
                         );
                     });
 
+                    // Also check if the appointment would extend beyond the vet's availability
+                    const wouldExtendBeyondAvailability = appointmentEndTime > slotEndTime;
+
                     slots.push({
                         time: format(currentSlot, "h:mm a"),
-                        available: isAvailable,
+                        available: isAvailable && !wouldExtendBeyondAvailability,
                     });
 
-                    currentSlot = addMinutes(currentSlot, 30);
+                    currentSlot = addMinutes(currentSlot, 30); // Still step by 30 minute increments
                 }
 
                 setTimeSlots(slots);

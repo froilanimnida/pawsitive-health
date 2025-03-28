@@ -126,7 +126,7 @@ model pets {
   pet_uuid           String              @default(dbgenerated("uuid_generate_v4()")) @db.Uuid @unique
   name               String              @db.VarChar(100)
   species            species_type
-  breed              breed_type?
+  breed              breed_type
   date_of_birth      DateTime           @db.Date
   weight_kg          Decimal            @db.Decimal(5, 2)
   sex                pet_sex_type
@@ -405,7 +405,6 @@ enum appointment_type {
   neurology
   oncology
   hospice_care
-  telemedicine
 }
 
 enum appointment_status {
