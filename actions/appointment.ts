@@ -1,19 +1,22 @@
 "use server";
+
 import { auth } from "@/auth";
 import { AppointmentSchema } from "@/schemas/appointment-definition";
-import { PrismaClient, type appointment_type } from "@prisma/client";
+import { type appointment_type, type appointments } from "@prisma/client";
+import type { ActionResponse } from "@/types/server-action-response";
 import type { z } from "zod";
 import { getPet } from "./pets";
 import { getUserId } from "./user";
 import { endOfDay, startOfDay } from "date-fns";
+import { prisma } from "@/lib/prisma";
 
-async function getExistingAppointments(date: Date, vetId: number) {
-    const prisma = new PrismaClient();
-
+async function getExistingAppointments(
+    date: Date,
+    vetId: number,
+): Promise<ActionResponse<{ appointments: appointments[] }>> {
     try {
         const startDate = startOfDay(date);
         const endDate = endOfDay(date);
-
         const appointments = await prisma.appointments.findMany({
             where: {
                 vet_id: vetId,
@@ -23,23 +26,21 @@ async function getExistingAppointments(date: Date, vetId: number) {
                 },
             },
         });
-
-        return appointments;
+        return { success: true, data: { appointments } };
     } catch (error) {
-        console.error("Error fetching appointments:", error);
-        return [];
-    } finally {
-        await prisma.$disconnect();
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "An unexpected error occurred",
+        };
     }
 }
 
-const getUserAppointments = async () => {
+const getUserAppointments = async (): Promise<ActionResponse<{ appointments: appointments[] }>> => {
     try {
         const session = await auth();
         if (!session || !session.user || !session.user.email) {
             throw new Error("User not found");
         }
-        const prisma = new PrismaClient();
         const appointments = await prisma.appointments.findMany({
             where: {
                 pets: {
@@ -55,20 +56,23 @@ const getUserAppointments = async () => {
                 },
             },
         });
-
-        return Promise.resolve(appointments);
+        return { success: true, data: { appointments } };
     } catch (error) {
-        return Promise.reject(error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "An unexpected error occurred",
+        };
     }
 };
 
-const createUserAppointment = async (values: z.infer<typeof AppointmentSchema>) => {
+const createUserAppointment = async (
+    values: z.infer<typeof AppointmentSchema>,
+): Promise<ActionResponse<{ appointment_uuid: string }>> => {
     try {
         const session = await auth();
         if (!session || !session.user || !session.user.email) {
             throw new Error("User not found");
         }
-        const prisma = new PrismaClient();
         const pet = await getPet(values.pet_uuid);
         if (!pet) {
             throw await Promise.reject("Pet not found");
@@ -79,36 +83,32 @@ const createUserAppointment = async (values: z.infer<typeof AppointmentSchema>) 
                 appointment_type: values.appointment_type as appointment_type,
                 status: "requested",
                 notes: values.notes,
-                pet_id: pet?.pet_id,
+                pet_id: pet.data.pet_id,
                 vet_id: Number(values.vet_id),
             },
         });
 
-        return Promise.resolve(appointment);
+        return { success: true, data: { appointment_uuid: appointment.appointment_uuid } };
     } catch (error) {
-        return Promise.reject(error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "An unexpected error occurred",
+        };
     }
 };
-const getClinicAppointments = async () => {
+const getClinicAppointments = async (): Promise<ActionResponse<{ appointments: appointments[] }>> => {
     try {
         const session = await auth();
         if (!session || !session.user || !session.user.email) {
             throw new Error("User not found");
         }
         const user_id = await getUserId(session?.user?.email);
-
-        const prisma = new PrismaClient();
-
         const clinic = await prisma.clinics.findFirst({
             where: {
                 user_id: user_id,
             },
         });
-
-        if (!clinic) {
-            throw new Error("No clinic found for this user");
-        }
-
+        if (!clinic) return { success: false, error: "Clinic not found" };
         const appointments = await prisma.appointments.findMany({
             where: {
                 clinic_id: clinic.clinic_id,
@@ -127,11 +127,12 @@ const getClinicAppointments = async () => {
                 clinics: true,
             },
         });
-
-        return Promise.resolve(appointments);
+        return { success: true, data: { appointments } };
     } catch (error) {
-        console.error("Error fetching clinic appointments:", error);
-        return Promise.reject(error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "An unexpected error occurred",
+        };
     }
 };
 

@@ -207,7 +207,7 @@ model vaccinations {
 model veterinarians {
   user_id              Int?
   vet_id               Int                        @id @default(autoincrement())
-  vet_uuid             String?                    @default(dbgenerated("uuid_generate_v4()")) @db.Uuid @unique
+  vet_uuid             String                    @default(dbgenerated("uuid_generate_v4()")) @db.Uuid @unique
   license_number       String                     @unique @db.VarChar(50)
   specialization       veterinary_specialization
   created_at           DateTime?                  @default(now()) @db.Timestamptz(6)

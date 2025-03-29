@@ -9,15 +9,16 @@ import { TimeSelector } from "./components/time-selector";
 import { getAppointmentFields, getAppointmentSelectFields } from "./fields";
 import type { clinics } from "@prisma/client";
 import { Pets } from "@/types/pets";
-interface AppointmentFormProps {
+
+export function AppointmentForm({
+    params,
+}: {
     params: {
         uuid: string;
         pets: Pets[];
         clinics: clinics[];
     };
-}
-
-export function AppointmentForm({ params }: AppointmentFormProps) {
+}) {
     const {
         form,
         selectedDate,
