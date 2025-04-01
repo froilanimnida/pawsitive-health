@@ -10,12 +10,12 @@ export const metadata: Metadata = {
     title: "PawsitiveHealth | New Appointment",
     description: "PawsitiveHealth is a pet health care service.",
 };
-const NewAppointment = async ({ params }: { params: { uuid: string } }) => {
-    const { uuid } = params;
+const NewAppointment = async ({ params }: { params: Promise<{ uuid: string }> }) => {
+    const { uuid } = await params;
     const petsResponse = await getPets();
-    const pets = petsResponse.success ? (petsResponse.data?.pets ?? []) : [];
+    const pets = petsResponse.success ? petsResponse.data?.pets ?? [] : [];
     const clinicsResponse = await getClinics();
-    const clinics = clinicsResponse.success ? (clinicsResponse.data?.clinics ?? []) : [];
+    const clinics = clinicsResponse.success ? clinicsResponse.data?.clinics ?? [] : [];
     if (!pets || pets.length === 0) notFound();
     return (
         <Card>

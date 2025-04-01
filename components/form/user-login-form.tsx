@@ -61,9 +61,9 @@ const UserLoginForm = () => {
                 },
                 {
                     loading: "Signing in...",
-                    success: "Successfully signed in",
+                    success: "Successfully signed in, redirecting please wait...",
                     error: "Failed to sign in. Please check your credentials.",
-                },
+                }
             )
             .finally(() => {
                 setIsLoading(false);

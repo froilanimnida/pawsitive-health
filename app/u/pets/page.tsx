@@ -15,6 +15,7 @@ import type { Metadata } from "next";
 import { getPets } from "@/actions/pets";
 import { calculateAge } from "@/lib/functions/calculate-age";
 import Link from "next/link";
+import { toTitleCase } from "@/lib/functions/text/title-case";
 
 export const metadata: Metadata = {
     title: "PawsitiveHealth | User Pets",
@@ -23,7 +24,7 @@ export const metadata: Metadata = {
 
 async function PetList() {
     const pets = await getPets();
-    const petsData = pets.success ? (pets.data?.pets ?? []) : [];
+    const petsData = pets.success ? pets.data?.pets ?? [] : [];
     if (!petsData || petsData.length === 0) {
         return (
             <div className="text-center py-10">
@@ -38,11 +39,11 @@ async function PetList() {
             {petsData.map((pet) => (
                 <Card key={pet.pet_id}>
                     <CardHeader>
-                        <CardTitle>{pet.name.toUpperCase()}</CardTitle>
-                        <CardDescription>{pet.breed?.toUpperCase().replaceAll("_", " ")}</CardDescription>
+                        <CardTitle>{toTitleCase(pet.name)}</CardTitle>
+                        <CardDescription>{toTitleCase(pet.breed)}</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <p>Species: {pet.species?.toUpperCase()}</p>
+                        <p>Species: {toTitleCase(pet.species)}</p>
                         {pet.date_of_birth && <p>Age: {String(calculateAge(new Date(pet.date_of_birth), "full"))}</p>}
                     </CardContent>
                     <CardFooter>
