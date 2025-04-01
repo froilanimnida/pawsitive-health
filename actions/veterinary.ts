@@ -179,13 +179,18 @@ const getVeterinariansByClinic = async (
             return { success: true, data: { veterinarians: [] } };
         }
 
-        return clinicVeterinarians.map((cv) => ({
-            id: cv.veterinarians.vet_id.toString(),
-            name: cv.veterinarians.users
-                ? `${cv.veterinarians.users.first_name} ${cv.veterinarians.users.last_name}`
-                : "Unknown",
-            specialization: cv.veterinarians.specialization,
-        }));
+        return {
+            success: true,
+            data: {
+                veterinarians: clinicVeterinarians.map((cv) => ({
+                    id: cv.veterinarians.vet_id.toString(),
+                    name: cv.veterinarians.users
+                        ? `${cv.veterinarians.users.first_name} ${cv.veterinarians.users.last_name}`
+                        : "Unknown",
+                    specialization: cv.veterinarians.specialization,
+                })),
+            },
+        };
     } catch (error) {
         return {
             success: false,

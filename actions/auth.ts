@@ -2,7 +2,7 @@
 import { prisma } from "@/lib/prisma";
 import { SignUpSchema } from "@/schemas/auth-definitions";
 import type { z } from "zod";
-import { role_type } from "@prisma/client";
+import { role_type, type users } from "@prisma/client";
 import { signOut } from "next-auth/react";
 import { NewClinicAccountSchema } from "@/schemas/clinic-signup-definition";
 import { hashPassword, verifyPassword } from "@/lib/functions/security/password-check";
@@ -90,7 +90,7 @@ const createClinicAccount = async (
     }
 };
 
-const loginAccount = async (email: string, password: string): Promise<ActionResponse<{ user_uuid: string }>> => {
+const loginAccount = async (email: string, password: string): Promise<ActionResponse<{ user: users }>> => {
     try {
         const user = await prisma.users.findFirst({
             where: {
@@ -99,7 +99,7 @@ const loginAccount = async (email: string, password: string): Promise<ActionResp
         });
         if (user === null) return { success: false, error: "User not found" };
         if (!(await verifyPassword(password, user.password_hash))) return { success: false, error: "Invalid password" };
-        return { success: true, data: { user_uuid: user.user_uuid } };
+        return { success: true, data: { user: user } };
     } catch (error) {
         return {
             success: false,

@@ -21,7 +21,8 @@ export const metadata: Metadata = {
 };
 
 const Veterinaries = async () => {
-    const veterinaries = await getClinicVeterinarians();
+    const data = await getClinicVeterinarians();
+    const veterinaries = data.success ? (data.data?.veterinarians ?? []) : [];
     if (!veterinaries || veterinaries.length === 0) {
         return (
             <div className="text-center py-10">

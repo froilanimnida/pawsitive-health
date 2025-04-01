@@ -50,7 +50,8 @@ export function useAppointmentForm(uuid: string) {
 
             setIsLoadingVets(true);
             try {
-                const vets = await getVeterinariansByClinic(selectedClinicId);
+                const data = await getVeterinariansByClinic(selectedClinicId);
+                const vets = data.success ? data.data.veterinarians : [];
                 setVeterinarians(
                     vets.map((vet) => ({
                         label: `${vet.name} (${toTitleCase(vet.specialization)})`,
@@ -75,7 +76,8 @@ export function useAppointmentForm(uuid: string) {
             setIsLoadingTimeSlots(true);
             try {
                 const dayOfWeek = selectedDate.getDay();
-                const availability = await getVeterinaryAvailability(Number(selectedVetId));
+                const data = await getVeterinaryAvailability(Number(selectedVetId));
+                const availability = data.success ? data.data.availability : [];
                 setVetAvailability(availability);
                 console.log(availability);
 
@@ -92,7 +94,8 @@ export function useAppointmentForm(uuid: string) {
                     return;
                 }
 
-                const appointments = await getExistingAppointments(selectedDate, Number(selectedVetId));
+                const existingData = await getExistingAppointments(selectedDate, Number(selectedVetId));
+                const appointments = existingData.success ? existingData.data.appointments : [];
                 setExistingAppointments(appointments.map((app) => new Date(app.appointment_date)));
 
                 const slots: TimeSlot[] = [];

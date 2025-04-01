@@ -2,14 +2,28 @@
 
 import { auth } from "@/auth";
 import { AppointmentSchema } from "@/schemas/appointment-definition";
-import { type appointment_type, type appointments } from "@prisma/client";
+import { type appointment_type, type appointments, type Prisma } from "@prisma/client";
 import type { ActionResponse } from "@/types/server-action-response";
 import type { z } from "zod";
 import { getPet } from "./pets";
 import { getUserId } from "./user";
 import { endOfDay, startOfDay } from "date-fns";
 import { prisma } from "@/lib/prisma";
-
+type AppointmentWithRelations = Prisma.appointmentsGetPayload<{
+    include: {
+        pets: {
+            include: {
+                users: true;
+            };
+        };
+        veterinarians: {
+            include: {
+                users: true;
+            };
+        };
+        clinics: true;
+    };
+}>;
 async function getExistingAppointments(
     date: Date,
     vetId: number,
@@ -35,7 +49,7 @@ async function getExistingAppointments(
     }
 }
 
-const getUserAppointments = async (): Promise<ActionResponse<{ appointments: appointments[] }>> => {
+const getUserAppointments = async (): Promise<ActionResponse<{ appointments: AppointmentWithRelations[] }>> => {
     try {
         const session = await auth();
         if (!session || !session.user || !session.user.email) {
@@ -48,12 +62,17 @@ const getUserAppointments = async (): Promise<ActionResponse<{ appointments: app
                 },
             },
             include: {
-                pets: true,
+                pets: {
+                    include: {
+                        users: true,
+                    },
+                },
                 veterinarians: {
                     include: {
                         users: true,
                     },
                 },
+                clinics: true,
             },
         });
         return { success: true, data: { appointments } };
@@ -73,9 +92,13 @@ const createUserAppointment = async (
         if (!session || !session.user || !session.user.email) {
             throw new Error("User not found");
         }
-        const pet = await getPet(values.pet_uuid);
-        if (!pet) {
-            throw await Promise.reject("Pet not found");
+        const petResponse = await getPet(values.pet_uuid);
+        if (!petResponse.success || !petResponse.data || !petResponse.data.pet) {
+            return { success: false, error: "Pet not found" };
+        }
+        const { pet } = petResponse.data;
+        if (!pet.pet_id) {
+            return { success: false, error: "Invalid pet data" };
         }
         const appointment = await prisma.appointments.create({
             data: {
@@ -83,8 +106,9 @@ const createUserAppointment = async (
                 appointment_type: values.appointment_type as appointment_type,
                 status: "requested",
                 notes: values.notes,
-                pet_id: pet.data.pet_id,
+                pet_id: pet.pet_id,
                 vet_id: Number(values.vet_id),
+                clinic_id: Number(values.clinic_id),
             },
         });
 
@@ -96,7 +120,8 @@ const createUserAppointment = async (
         };
     }
 };
-const getClinicAppointments = async (): Promise<ActionResponse<{ appointments: appointments[] }>> => {
+
+const getClinicAppointments = async (): Promise<ActionResponse<{ appointments: AppointmentWithRelations[] }>> => {
     try {
         const session = await auth();
         if (!session || !session.user || !session.user.email) {

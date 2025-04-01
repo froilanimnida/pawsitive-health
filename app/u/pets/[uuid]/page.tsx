@@ -9,7 +9,8 @@ import { toTitleCase } from "@/lib/functions/text/title-case";
 
 export async function generateMetadata({ params }: { params: Promise<{ uuid: string }> }): Promise<Metadata> {
     const { uuid } = await params;
-    const pet = await getPet(uuid);
+    const data = await getPet(uuid);
+    const pet = data.success ? data.data?.pet : null;
     return {
         title: pet
             ? `${toTitleCase(pet.name)} | ${toTitleCase(pet.breed)} | PawsitiveHealth`
@@ -25,7 +26,8 @@ export default async function PetDetails({ params }: { params: Promise<{ uuid: s
         notFound();
     }
 
-    const pet = await getPet(uuid);
+    const data = await getPet(uuid);
+    const pet = data.success ? data.data?.pet : null;
 
     if (!pet) {
         notFound();

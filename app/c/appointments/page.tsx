@@ -12,7 +12,8 @@ export const metadata: Metadata = {
 
 const Appointments = async () => {
     const clinicAppointments = await getClinicAppointments();
-    if (!clinicAppointments || clinicAppointments.length === 0) {
+    const appointments = clinicAppointments.success ? (clinicAppointments.data?.appointments ?? []) : [];
+    if (!appointments || appointments.length === 0) {
         return (
             <div className="text-center py-10">
                 <h3 className="text-lg font-medium">No appointments found</h3>
@@ -21,7 +22,7 @@ const Appointments = async () => {
     }
     return (
         <div className="grid grid-cols-1 md:grid-cols-3 w-full lg:grid-cols-4 gap-4">
-            {clinicAppointments.map((appointment) => (
+            {appointments.map((appointment) => (
                 <Card key={appointment.appointment_id}>
                     <CardHeader>
                         <CardTitle>{appointment.pets?.name}</CardTitle>

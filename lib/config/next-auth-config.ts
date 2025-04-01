@@ -15,15 +15,18 @@ export const config = {
                 if (!credentials || !credentials.email || !credentials.password) {
                     return null;
                 }
-                const userData = await loginAccount(credentials?.email, credentials?.password);
+                const data = await loginAccount(credentials?.email, credentials?.password);
+                const userData = data.success ? data.data : null;
                 if (userData === null || userData === undefined) {
                     return null;
                 }
                 return {
-                    id: userData.user_id.toString(),
-                    email: userData.email,
-                    role: userData.role as role_type,
-                    name: userData.first_name ? `${userData.first_name} ${userData.last_name || ""}`.trim() : null,
+                    id: userData.user.user_id.toString(),
+                    email: userData.user.email,
+                    role: userData.user.role as role_type,
+                    name: userData.user.first_name
+                        ? `${userData.user.first_name} ${userData.user.last_name || ""}`.trim()
+                        : null,
                 };
             },
         }),
