@@ -26,7 +26,6 @@ export function useAppointmentForm(uuid: string) {
     const [veterinarians, setVeterinarians] = useState<{ label: string; value: string }[]>([]);
     const [isLoadingVets, setIsLoadingVets] = useState<boolean>(false);
     const [vetAvailability, setVetAvailability] = useState<vet_availability[]>([]);
-    const [existingAppointments, setExistingAppointments] = useState<Date[]>([]);
     const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
     const [isLoadingTimeSlots, setIsLoadingTimeSlots] = useState(false);
 
@@ -51,7 +50,6 @@ export function useAppointmentForm(uuid: string) {
                 setVeterinarians([]);
                 return;
             }
-
             setIsLoadingVets(true);
             try {
                 const data = await getVeterinariansByClinic(selectedClinicId);
@@ -63,7 +61,7 @@ export function useAppointmentForm(uuid: string) {
                     })),
                 );
             } catch (error) {
-                console.error("Failed to load veterinarians:", error);
+                setVeterinarians([]);
             } finally {
                 setIsLoadingVets(false);
             }
@@ -93,30 +91,17 @@ export function useAppointmentForm(uuid: string) {
                         a.is_available;
                     return matches;
                 });
-
-                console.log("Found availability for selected day:", dayAvailability);
-
                 if (!dayAvailability) {
                     setTimeSlots([]);
                     return;
                 }
-
-                // Get existing appointments
                 const existingData = await getExistingAppointments(selectedDate, Number(selectedVetId));
                 const appointments = existingData.success ? existingData.data.appointments : [];
-                console.log("Existing appointments:", appointments);
 
-                // Generate time slots
                 const slots: TimeSlot[] = [];
 
-                // Create Date objects for start and end times
                 const startTime = new Date(dayAvailability.start_time);
                 const endTime = new Date(dayAvailability.end_time);
-
-                console.log("Working hours:", {
-                    start: startTime.toLocaleTimeString(),
-                    end: endTime.toLocaleTimeString(),
-                });
 
                 let currentSlot = new Date(selectedDate);
                 currentSlot.setHours(startTime.getHours(), startTime.getMinutes(), 0, 0);
@@ -131,26 +116,19 @@ export function useAppointmentForm(uuid: string) {
                     const matchingAppointments = appointments.filter((appointment) => {
                         const appointmentTime = new Date(appointment.appointment_date);
                         const appointmentEndTime = addMinutes(appointmentTime, appointment.duration_minutes || 30);
-
-                        // Check for any overlap
                         const hasOverlap =
-                            // Slot starts during an existing appointment
                             (slotStartTime >= appointmentTime && slotStartTime < appointmentEndTime) ||
-                            // Slot ends during an existing appointment
                             (slotEndTime > appointmentTime && slotEndTime <= appointmentEndTime) ||
-                            // Slot completely contains an existing appointment
                             (slotStartTime <= appointmentTime && slotEndTime >= appointmentEndTime);
 
                         return hasOverlap;
                     });
 
-                    // Format status message if there are appointments
                     let statusMessage = null;
                     if (matchingAppointments.length > 0) {
                         statusMessage = `Booked: ${matchingAppointments[0].status}`;
                     }
 
-                    // Add slot to our list with availability info
                     slots.push({
                         time: format(currentSlot, "h:mm a"),
                         available: matchingAppointments.length === 0,
@@ -159,14 +137,10 @@ export function useAppointmentForm(uuid: string) {
                             matchingAppointments.length > 0 ? matchingAppointments[0].appointment_uuid : null,
                     });
 
-                    // Move to next 30-min slot
                     currentSlot = addMinutes(currentSlot, 30);
                 }
-
-                console.log("Generated time slots:", slots);
                 setTimeSlots(slots);
             } catch (error) {
-                console.error("Failed to load time slots:", error);
                 setTimeSlots([]);
             } finally {
                 setIsLoadingTimeSlots(false);
@@ -178,13 +152,10 @@ export function useAppointmentForm(uuid: string) {
 
     const onSubmit = async (values: z.infer<typeof AppointmentSchema>) => {
         try {
-            // Create a copy of the values to avoid modifying the original
             const submissionData = { ...values };
 
-            // Check if we have both date and time
             if (selectedDate && values.appointment_time) {
-                // Parse the time from the 12-hour format string
-                const timeString = values.appointment_time; // e.g. "5:00 PM"
+                const timeString = values.appointment_time;
                 const [hourMinute, period] = timeString.split(" ");
                 const [hourStr, minuteStr] = hourMinute.split(":");
 
@@ -198,11 +169,8 @@ export function useAppointmentForm(uuid: string) {
                 appointmentDate.setHours(hour, minute, 0, 0);
 
                 submissionData.appointment_date = appointmentDate;
-
-                console.log("Submission data with combined date/time:", submissionData);
             } else {
-                console.error("Missing date or time for appointment");
-                return; // Prevent submission
+                return;
             }
             await createUserAppointment(submissionData);
         } catch (error) {

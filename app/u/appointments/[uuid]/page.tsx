@@ -13,9 +13,9 @@ export const metadata: Metadata = {
 const NewAppointment = async ({ params }: { params: Promise<{ uuid: string }> }) => {
     const { uuid } = await params;
     const petsResponse = await getPets();
-    const pets = petsResponse.success ? petsResponse.data?.pets ?? [] : [];
+    const pets = petsResponse.success ? (petsResponse.data?.pets ?? []) : [];
     const clinicsResponse = await getClinics();
-    const clinics = clinicsResponse.success ? clinicsResponse.data?.clinics ?? [] : [];
+    const clinics = clinicsResponse.success ? (clinicsResponse.data?.clinics ?? []) : [];
     if (!pets || pets.length === 0) notFound();
     return (
         <Card>
