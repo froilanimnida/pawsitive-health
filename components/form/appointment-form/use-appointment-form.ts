@@ -7,12 +7,16 @@ import { AppointmentSchema } from "@/schemas/appointment-definition";
 import { addMinutes, format } from "date-fns";
 import { getVeterinariansByClinic } from "@/actions/veterinary";
 import { getVeterinaryAvailability } from "@/actions/veterinarian-availability";
-import { getExistingAppointments } from "@/actions/appointment";
+import { createUserAppointment, getExistingAppointments } from "@/actions/appointment";
 import { toTitleCase } from "@/lib/functions/text/title-case";
+import toast from "react-hot-toast";
+import { useRouter } from "next/router";
 
 export interface TimeSlot {
     time: string;
     available: boolean;
+    statusMessage?: string | null;
+    appointmentId?: string | null;
 }
 
 export function useAppointmentForm(uuid: string) {
@@ -66,41 +70,53 @@ export function useAppointmentForm(uuid: string) {
         };
         loadVeterinarians();
     }, [selectedClinicId]);
-
     useEffect(() => {
         const loadTimeSlots = async () => {
             if (!selectedDate || !selectedVetId || !selectedClinicId) {
                 setTimeSlots([]);
                 return;
             }
+
             setIsLoadingTimeSlots(true);
             try {
                 const dayOfWeek = selectedDate.getDay();
+
                 const data = await getVeterinaryAvailability(Number(selectedVetId));
                 const availability = data.success ? data.data.availability : [];
                 setVetAvailability(availability);
-                console.log(availability);
 
-                const dayAvailability = availability.find(
-                    (a) =>
+                const dayAvailability = availability.find((a) => {
+                    const matches =
                         a.day_of_week === dayOfWeek &&
                         a.vet_id === Number(selectedVetId) &&
                         a.clinic_id === Number(selectedClinicId) &&
-                        a.is_available,
-                );
+                        a.is_available;
+                    return matches;
+                });
+
+                console.log("Found availability for selected day:", dayAvailability);
 
                 if (!dayAvailability) {
                     setTimeSlots([]);
                     return;
                 }
 
+                // Get existing appointments
                 const existingData = await getExistingAppointments(selectedDate, Number(selectedVetId));
                 const appointments = existingData.success ? existingData.data.appointments : [];
-                setExistingAppointments(appointments.map((app) => new Date(app.appointment_date)));
+                console.log("Existing appointments:", appointments);
 
+                // Generate time slots
                 const slots: TimeSlot[] = [];
+
+                // Create Date objects for start and end times
                 const startTime = new Date(dayAvailability.start_time);
                 const endTime = new Date(dayAvailability.end_time);
+
+                console.log("Working hours:", {
+                    start: startTime.toLocaleTimeString(),
+                    end: endTime.toLocaleTimeString(),
+                });
 
                 let currentSlot = new Date(selectedDate);
                 currentSlot.setHours(startTime.getHours(), startTime.getMinutes(), 0, 0);
@@ -109,29 +125,45 @@ export function useAppointmentForm(uuid: string) {
                 slotEndTime.setHours(endTime.getHours(), endTime.getMinutes(), 0, 0);
 
                 while (currentSlot < slotEndTime) {
-                    const appointmentEndTime = addMinutes(currentSlot, 30);
+                    const slotStartTime = new Date(currentSlot);
+                    const slotEndTime = addMinutes(currentSlot, 30);
 
-                    const isAvailable = !appointments.some((appointment) => {
+                    const matchingAppointments = appointments.filter((appointment) => {
                         const appointmentTime = new Date(appointment.appointment_date);
-                        const existingAppointmentEnd = addMinutes(appointmentTime, appointment.duration_minutes);
+                        const appointmentEndTime = addMinutes(appointmentTime, appointment.duration_minutes || 30);
 
-                        return (
-                            (currentSlot >= appointmentTime && currentSlot < existingAppointmentEnd) ||
-                            (appointmentEndTime > appointmentTime && appointmentEndTime <= existingAppointmentEnd) ||
-                            (currentSlot <= appointmentTime && appointmentEndTime >= existingAppointmentEnd)
-                        );
+                        // Check for any overlap
+                        const hasOverlap =
+                            // Slot starts during an existing appointment
+                            (slotStartTime >= appointmentTime && slotStartTime < appointmentEndTime) ||
+                            // Slot ends during an existing appointment
+                            (slotEndTime > appointmentTime && slotEndTime <= appointmentEndTime) ||
+                            // Slot completely contains an existing appointment
+                            (slotStartTime <= appointmentTime && slotEndTime >= appointmentEndTime);
+
+                        return hasOverlap;
                     });
 
-                    const wouldExtendBeyondAvailability = appointmentEndTime > slotEndTime;
+                    // Format status message if there are appointments
+                    let statusMessage = null;
+                    if (matchingAppointments.length > 0) {
+                        statusMessage = `Booked: ${matchingAppointments[0].status}`;
+                    }
 
+                    // Add slot to our list with availability info
                     slots.push({
                         time: format(currentSlot, "h:mm a"),
-                        available: isAvailable && !wouldExtendBeyondAvailability,
+                        available: matchingAppointments.length === 0,
+                        statusMessage: statusMessage,
+                        appointmentId:
+                            matchingAppointments.length > 0 ? matchingAppointments[0].appointment_uuid : null,
                     });
 
-                    currentSlot = addMinutes(currentSlot, 30); // Still step by 30 minute increments
+                    // Move to next 30-min slot
+                    currentSlot = addMinutes(currentSlot, 30);
                 }
 
+                console.log("Generated time slots:", slots);
                 setTimeSlots(slots);
             } catch (error) {
                 console.error("Failed to load time slots:", error);
@@ -144,26 +176,39 @@ export function useAppointmentForm(uuid: string) {
         loadTimeSlots();
     }, [selectedDate, selectedVetId, selectedClinicId]);
 
-    const onSubmit = (values: z.infer<typeof AppointmentSchema>) => {
-        if (values.appointment_date && values.appointment_time) {
-            const timeParts = values.appointment_time.split(":");
-            const [hours, minutesPeriod] = timeParts[1].split(" ");
-            let hour = parseInt(timeParts[0]);
-            const minutes = parseInt(minutesPeriod);
+    const onSubmit = async (values: z.infer<typeof AppointmentSchema>) => {
+        try {
+            // Create a copy of the values to avoid modifying the original
+            const submissionData = { ...values };
 
-            if (timeParts[1].includes("PM") && hour < 12) {
-                hour += 12;
-            } else if (timeParts[1].includes("AM") && hour === 12) {
-                hour = 0;
+            // Check if we have both date and time
+            if (selectedDate && values.appointment_time) {
+                // Parse the time from the 12-hour format string
+                const timeString = values.appointment_time; // e.g. "5:00 PM"
+                const [hourMinute, period] = timeString.split(" ");
+                const [hourStr, minuteStr] = hourMinute.split(":");
+
+                let hour = parseInt(hourStr);
+                const minute = parseInt(minuteStr);
+
+                if (period === "PM" && hour < 12) hour += 12;
+                else if (period === "AM" && hour === 12) hour = 0;
+
+                const appointmentDate = new Date(selectedDate);
+                appointmentDate.setHours(hour, minute, 0, 0);
+
+                submissionData.appointment_date = appointmentDate;
+
+                console.log("Submission data with combined date/time:", submissionData);
+            } else {
+                console.error("Missing date or time for appointment");
+                return; // Prevent submission
             }
-
-            const dateTime = new Date(values.appointment_date);
-            dateTime.setHours(hour, minutes, 0, 0);
-
-            values.appointment_date = dateTime;
+            await createUserAppointment(submissionData);
+        } catch (error) {
+            console.error("Error submitting appointment:", error);
+            toast.error("An unexpected error occurred");
         }
-
-        console.log(values);
     };
 
     const handleClinicChange = (value: string) => {
