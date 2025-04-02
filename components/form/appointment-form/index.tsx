@@ -9,6 +9,7 @@ import { TimeSelector } from "./components/time-selector";
 import { getAppointmentFields, getAppointmentSelectFields } from "./fields";
 import type { clinics } from "@prisma/client";
 import { Pets } from "@/types/pets";
+import { AppointmentSummary } from "./components/appointment-summary";
 
 export function AppointmentForm({
     params,
@@ -32,8 +33,6 @@ export function AppointmentForm({
         handleClinicChange,
         handleDateSelect,
         handleVetChange,
-        // selectedDuration,
-        // handleAppointmentTypeChange,
     } = useAppointmentForm(params.uuid);
 
     const textFields = getAppointmentFields();
@@ -42,7 +41,6 @@ export function AppointmentForm({
         isLoadingVets,
         handleClinicChange,
         handleVetChange,
-        // handleAppointmentTypeChange,
         form: form,
     });
 
@@ -67,8 +65,21 @@ export function AppointmentForm({
                     timeSlots={timeSlots}
                     isLoadingTimeSlots={isLoadingTimeSlots}
                 />
-                {/* <div className="text-sm text-muted-foreground">Appointment duration: {selectedDuration} minutes</div> */}
 
+                {selectedDate && form.watch("appointment_time") && (
+                    <AppointmentSummary
+                        selectedDate={selectedDate}
+                        selectedTime={form.watch("appointment_time")}
+                        selectedVetName={veterinarians.find((v) => v.value === selectedVetId)?.label}
+                        selectedPetName={params.pets.find((p) => p.pet_uuid === form.watch("pet_uuid"))?.name}
+                        selectedClinicName={params.clinics.find((c) => String(c.clinic_id) === selectedClinicId)?.name}
+                        selectedClinicAddress={`${params.clinics.find((c) => String(c.clinic_id) === selectedClinicId)?.address}, ${
+                            params.clinics.find((c) => String(c.clinic_id) === selectedClinicId)?.city
+                        }, ${params.clinics.find((c) => String(c.clinic_id) === selectedClinicId)?.state} ${
+                            params.clinics.find((c) => String(c.clinic_id) === selectedClinicId)?.postal_code
+                        }`}
+                    />
+                )}
                 <Button type="submit">Add Appointment</Button>
             </form>
         </Form>

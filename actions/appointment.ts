@@ -1,14 +1,14 @@
 "use server";
-
 import { auth } from "@/auth";
 import { AppointmentSchema } from "@/schemas/appointment-definition";
-import { type appointment_type, type appointments, type Prisma } from "@prisma/client";
+import { type appointment_type, type appointments, type Prisma, type users } from "@prisma/client";
 import type { ActionResponse } from "@/types/server-action-response";
 import type { z } from "zod";
 import { getPet } from "./pets";
 import { getUserId } from "./user";
 import { endOfDay, startOfDay } from "date-fns";
 import { prisma } from "@/lib/prisma";
+import { redirect } from "next/navigation";
 type AppointmentWithRelations = Prisma.appointmentsGetPayload<{
     include: {
         pets: {
@@ -24,6 +24,7 @@ type AppointmentWithRelations = Prisma.appointmentsGetPayload<{
         clinics: true;
     };
 }>;
+
 async function getExistingAppointments(
     date: Date,
     vetId: number
@@ -31,6 +32,7 @@ async function getExistingAppointments(
     try {
         const startDate = startOfDay(date);
         const endDate = endOfDay(date);
+
         const appointments = await prisma.appointments.findMany({
             where: {
                 vet_id: vetId,
@@ -38,8 +40,17 @@ async function getExistingAppointments(
                     gte: startDate,
                     lte: endDate,
                 },
+                // Optionally exclude cancelled appointments
+                // status: { not: "cancelled" }
+            },
+            select: {
+                appointment_date: true,
+                duration_minutes: true,
+                appointment_uuid: true,
+                status: true,
             },
         });
+
         return { success: true, data: { appointments } };
     } catch (error) {
         return {
@@ -58,7 +69,7 @@ const getUserAppointments = async (): Promise<ActionResponse<{ appointments: App
         const appointments = await prisma.appointments.findMany({
             where: {
                 pets: {
-                    user_id: Number(session.user.id),
+                    user_id: await getUserId(session?.user?.email),
                 },
             },
             include: {
@@ -90,7 +101,7 @@ const createUserAppointment = async (
     try {
         const session = await auth();
         if (!session || !session.user || !session.user.email) {
-            throw new Error("User not found");
+            return { success: false, error: "User not found" };
         }
         const petResponse = await getPet(values.pet_uuid);
         if (!petResponse.success || !petResponse.data || !petResponse.data.pet) {
@@ -111,8 +122,7 @@ const createUserAppointment = async (
                 clinic_id: Number(values.clinic_id),
             },
         });
-
-        return { success: true, data: { appointment_uuid: appointment.appointment_uuid } };
+        redirect(`/u/appointments/view?appointment_uuid=${appointment.appointment_uuid}`);
     } catch (error) {
         return {
             success: false,

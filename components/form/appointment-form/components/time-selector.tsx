@@ -1,12 +1,12 @@
 import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { Clock } from "lucide-react";
+import { Clock, X, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TimeSlot } from "../use-appointment-form";
-import type { Control } from "react-hook-form";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface TimeSelectorProps {
-    control: Control<any>;
+    control: any;
     selectedDate?: Date;
     selectedVetId: string;
     timeSlots: TimeSlot[];
@@ -40,18 +40,38 @@ export function TimeSelector({
                             ) : (
                                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
                                     {timeSlots.map((slot) => (
-                                        <Button
-                                            key={slot.time}
-                                            type="button"
-                                            size="sm"
-                                            variant={field.value === slot.time ? "default" : "outline"}
-                                            onClick={() => field.onChange(slot.time)}
-                                            disabled={!slot.available}
-                                            className={cn("justify-center", !slot.available && "opacity-50")}
-                                        >
-                                            <Clock className="mr-2 h-3 w-3" />
-                                            {slot.time}
-                                        </Button>
+                                        <TooltipProvider key={slot.time}>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <div>
+                                                        <Button
+                                                            type="button"
+                                                            size="sm"
+                                                            variant={field.value === slot.time ? "default" : "outline"}
+                                                            onClick={() => slot.available && field.onChange(slot.time)}
+                                                            disabled={!slot.available}
+                                                            className={cn(
+                                                                "justify-center w-full",
+                                                                !slot.available &&
+                                                                    "border-red-200 bg-red-50 text-red-600",
+                                                            )}
+                                                        >
+                                                            {slot.available ? (
+                                                                <Clock className="mr-2 h-3 w-3" />
+                                                            ) : (
+                                                                <X className="mr-2 h-3 w-3" />
+                                                            )}
+                                                            {slot.time}
+                                                        </Button>
+                                                    </div>
+                                                </TooltipTrigger>
+                                                {!slot.available && slot.statusMessage && (
+                                                    <TooltipContent>
+                                                        <p>{slot.statusMessage}</p>
+                                                    </TooltipContent>
+                                                )}
+                                            </Tooltip>
+                                        </TooltipProvider>
                                     ))}
                                 </div>
                             )}
