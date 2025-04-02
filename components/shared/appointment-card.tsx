@@ -2,7 +2,7 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, MapPin, User, Stethoscope, XCircle } from "lucide-react";
+import { Calendar, Clock, MapPin, User, Stethoscope, XCircle, CheckCircle } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toTitleCase } from "@/lib/functions/text/title-case";
@@ -13,6 +13,7 @@ import {
     DialogContent,
     DialogDescription,
     DialogFooter,
+    DialogHeader,
     DialogTitle,
     DialogTrigger,
 } from "../ui/dialog";
@@ -69,8 +70,6 @@ export interface AppointmentCardProps {
         };
     };
     viewerType: "user" | "vet" | "clinic";
-    onCancel?: (appointmentId: string) => void;
-    onReschedule?: (appointmentId: string) => void;
     additionalActions?: React.ReactNode;
     showFooter?: boolean;
 }
@@ -78,8 +77,6 @@ export interface AppointmentCardProps {
 export function AppointmentCard({
     appointment,
     viewerType,
-    onCancel,
-    onReschedule,
     additionalActions,
     showFooter = true,
 }: AppointmentCardProps) {
@@ -180,7 +177,7 @@ export function AppointmentCard({
                     {/* Right Column */}
                     <div className="space-y-6">
                         {/* Show clinic info for users and vets */}
-                        {(viewerType === "user" || viewerType === "vet") && appointment.clinics && (
+                        {viewerType === "user" && appointment.clinics && (
                             <div className="space-y-2">
                                 <h3 className="text-lg font-medium">Clinic</h3>
                                 <div className="border rounded-lg overflow-hidden">
@@ -231,27 +228,67 @@ export function AppointmentCard({
             {showFooter && (
                 <CardFooter className="flex justify-between border-t p-6 bg-gray-50">
                     <div className="flex gap-2">
-                        {appointment.status !== "cancelled" && onCancel && (
+                        {appointment.status !== "cancelled" && (
                             <Dialog>
-                                <DialogTrigger>
-                                    <Button
-                                        variant="outline"
-                                        className="text-red-600 border-red-200 hover:bg-red-50"
-                                        onClick={() => onCancel(appointment.appointment_uuid)}
-                                    >
+                                <DialogTrigger asChild>
+                                    <Button variant="destructive">
                                         <XCircle className="mr-2 h-4 w-4" />
                                         Cancel Appointment
                                     </Button>
                                 </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>Are you absolutely sure?</DialogTitle>
+                                        <DialogDescription>
+                                            This action cannot be undone. This will permanently mark this appointment as
+                                            cancelled.
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <DialogFooter>
+                                        <Button type="button" variant="destructive">
+                                            Cancel Appointment
+                                        </Button>
+                                        <DialogClose asChild>
+                                            <Button variant="outline">Cancel</Button>
+                                        </DialogClose>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
+                        )}
+                        {appointment.status !== "cancelled" && viewerType === "vet" && (
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <Button>
+                                        <CheckCircle className="mr-2 h-4 w-4" />
+                                        Accept Appointment
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>Are you absolutely sure?</DialogTitle>
+                                        <DialogDescription>
+                                            This action cannot be undone. This will permanently mark this appointment as
+                                            accepted. We&apos;ll send a confirmation to the user.
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <DialogFooter>
+                                        <Button type="button">
+                                            Accept Appointment
+                                        </Button>
+                                        <DialogClose asChild>
+                                            <Button variant="outline">Cancel</Button>
+                                        </DialogClose>
+                                    </DialogFooter>
+                                </DialogContent>
                             </Dialog>
                         )}
 
-                        {appointment.status !== "cancelled" && onReschedule && (
+                        {/* {appointment.status !== "cancelled" && onReschedule && (
                             <Button variant="outline" onClick={() => onReschedule(appointment.appointment_uuid)}>
                                 <Calendar className="mr-2 h-4 w-4" />
                                 Reschedule
                             </Button>
-                        )}
+                        )} */}
                     </div>
 
                     {additionalActions && <div className="flex gap-2">{additionalActions}</div>}

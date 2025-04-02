@@ -1,7 +1,6 @@
 import React from "react";
 import { notFound } from "next/navigation";
 import { getAppointment } from "@/actions/appointment";
-import { format } from "date-fns";
 import { Metadata } from "next";
 import { AppointmentCard } from "@/components/shared/appointment-card";
 
@@ -13,9 +12,7 @@ export const metadata: Metadata = {
 const ViewAppointment = async ({ params }: { params: Promise<{ appointment_uuid: string }> }) => {
     const { appointment_uuid } = await params;
     const appointmentResponse = await getAppointment(appointment_uuid, true);
-    if (!appointmentResponse.success || !appointmentResponse.data?.appointment) {
-        notFound();
-    }
+    if (!appointmentResponse.success || !appointmentResponse.data?.appointment) notFound();
     const { appointment } = appointmentResponse.data;
     const handleCancelAppointment = async () => {
         // Logic to cancel the appointment
