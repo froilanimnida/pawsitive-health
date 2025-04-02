@@ -26,7 +26,7 @@ type AppointmentWithRelations = Prisma.appointmentsGetPayload<{
 }>;
 async function getExistingAppointments(
     date: Date,
-    vetId: number,
+    vetId: number
 ): Promise<ActionResponse<{ appointments: appointments[] }>> {
     try {
         const startDate = startOfDay(date);
@@ -85,7 +85,7 @@ const getUserAppointments = async (): Promise<ActionResponse<{ appointments: App
 };
 
 const createUserAppointment = async (
-    values: z.infer<typeof AppointmentSchema>,
+    values: z.infer<typeof AppointmentSchema>
 ): Promise<ActionResponse<{ appointment_uuid: string }>> => {
     try {
         const session = await auth();
@@ -161,4 +161,49 @@ const getClinicAppointments = async (): Promise<ActionResponse<{ appointments: A
     }
 };
 
-export { getUserAppointments, createUserAppointment, getClinicAppointments, getExistingAppointments };
+const getVeterinarianAppointments = async (): Promise<ActionResponse<{ appointments: AppointmentWithRelations[] }>> => {
+    try {
+        const session = await auth();
+        if (!session || !session.user || !session.user.email) {
+            throw new Error("User not found");
+        }
+        const user_id = await getUserId(session?.user?.email);
+        const veterinarian = await prisma.veterinarians.findFirst({
+            where: {
+                user_id: user_id,
+            },
+        });
+        if (!veterinarian) return { success: false, error: "Veterinarian not found" };
+        const appointments = await prisma.appointments.findMany({
+            where: {
+                vet_id: veterinarian.vet_id,
+            },
+            include: {
+                pets: {
+                    include: {
+                        users: true,
+                    },
+                },
+                veterinarians: {
+                    include: {
+                        users: true,
+                    },
+                },
+            },
+        });
+        return { success: true, data: { appointments } };
+    } catch (error) {
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "An unexpected error occurred",
+        };
+    }
+};
+
+export {
+    getUserAppointments,
+    createUserAppointment,
+    getClinicAppointments,
+    getExistingAppointments,
+    getVeterinarianAppointments,
+};
