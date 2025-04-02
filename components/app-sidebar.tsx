@@ -53,7 +53,7 @@ const vetNavLinks = [
         icon: Dog,
     },
     {
-        name: "My Booking",
+        name: "Appointments",
         url: "/v/appointments",
         icon: BookmarkCheckIcon,
     },

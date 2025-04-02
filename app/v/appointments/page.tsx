@@ -28,9 +28,10 @@ const Appointments = async () => {
             {appointments.map((appointment) => (
                 <Card key={appointment.appointment_id}>
                     <CardHeader>
-                        <CardTitle>{appointment.pets?.name}</CardTitle>
+                        <CardTitle>{toTitleCase(appointment.pets?.name)}</CardTitle>
                         <CardDescription>
-                            {toTitleCase(appointment.veterinarians?.users?.first_name)} {appointment.veterinarians?.users?.last_name}
+                            {toTitleCase(appointment.veterinarians?.users?.first_name)}{" "}
+                            {toTitleCase(appointment.veterinarians?.users?.last_name)}
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
