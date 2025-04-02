@@ -5,6 +5,7 @@ import { getVeterinarianAppointments } from "@/actions/appointment";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { toTitleCase } from "@/lib/functions/text/title-case";
 
 export const metadata: Metadata = {
     title: "PawsitiveHealth | Veterinary Appointment",
@@ -29,7 +30,7 @@ const Appointments = async () => {
                     <CardHeader>
                         <CardTitle>{appointment.pets?.name}</CardTitle>
                         <CardDescription>
-                            {appointment.veterinarians?.users?.first_name} {appointment.veterinarians?.users?.last_name}
+                            {toTitleCase(appointment.veterinarians?.users?.first_name)} {appointment.veterinarians?.users?.last_name}
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
