@@ -1,14 +1,17 @@
+"use client"
 import { createMedication } from "@/actions/medications";
 import { MedicineSchema } from "@/schemas/medicine-definition";
-import { TextFormField } from "@/types/forms/text-form-field";
+import { type TextFormField } from "@/types/forms/text-form-field";
 import { zodResolver } from "@hookform/resolvers/zod";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import toast from "react-hot-toast";
 import { z } from "zod";
+import { Button } from "@/components/ui/button";
 
-function MedicineForm() {
+const MedicineForm = () => {
     const [isLoading, setIsLoading] = useState(false);
     const medicineFormFields: TextFormField[] = [
         {
@@ -88,7 +91,7 @@ function MedicineForm() {
                             <FormItem>
                                 <FormLabel>{medicineFormField.label}</FormLabel>
                                 <FormControl>
-                                    <input
+                                    <Input
                                         {...field}
                                         type={medicineFormField.type}
                                         placeholder={medicineFormField.placeholder}
@@ -102,9 +105,9 @@ function MedicineForm() {
                         )}
                     />
                 ))}
-                <button type="submit" disabled={isLoading}>
+                <Button type="submit" disabled={isLoading}>
                     {isLoading ? "Adding..." : "Add Medicine"}
-                </button>
+                </Button>
             </form>
         </Form>
     );

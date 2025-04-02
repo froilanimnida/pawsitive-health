@@ -58,28 +58,6 @@ async function PetList() {
 }
 const PetsPage = () => {
     return (
-        <section className="p-4 w-full">
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold">My Pets</h1>
-                <Dialog>
-                    <DialogTrigger asChild>
-                        <Button>Add Pet</Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Add a new pet to your account</DialogTitle>
-                            <DialogDescription>
-                                Please provide the details of your pet to add it to your account.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <AddPetForm />
-                    </DialogContent>
-                </Dialog>
-            </div>
-            <Suspense fallback={<SkeletonCard />}>
-                <PetList />
-            </Suspense>
-        </section>
     );
 };
 
