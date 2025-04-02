@@ -1,32 +1,10 @@
 "use client";
-
-import * as React from "react";
+import {ComponentProps} from "react";
 import { Settings2, Dog, BookmarkCheckIcon, Stethoscope } from "lucide-react";
-
 import { NavMenus } from "@/components/nav-menus";
 import { NavUser } from "@/components/nav-user";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarRail } from "@/components/ui/sidebar";
 import { useSession } from "next-auth/react";
-
-const data = {
-    projects: [
-        {
-            name: "My Pets",
-            url: "/u/pets",
-            icon: Dog,
-        },
-        {
-            name: "Settings",
-            url: "/u/settings",
-            icon: Settings2,
-        },
-        {
-            name: "My Booking",
-            url: "/u/appointments",
-            icon: BookmarkCheckIcon,
-        },
-    ],
-};
 
 const userNavLinks = [
     {
@@ -48,11 +26,6 @@ const userNavLinks = [
 
 const vetNavLinks = [
     {
-        name: "My Pets",
-        url: "/v/pets",
-        icon: Dog,
-    },
-    {
         name: "Appointments",
         url: "/v/appointments",
         icon: BookmarkCheckIcon,
@@ -72,7 +45,36 @@ const clientNavLinks = [
     },
 ];
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+const adminNavLinks = [
+    {
+        name: "Appointments",
+        url: "/a/appointments",
+        icon: BookmarkCheckIcon,
+    },
+    {
+        name: "Veterinaries",
+        url: "/a/vets",
+        icon: Stethoscope,
+    },
+    {
+        name: "Clinics",
+        url: "/a/clinics",
+        icon: Stethoscope,
+    },
+    {
+        name: "Users",
+        url: "/a/users",
+        icon: Dog,
+    },
+
+    {
+        name: "Settings",
+        url: "/a/settings",
+        icon: Settings2,
+    },
+];
+
+export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
     const { data: session } = useSession();
     const userData = {
         name: session?.user?.name ?? "",
@@ -84,11 +86,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         if (session?.user?.role === "user") return userNavLinks;
         else if (session?.user?.role === "veterinarian") return vetNavLinks;
         else if (session?.user?.role === "client") return clientNavLinks;
-        else return data.projects;
+        else if (session?.user?.role === "admin") return adminNavLinks;
+        else return userNavLinks;
     };
 
     return (
-        <Sidebar collapsible="offcanvas" {...props}>
+        <Sidebar collapsible="icon" {...props}>
             <SidebarContent>
                 <NavMenus projects={getNavLinks()} />
             </SidebarContent>

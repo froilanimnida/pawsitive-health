@@ -323,6 +323,40 @@ const cancelAppointment = async (
     }
 };
 
+const acceptAppointment = async (
+    appointment_uuid: string
+): Promise<ActionResponse<{ appointment_uuid: string }>> => {
+    try {
+        const session = await auth();
+        if (!session || !session.user || !session.user.email) {
+            return {
+                success: false,
+                error: "User not found",
+            }
+        }
+        const appointment = await prisma.appointments.update({
+            where: {
+                appointment_uuid: appointment_uuid,
+            },
+            data: {
+                status: "confirmed",
+            },
+        });
+        if (!appointment) {
+            return { success: false, error: "Appointment not found" };
+        }
+        return {
+            success: true,
+            data: { appointment_uuid: appointment.appointment_uuid },
+        };
+    } catch (error) {
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "An unexpected error occurred",
+        };
+    }
+};
+
 export {
     getUserAppointments,
     createUserAppointment,
@@ -330,5 +364,6 @@ export {
     getExistingAppointments,
     getVeterinarianAppointments,
     getAppointment,
-    cancelAppointment
+    cancelAppointment,
+    acceptAppointment,
 };

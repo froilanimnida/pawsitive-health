@@ -153,7 +153,6 @@ export function AppointmentCard({
                             </div>
                         )}
 
-                        {/* Show vet info for users and clinics */}
                         {(viewerType === "user" || viewerType === "clinic") && appointment.veterinarians && (
                             <div className="space-y-2">
                                 <h3 className="text-lg font-medium">Veterinarian</h3>
@@ -272,9 +271,7 @@ export function AppointmentCard({
                                         </DialogDescription>
                                     </DialogHeader>
                                     <DialogFooter>
-                                        <Button type="button">
-                                            Accept Appointment
-                                        </Button>
+                                        <Button type="button">Accept Appointment</Button>
                                         <DialogClose asChild>
                                             <Button variant="outline">Cancel</Button>
                                         </DialogClose>
