@@ -1,10 +1,12 @@
 import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { SelectFormField } from "@/types/forms/select-form-field";
+import type { Control } from "react-hook-form";
+import type { AppointmentControlSchema } from "../form-control-type";
 
 interface SelectFieldsProps {
     fields: SelectFormField[];
-    control: any;
+    control: Control<AppointmentControlSchema>;
     selectedClinicId: string;
     isLoadingVets: boolean;
 }
@@ -16,7 +18,17 @@ export function SelectFields({ fields, control, selectedClinicId, isLoadingVets 
                 <FormField
                     key={field.name}
                     control={control}
-                    name={field.name}
+                    name={
+                        field.name as
+                            | "pet_uuid"
+                            | "vet_id"
+                            | "clinic_id"
+                            | "appointment_date"
+                            | "appointment_type"
+                            | "notes"
+                            | "appointment_time"
+                            | "duration_minutes"
+                    }
                     render={({ field: formField, fieldState }) => {
                         const isVetField = field.name === "vet_id";
                         const isDisabled = isVetField && (!selectedClinicId || isLoadingVets);
@@ -30,8 +42,8 @@ export function SelectFields({ fields, control, selectedClinicId, isLoadingVets 
                                         formField.onChange(value);
                                         if (field.onChange) field.onChange(value);
                                     }}
-                                    value={formField.value}
-                                    defaultValue={formField.value || field.defaultValue}
+                                    value={String(formField.value)}
+                                    defaultValue={String(formField.value) || String(field.defaultValue)}
                                     disabled={isDisabled}
                                 >
                                     <FormControl>
@@ -40,7 +52,7 @@ export function SelectFields({ fields, control, selectedClinicId, isLoadingVets 
                                                 placeholder={
                                                     isLoadingVets && isVetField
                                                         ? "Loading veterinarians..."
-                                                        : formField.value || "Select an option"
+                                                        : formField.value?.toLocaleString() || "Select an option"
                                                 }
                                             />
                                         </SelectTrigger>
@@ -51,8 +63,8 @@ export function SelectFields({ fields, control, selectedClinicId, isLoadingVets 
                                                 {!selectedClinicId
                                                     ? "Please select a clinic first"
                                                     : isLoadingVets
-                                                      ? "Loading veterinarians..."
-                                                      : "No veterinarians found for this clinic"}
+                                                    ? "Loading veterinarians..."
+                                                    : "No veterinarians found for this clinic"}
                                             </div>
                                         ) : (
                                             field.options.map((option) => (

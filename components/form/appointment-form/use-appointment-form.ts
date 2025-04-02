@@ -10,7 +10,6 @@ import { getVeterinaryAvailability } from "@/actions/veterinarian-availability";
 import { createUserAppointment, getExistingAppointments } from "@/actions/appointment";
 import { toTitleCase } from "@/lib/functions/text/title-case";
 import toast from "react-hot-toast";
-import { useRouter } from "next/router";
 
 export interface TimeSlot {
     time: string;
@@ -58,9 +57,9 @@ export function useAppointmentForm(uuid: string) {
                     vets.map((vet) => ({
                         label: `${vet.name} (${toTitleCase(vet.specialization)})`,
                         value: vet.id,
-                    })),
+                    }))
                 );
-            } catch (error) {
+            } catch {
                 setVeterinarians([]);
             } finally {
                 setIsLoadingVets(false);
@@ -140,7 +139,7 @@ export function useAppointmentForm(uuid: string) {
                     currentSlot = addMinutes(currentSlot, 30);
                 }
                 setTimeSlots(slots);
-            } catch (error) {
+            } catch {
                 setTimeSlots([]);
             } finally {
                 setIsLoadingTimeSlots(false);
@@ -209,5 +208,6 @@ export function useAppointmentForm(uuid: string) {
         handleDateSelect,
         handleVetChange,
         setSelectedVetId,
+        vetAvailability,
     };
 }

@@ -1,9 +1,8 @@
-import React from 'react'
+import React from "react";
 
 const ViewAppointment = async ({ params }: { params: Promise<{ uuid: string }> }) => {
-  return (
-    <div>ViewAppointment</div>
-  )
-}
+    const { uuid } = await params;
+    return <div>{uuid}</div>;
+};
 
-export default ViewAppointment
+export default ViewAppointment;

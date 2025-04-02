@@ -1,10 +1,15 @@
 import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import type { TextFormField } from "@/types/forms/text-form-field";
+import type { AppointmentControlSchema } from "../form-control-type";
+import type { Control } from "react-hook-form";
 
+type ExcludedFields = "appointment_date";
+
+type TextFieldNames = keyof Omit<AppointmentControlSchema, ExcludedFields>;
 interface TextFieldsProps {
     fields: TextFormField[];
-    control: any;
+    control: Control<AppointmentControlSchema>;
 }
 
 export function TextFields({ fields, control }: TextFieldsProps) {
@@ -14,7 +19,7 @@ export function TextFields({ fields, control }: TextFieldsProps) {
                 <FormField
                     key={field.name}
                     control={control}
-                    name={field.name}
+                    name={field.name as TextFieldNames}
                     render={({ field: formField, fieldState }) => (
                         <FormItem>
                             <FormLabel>{field.label}</FormLabel>

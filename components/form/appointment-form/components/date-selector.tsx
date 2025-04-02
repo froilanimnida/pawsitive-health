@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import type { Control } from "react-hook-form";
+import type { AppointmentControlSchema } from "../form-control-type";
 
 interface DateSelectorProps {
-    control: any;
+    control: Control<AppointmentControlSchema>;
     onSelect: (date: Date | undefined) => void;
 }
 
@@ -26,7 +28,7 @@ export function DateSelector({ control, onSelect }: DateSelectorProps) {
                                     variant="outline"
                                     className={cn(
                                         "w-full justify-start text-left font-normal",
-                                        !field.value && "text-muted-foreground",
+                                        !field.value && "text-muted-foreground"
                                     )}
                                 >
                                     <CalendarIcon className="mr-2 h-4 w-4" />

@@ -4,6 +4,7 @@ import { TextFormField } from "@/types/forms/text-form-field";
 import { SelectFormField } from "@/types/forms/select-form-field";
 import type { Pets } from "@/types/pets";
 import type { UseFormReturn } from "react-hook-form";
+import type { AppointmentControlSchema } from "./form-control-type";
 
 export function getAppointmentFields(): TextFormField[] {
     return [
@@ -34,8 +35,9 @@ export function getAppointmentSelectFields(
         isLoadingVets: boolean;
         handleClinicChange: (value: string) => void;
         handleVetChange: (value: string) => void;
-        form: UseFormReturn<any>;
-    },
+
+        form: UseFormReturn<AppointmentControlSchema>;
+    }
 ): SelectFormField[] {
     return [
         {

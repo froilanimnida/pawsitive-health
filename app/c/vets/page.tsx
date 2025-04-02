@@ -14,7 +14,7 @@ import NewVeterinaryForm from "@/components/form/new-vet-form";
 import type { Metadata } from "next";
 import { getClinicVeterinarians } from "@/actions/veterinary";
 import Link from "next/link";
-
+export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
     title: "PawsitiveHealth | Veterinaries",
     description: "PawsitiveHealth is a pet health care service.",
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 
 const Veterinaries = async () => {
     const data = await getClinicVeterinarians();
-    const veterinaries = data.success ? (data.data?.veterinarians ?? []) : [];
+    const veterinaries = data.success ? data.data?.veterinarians ?? [] : [];
     if (!veterinaries || veterinaries.length === 0) {
         return (
             <div className="text-center py-10">

@@ -1,12 +1,14 @@
 import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { Clock, X, Check } from "lucide-react";
+import { Clock, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TimeSlot } from "../use-appointment-form";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import type { AppointmentControlSchema } from "../form-control-type";
+import type { Control } from "react-hook-form";
 
 interface TimeSelectorProps {
-    control: any;
+    control: Control<AppointmentControlSchema>;
     selectedDate?: Date;
     selectedVetId: string;
     timeSlots: TimeSlot[];
@@ -53,7 +55,7 @@ export function TimeSelector({
                                                             className={cn(
                                                                 "justify-center w-full",
                                                                 !slot.available &&
-                                                                    "border-red-200 bg-red-50 text-red-600",
+                                                                    "border-red-200 bg-red-50 text-red-600"
                                                             )}
                                                         >
                                                             {slot.available ? (

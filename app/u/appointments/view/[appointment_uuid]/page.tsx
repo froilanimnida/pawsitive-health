@@ -37,7 +37,7 @@ const appointmentTypeLabels: Record<string, string> = {
 
 const ViewAppointment = async ({ params }: { params: Promise<{ appointment_uuid: string }> }) => {
     const { appointment_uuid } = await params;
-    const appointmentResponse = await getAppointment(appointment_uuid);
+    const appointmentResponse = await getAppointment(appointment_uuid, true);
     if (!appointmentResponse.success || !appointmentResponse.data?.appointment) {
         notFound();
     }
