@@ -1,6 +1,6 @@
 "use client";
 import {ComponentProps} from "react";
-import { Settings2, Dog, BookmarkCheckIcon, Stethoscope } from "lucide-react";
+import { Settings2, Dog, BookmarkCheckIcon, Stethoscope, Building, User2, FlaskConical } from "lucide-react";
 import { NavMenus } from "@/components/nav-menus";
 import { NavUser } from "@/components/nav-user";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarRail } from "@/components/ui/sidebar";
@@ -59,18 +59,18 @@ const adminNavLinks = [
     {
         name: "Clinics",
         url: "/a/clinics",
-        icon: Stethoscope,
+        icon: Building,
     },
     {
         name: "Users",
         url: "/a/users",
-        icon: Dog,
+        icon: User2,
     },
 
     {
-        name: "Settings",
-        url: "/a/settings",
-        icon: Settings2,
+        name: "Medicine",
+        url: "/a/medicine",
+        icon: FlaskConical,
     },
 ];
 

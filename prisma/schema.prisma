@@ -101,6 +101,7 @@ model medical_records {
 
 model medications {
   medication_id      Int             @id @default(autoincrement())
+medication_uuid      String          @default(dbgenerated("uuid_generate_v4()")) @db.Uuid @unique
   name               String          @db.VarChar(100)
   description        String
   usage_instructions String
