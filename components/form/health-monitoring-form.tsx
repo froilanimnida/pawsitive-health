@@ -10,7 +10,7 @@ import toast from "react-hot-toast";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 
-const HealthMonitoringForm = () => {
+export const HealthMonitoringForm = () => {
     const [isLoading, setIsLoading] = useState(false);
     const healthMonitoringFields: TextFormField[] = [
         {
@@ -75,7 +75,7 @@ const HealthMonitoringForm = () => {
         try {
             console.log(data);
             toast.success("Health monitoring data saved successfully");
-        } catch (error) {
+        } catch {
             toast.error("Failed to save health monitoring data");
         } finally {
             setIsLoading(false);
