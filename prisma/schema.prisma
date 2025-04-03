@@ -242,6 +242,8 @@ model clinics {
     postal_code          String                 @db.VarChar(20)
     longitude            Float                  @default(0) @db.DoublePrecision
     latitude             Float                  @default(0) @db.DoublePrecision
+    google_maps_url      String?                @db.VarChar(255)
+    website              String?                @db.VarChar(255)
     phone_number         String                 @db.VarChar(20)
     emergency_services   Boolean?               @default(false)
     operating_hours      String?
