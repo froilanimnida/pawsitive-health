@@ -7,6 +7,7 @@ import { FormItem, Form, FormControl, FormField, FormLabel, FormMessage, FormDes
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CatBreeds, DogBreeds } from "@/types/breed-types";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import { Calendar as CalendarIcon } from "lucide-react";
@@ -38,8 +39,6 @@ const AddPetForm = () => {
             breed: "",
             weight_kg: 0,
             sex: "prefer-not-to-say",
-            medical_history: "",
-            vaccination_status: "",
             date_of_birth: undefined,
         },
         progressive: true,
@@ -47,7 +46,7 @@ const AddPetForm = () => {
     });
 
     const textFields: {
-        name: "name" | "species" | "breed" | "sex" | "medical_history" | "vaccination_status" | "weight_kg";
+        name: "name" | "species" | "breed" | "sex" | "weight_kg";
         label: string;
         placeholder: string;
         description: string;
@@ -66,20 +65,6 @@ const AddPetForm = () => {
             placeholder: "Weight",
             description: "Enter your pet's weight in kilograms",
             type: "number",
-        },
-        {
-            name: "medical_history",
-            label: "Medical History",
-            placeholder: "Medical history",
-            description: "Enter your pet's medical history",
-            type: "text",
-        },
-        {
-            name: "vaccination_status",
-            label: "Vaccination Status",
-            placeholder: "Vaccination status",
-            description: "Enter your pet's vaccination status",
-            type: "text",
         },
     ];
 
@@ -145,125 +130,131 @@ const AddPetForm = () => {
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 justify-start items-start">
-                    {textFields.map((textField) => (
-                        <FormField
-                            key={textField.name}
-                            control={form.control}
-                            name={textField.name}
-                            render={({ field, formState }) => (
-                                <FormItem>
-                                    <FormLabel>{textField.label}</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            {...field}
-                                            type={textField.type || "text"}
-                                            placeholder={textField.placeholder}
-                                            {...(textField.type === "number"
-                                                ? {
-                                                      onChange: (e) => field.onChange(+e.target.value),
-                                                      value: field.value,
-                                                  }
-                                                : {})}
-                                        />
-                                    </FormControl>
-                                    <FormDescription>{textField.description}</FormDescription>
-                                    <FormMessage>{formState.errors[textField.name]?.message}</FormMessage>
-                                </FormItem>
-                            )}
-                        />
-                    ))}
-                </div>
-                <FormField
-                    name="date_of_birth"
-                    control={form.control}
-                    render={({ field, fieldState }) => (
-                        <FormItem>
-                            <FormLabel>Date of Birth</FormLabel>
-                            <FormControl>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                            variant="outline"
-                                            className={cn(
-                                                "w-full justify-start text-left font-normal",
-                                                !field.value && "text-muted-foreground"
-                                            )}
-                                        >
-                                            <CalendarIcon className="mr-2 h-4 w-4" />
-                                            {field.value ? format(field.value, "MM/dd/yyyy") : <span>Pick a date</span>}
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0">
-                                        <Calendar
-                                            mode="single"
-                                            selected={field.value}
-                                            onSelect={(date) => {
-                                                if (!date) {
-                                                    field.onChange(null);
-                                                    return;
-                                                }
-
-                                                const dateOnly = new Date(
-                                                    date.getFullYear(),
-                                                    date.getMonth(),
-                                                    date.getDate()
-                                                );
-
-                                                field.onChange(dateOnly);
-                                            }}
-                                            initialFocus
-                                            disabled={(date) => date > new Date()}
-                                            className="bg-white"
-                                        />
-                                    </PopoverContent>
-                                </Popover>
-                            </FormControl>
-                            <FormDescription>Enter your pet&apos;s date of birth</FormDescription>
-                            <FormMessage>{fieldState.error?.message}</FormMessage>
-                        </FormItem>
-                    )}
-                />
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 justify-start items-start">
-                    {selectFields.map((selectField) => (
-                        <FormField
-                            key={selectField.name}
-                            control={form.control}
-                            name={selectField.name}
-                            render={({ field, fieldState }) => (
-                                <FormItem>
-                                    <FormLabel>{selectField.label}</FormLabel>
-                                    <Select
-                                        onValueChange={(value) => {
-                                            field.onChange(value);
-                                            if (selectField.onChange) selectField.onChange(value);
-                                        }}
-                                        value={field.value}
-                                        defaultValue={field.value || selectField.defaultValue}
-                                    >
+                <Tabs defaultValue="basic" className="w-full">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 justify-start items-start">
+                        {textFields.map((textField) => (
+                            <FormField
+                                key={textField.name}
+                                control={form.control}
+                                name={textField.name}
+                                render={({ field, formState }) => (
+                                    <FormItem>
+                                        <FormLabel>{textField.label}</FormLabel>
                                         <FormControl>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder={selectField.placeholder} />
-                                            </SelectTrigger>
+                                            <Input
+                                                {...field}
+                                                type={textField.type || "text"}
+                                                placeholder={textField.placeholder}
+                                                {...(textField.type === "number"
+                                                    ? {
+                                                          onChange: (e) => field.onChange(+e.target.value),
+                                                          value: field.value,
+                                                      }
+                                                    : {})}
+                                            />
                                         </FormControl>
-                                        <SelectContent>
-                                            {selectField.options.map((option) => (
-                                                <SelectItem key={option.value} value={option.value}>
-                                                    {option.label}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    <FormDescription>{selectField.description}</FormDescription>
-                                    <FormMessage>{fieldState.error?.message}</FormMessage>
-                                </FormItem>
-                            )}
-                        />
-                    ))}
-                </div>
-                <Button type="submit" className="mt-6">
-                    Add Pet
-                </Button>
+                                        <FormDescription>{textField.description}</FormDescription>
+                                        <FormMessage>{formState.errors[textField.name]?.message}</FormMessage>
+                                    </FormItem>
+                                )}
+                            />
+                        ))}
+                    </div>
+                    <FormField
+                        name="date_of_birth"
+                        control={form.control}
+                        render={({ field, fieldState }) => (
+                            <FormItem>
+                                <FormLabel>Date of Birth</FormLabel>
+                                <FormControl>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                variant="outline"
+                                                className={cn(
+                                                    "w-full justify-start text-left font-normal",
+                                                    !field.value && "text-muted-foreground"
+                                                )}
+                                            >
+                                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                                {field.value ? (
+                                                    format(field.value, "MM/dd/yyyy")
+                                                ) : (
+                                                    <span>Pick a date</span>
+                                                )}
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0">
+                                            <Calendar
+                                                mode="single"
+                                                selected={field.value}
+                                                onSelect={(date) => {
+                                                    if (!date) {
+                                                        field.onChange(null);
+                                                        return;
+                                                    }
+
+                                                    const dateOnly = new Date(
+                                                        date.getFullYear(),
+                                                        date.getMonth(),
+                                                        date.getDate()
+                                                    );
+
+                                                    field.onChange(dateOnly);
+                                                }}
+                                                initialFocus
+                                                disabled={(date) => date > new Date()}
+                                                className="bg-white"
+                                            />
+                                        </PopoverContent>
+                                    </Popover>
+                                </FormControl>
+                                <FormDescription>Enter your pet&apos;s date of birth</FormDescription>
+                                <FormMessage>{fieldState.error?.message}</FormMessage>
+                            </FormItem>
+                        )}
+                    />
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 justify-start items-start">
+                        {selectFields.map((selectField) => (
+                            <FormField
+                                key={selectField.name}
+                                control={form.control}
+                                name={selectField.name}
+                                render={({ field, fieldState }) => (
+                                    <FormItem>
+                                        <FormLabel>{selectField.label}</FormLabel>
+                                        <Select
+                                            onValueChange={(value) => {
+                                                field.onChange(value);
+                                                if (selectField.onChange) selectField.onChange(value);
+                                            }}
+                                            value={field.value}
+                                            defaultValue={field.value || selectField.defaultValue}
+                                        >
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder={selectField.placeholder} />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                {selectField.options.map((option) => (
+                                                    <SelectItem key={option.value} value={option.value}>
+                                                        {option.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <FormDescription>{selectField.description}</FormDescription>
+                                        <FormMessage>{fieldState.error?.message}</FormMessage>
+                                    </FormItem>
+                                )}
+                            />
+                        ))}
+                    </div>
+                    <Button type="submit" className="mt-6">
+                        Add Pet
+                    </Button>
+                </Tabs>
             </form>
         </Form>
     );
