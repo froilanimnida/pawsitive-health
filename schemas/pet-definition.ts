@@ -12,6 +12,4 @@ export const PetSchema = z.object({
 	breed: z.enum(BREEDS),
 	date_of_birth: z.date(),
 	weight_kg: z.number(),
-	medical_history: z.string(),
-	vaccination_status: z.string(),
 });

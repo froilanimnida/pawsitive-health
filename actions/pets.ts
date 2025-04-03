@@ -24,8 +24,6 @@ const addPet = async (values: z.infer<typeof PetSchema>): Promise<ActionResponse
                 species: values.species as species_type,
                 date_of_birth: values.date_of_birth,
                 weight_kg: values.weight_kg,
-                medical_history: values.medical_history,
-                vaccination_status: values.vaccination_status,
                 user_id: user_id,
             },
         });
@@ -65,7 +63,7 @@ const getPet = async (pet_uuid: string): Promise<ActionResponse<{ pet: Pets }>> 
 
 const updatePet = async (
     values: z.infer<typeof PetSchema>,
-    pet_id: number,
+    pet_id: number
 ): Promise<ActionResponse<{ pet_uuid: string }>> => {
     try {
         const pet = await prisma.pets.update({
@@ -78,8 +76,6 @@ const updatePet = async (
                 sex: values.sex as pet_sex_type,
                 species: values.species as species_type,
                 weight_kg: values.weight_kg,
-                medical_history: values.medical_history,
-                vaccination_status: values.vaccination_status,
             },
         });
         if (!pet) return { success: false, error: "Failed to update pet" };
