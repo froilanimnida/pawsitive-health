@@ -46,7 +46,6 @@ const getPet = async (pet_uuid: string): Promise<ActionResponse<{ pet: Pets }>> 
                 pet_uuid: pet_uuid,
             },
         });
-        // Make the weight_kg into a localized string
         if (!pet) return { success: false, error: "Pet not found" };
         const petInfo = {
             ...pet,
@@ -99,6 +98,9 @@ const getPets = async (): Promise<ActionResponse<{ pets: Pets[] }>> => {
         const petsData = await prisma.pets.findMany({
             where: {
                 user_id: userId,
+            },
+            orderBy: {
+                date_of_birth: "desc",
             },
         });
 

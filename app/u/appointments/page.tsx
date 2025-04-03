@@ -7,6 +7,16 @@ import { getUserAppointments } from "@/actions/appointment";
 import Link from "next/link";
 import { toTitleCase } from "@/lib/functions/text/title-case";
 import { Badge } from "@/components/ui/badge";
+import {
+    Dialog,
+    DialogFooter,
+    DialogHeader,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
 
 export const metadata: Metadata = {
     title: "PawsitiveHealth | Appointments",
@@ -15,7 +25,7 @@ export const metadata: Metadata = {
 
 const AppointmentsHistory = async () => {
     const data = await getUserAppointments();
-    const appointments = data.success ? (data.data?.appointments ?? []) : [];
+    const appointments = data.success ? data.data?.appointments ?? [] : [];
     if (!appointments || appointments.length === 0) {
         return (
             <div className="text-center py-10 w-full mx-auto">
@@ -42,7 +52,13 @@ const AppointmentsHistory = async () => {
                             <div>
                                 <span className="font-semibold">Date:</span>{" "}
                                 {appointment.appointment_date.toDateString()}
-                                {appointment.appointment_date.toLocaleTimeString()}
+                            </div>
+                            <div>
+                                <span className="font-semibold">Time:</span>{" "}
+                                {appointment.appointment_date.toLocaleTimeString([], {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                })}
                             </div>
                             <div>
                                 <span className="font-semibold">Type:</span> {toTitleCase(appointment.appointment_type)}
@@ -69,9 +85,29 @@ function Appointments() {
             <Suspense fallback={<SkeletonCard />}>
                 <AppointmentsHistory />
             </Suspense>
-            <Button className="mt-4">
-                <Link href="u/pets">New Appointment</Link>
-            </Button>
+            <Dialog>
+                <DialogTrigger asChild>
+                    <Button>New Appointment</Button>
+                </DialogTrigger>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Create New Appointment</DialogTitle>
+                        <DialogDescription>
+                            Please select a pet and a veterinarian to create a new appointment.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <DialogClose asChild>
+                            <Button asChild>
+                                <Link href="/u/pets">Okay</Link>
+                            </Button>
+                        </DialogClose>
+                        <DialogClose asChild>
+                            <Button variant="outline">Cancel</Button>
+                        </DialogClose>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </section>
     );
 }
