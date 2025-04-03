@@ -539,50 +539,49 @@ enum species_type {
     dog
     cat
 }
-
-enum veterinary_specialization {
-    general_practitioner
-    surgeon
-    dermatologist
-    cardiologist
-    orthopedic
-    dentist
-    ophthalmologist
-    oncologist
-    internal_medicine
-    emergency_and_critical_care
-    behaviorist
+enum appointment_type {
+    allergy_testing
+    behavioral_consultation
+    cardiology
+    dental_cleaning
+    dermatology
+    emergency
+    euthanasia
+    follow_up
+    grooming
+    hospice_care
+    imaging
+    laboratory_work
+    medication_refill
+    microchipping
+    neurology
+    new_pet_consultation
+    nutrition_consultation
+    oncology
+    ophthalmology
+    orthopedic_evaluation
+    parasite_control
+    physical_therapy
+    senior_pet_care
+    sick_visit
+    spay_neuter
+    surgery
+    vaccination
+    wellness_exam
 }
 
-enum appointment_type {
-    wellness_exam
-    vaccination
-    sick_visit
-    follow_up
-    surgery
-    dental_cleaning
-    emergency
-    laboratory_work
-    imaging
-    grooming
-    physical_therapy
-    behavioral_consultation
-    nutrition_consultation
-    euthanasia
-    new_pet_consultation
-    senior_pet_care
-    parasite_control
-    microchipping
-    medication_refill
-    spay_neuter
-    allergy_testing
-    orthopedic_evaluation
-    ophthalmology
-    dermatology
-    cardiology
-    neurology
-    oncology
-    hospice_care
+enum veterinary_specialization {
+    behaviorist
+    cardiologist
+    dentist
+    dermatologist
+    emergency_and_critical_care
+    general_practitioner
+    internal_medicine
+    oncologist
+    ophthalmologist
+    orthopedic
+    surgeon
 }
 
 enum appointment_status {
