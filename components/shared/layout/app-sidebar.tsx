@@ -1,8 +1,8 @@
 "use client";
-import {ComponentProps} from "react";
+import { ComponentProps } from "react";
 import { Settings2, Dog, BookmarkCheckIcon, Stethoscope, Building, User2, FlaskConical } from "lucide-react";
-import { NavMenus } from "@/components/nav-menus";
-import { NavUser } from "@/components/nav-user";
+import { NavMenus } from "@/components/shared/layout/nav-menus";
+import { NavUser } from "@/components/shared/layout/nav-user";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarRail } from "@/components/ui/sidebar";
 import { useSession } from "next-auth/react";
 

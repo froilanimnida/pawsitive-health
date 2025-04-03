@@ -14,21 +14,12 @@ const ViewAppointment = async ({ params }: { params: Promise<{ appointment_uuid:
     const appointmentResponse = await getAppointment(appointment_uuid, true);
     if (!appointmentResponse.success || !appointmentResponse.data?.appointment) notFound();
     const { appointment } = appointmentResponse.data;
-    const handleCancelAppointment = async () => {
-        // Logic to cancel the appointment
-    };
-
-    const handleRescheduleAppointment = async () => {
-        // Logic to reschedule the appointment
-    };
 
     return (
         <div className="container max-w-4xl py-6">
             <AppointmentCard
                 appointment={appointment}
                 viewerType="user"
-                onCancel={handleCancelAppointment}
-                onReschedule={handleRescheduleAppointment}
             />
         </div>
     );

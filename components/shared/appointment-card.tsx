@@ -7,6 +7,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toTitleCase } from "@/lib/functions/text/title-case";
 import { formatDecimal } from "@/lib/functions/format-decimal";
+import { cancelAppointment } from "@/actions/appointment";
 import {
     Dialog,
     DialogClose,
@@ -17,6 +18,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "../ui/dialog";
+import toast from "react-hot-toast";
 
 export const statusColors: Record<string, string> = {
     confirmed: "bg-green-100 text-green-800 border-green-200",
@@ -87,6 +89,14 @@ export function AppointmentCard({
     const vetName = appointment.veterinarians?.users
         ? `${appointment.veterinarians.users.first_name} ${appointment.veterinarians.users.last_name}`
         : "Unknown Veterinarian";
+
+    const handleCancelAppointment = () => {
+        toast.promise(cancelAppointment(appointment.appointment_uuid), {
+            success: "Appointment cancelled successfully.",
+            error: "Failed to cancel appointment.",
+            loading: "Cancelling appointment...",
+        });
+    };
 
     return (
         <Card className="overflow-hidden">
@@ -244,7 +254,11 @@ export function AppointmentCard({
                                         </DialogDescription>
                                     </DialogHeader>
                                     <DialogFooter>
-                                        <Button type="button" variant="destructive">
+                                        <Button
+                                            onClick={() => handleCancelAppointment()}
+                                            type="button"
+                                            variant="destructive"
+                                        >
                                             Cancel Appointment
                                         </Button>
                                         <DialogClose asChild>

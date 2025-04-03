@@ -1,5 +1,5 @@
 import React from "react";
-import { AppSidebar } from "@/components/app-sidebar";
+import { AppSidebar } from "@/components/shared/layout/app-sidebar";
 
 async function AdminLayout({
     children,
