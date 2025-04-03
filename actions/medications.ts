@@ -1,3 +1,4 @@
+"use server";
 import { prisma } from "@/lib/prisma";
 import { MedicineSchema } from "@/schemas/medicine-definition";
 import type { ActionResponse } from "@/types/server-action-response";
@@ -24,25 +25,30 @@ const getMedicationsList = async (): Promise<ActionResponse<{ medication: medica
     }
 };
 
-const createMedication = async (values: z.infer<typeof MedicineSchema>): Promise<ActionResponse<{ medication_uuid: string}>> => {
+const createMedication = async (
+    values: z.infer<typeof MedicineSchema>
+): Promise<ActionResponse<{ medication_uuid: string }>> => {
     try {
+        console.log("Creating medication with values:", values);
         const medications = await prisma.medications.create({
             data: {
                 name: values.name,
                 description: values.description,
                 usage_instructions: values.usage_instructions,
-                side_effects: values.side_effects
-            }
-        })
+                side_effects: values.side_effects,
+            },
+        });
         if (!medications || !medications.medication_uuid)
-            return { success: false, error: "Failed adding new medicine"}
-        return {success: true, data: {medication_uuid: medications.medication_uuid}}
+            return { success: false, error: "Failed adding new medicine" };
+        console.log("Medication created successfully:", medications);
+        return { success: true, data: { medication_uuid: medications.medication_uuid } };
     } catch (error) {
+        console.error("Error creating medication:", error);
         return {
             success: false,
             error: error instanceof Error ? error.message : "An unexpected error occurred",
         };
     }
-}
+};
 
 export { getMedicationsList, createMedication };

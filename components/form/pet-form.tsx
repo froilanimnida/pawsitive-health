@@ -134,8 +134,8 @@ const AddPetForm = () => {
             defaultValue: "prefer_not_to_say",
         },
     ];
-    const onSubmit = (values: z.infer<typeof PetSchema>) => {
-        toast.promise(addPet(values), {
+    const onSubmit = async (values: z.infer<typeof PetSchema>) => {
+        await toast.promise(addPet(values), {
             loading: "Adding pet...",
             success: "Pet added successfully",
             error: "Failed to add pet",

@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { createMedication } from "@/actions/medications";
 import { MedicineSchema } from "@/schemas/medicine-definition";
 import { type TextFormField } from "@/types/forms/text-form-field";
@@ -58,30 +58,28 @@ const MedicineForm = () => {
             usage_instructions: "",
             side_effects: "",
         },
-        progressive: true,
         resolver: zodResolver(MedicineSchema),
+        progressive: true,
         shouldFocusError: true,
         mode: "onBlur",
         reValidateMode: "onChange",
     });
     const onSubmit = async (values: z.infer<typeof MedicineSchema>) => {
         setIsLoading(true);
-        toast.promise(createMedication(values), {
-            success: "Successfully added new medicine",
-            error: "Failed to add new medicine",
-            loading: "Adding new medicine...",
-        });
+        await toast
+            .promise(createMedication(values), {
+                success: "Successfully added new medicine",
+                error: "Failed to add new medicine",
+                loading: "Adding new medicine...",
+            })
+            .finally(() => {
+                setIsLoading(false);
+                //medicineForm.reset();
+            });
     };
     return (
         <Form {...medicineForm}>
-            <form
-                method="POST"
-                onSubmit={(e) => {
-                    e.preventDefault();
-                    medicineForm.handleSubmit(onSubmit)(e);
-                }}
-                className="space-y-8"
-            >
+            <form onSubmit={medicineForm.handleSubmit(onSubmit)} className="space-y-4">
                 {medicineFormFields.map((medicineFormField) => (
                     <FormField
                         key={medicineFormField.name}
@@ -106,11 +104,11 @@ const MedicineForm = () => {
                     />
                 ))}
                 <Button type="submit" disabled={isLoading}>
-                    {isLoading ? "Adding..." : "Add Medicine"}
+                    Add Medicine
                 </Button>
             </form>
         </Form>
     );
-}
+};
 
 export default MedicineForm;
