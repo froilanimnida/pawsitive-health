@@ -1,8 +1,10 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 export const MedicalRecordsDefinition = z.object({
-	visit_date: z.date(),
-	diagnosis: z.string(),
-	treatment: z.string(),
-	noted: z.string(),
+    visit_date: z.date(),
+    diagnosis: z.string(),
+    treatment: z.string(),
+    noted: z.string(),
 });
+
+export type MedicalRecordsType = z.infer<typeof MedicalRecordsDefinition>;

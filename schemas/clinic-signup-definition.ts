@@ -50,3 +50,5 @@ export const NewClinicAccountSchema = z.object({
     ...BaseClinicSchema.shape,
     ...SignUpSchema.shape,
 });
+
+export type NewClinicAccountType = z.infer<typeof NewClinicAccountSchema>;

@@ -6,3 +6,5 @@ export const MedicineSchema = z.object({
     usage_instructions: z.string().nonempty({ message: "Usage instructions are required" }),
     side_effects: z.string().nonempty({ message: "Side effects are required" }),
 });
+
+export type MedicineType = z.infer<typeof MedicineSchema>;

@@ -6,4 +6,6 @@ export const HealthMonitoringSchema = z.object({
     temperature_celsius: z.number().min(0, { message: "Temperature must be a positive number" }),
     symptoms: z.string(),
     notes: z.string().optional(),
-})
+});
+
+export type HealthMonitoringType = z.infer<typeof HealthMonitoringSchema>;

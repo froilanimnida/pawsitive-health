@@ -32,15 +32,15 @@ const appointmentDurationMap = {
     hospice_care: 30,
 };
 
-const appointment_type_array = Object.values(appointment_type) as [string, ...string[]];
-
 export const AppointmentSchema = z.object({
     pet_uuid: z.string(),
     vet_id: z.string(),
     clinic_id: z.string(),
     appointment_date: z.date(),
-    appointment_type: z.enum(appointment_type_array),
+    appointment_type: z.enum(Object.values(appointment_type) as [string, ...string[]]),
     notes: z.string(),
     appointment_time: z.string(),
     duration_minutes: z.number().default(30).optional(),
 });
+
+export type AppointmentType = z.infer<typeof AppointmentSchema>;
