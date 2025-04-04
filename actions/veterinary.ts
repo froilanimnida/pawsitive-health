@@ -8,6 +8,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { getUserId } from "./user";
 import { ActionResponse } from "@/types/server-action-response";
+import { generateVerificationToken } from "@/lib/functions/security/generate-verification-token";
 
 const newVeterinarian = async (
     values: z.infer<typeof VeterinarianSchema>,
@@ -51,6 +52,9 @@ const newVeterinarian = async (
                 last_name: formData.data.last_name,
                 phone_number: formData.data.phone_number,
                 role: role_type.veterinarian,
+                email_verified: false,
+                email_verification_token: generateVerificationToken(formData.data.email),
+                email_verification_expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
             },
         });
 
@@ -73,7 +77,6 @@ const newVeterinarian = async (
             },
         });
 
-        // Optionally set up initial availability for the vet based on clinic hours
         const clinicHours = await prisma.clinic_hours.findMany({
             where: {
                 clinic_id: clinic.clinic_id,
@@ -81,7 +84,6 @@ const newVeterinarian = async (
             },
         });
 
-        // Create default availability entries for each clinic day
         const availabilityPromises = clinicHours.map((hour) =>
             prisma.vet_availability.create({
                 data: {

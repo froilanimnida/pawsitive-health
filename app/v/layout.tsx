@@ -1,17 +1,17 @@
-import React from 'react';
-import { AppSidebar } from '@/components/app-sidebar';
+import React from "react";
+import { AppSidebar } from "@/components/shared/layout/app-sidebar";
 
 async function VeterinaryLayout({
-	children,
+    children,
 }: Readonly<{
-	children: React.ReactNode;
+    children: React.ReactNode;
 }>) {
-	return (
-		<div className='flex h-screen'>
-			<AppSidebar variant='floating' />
-			{children}
-		</div>
-	);
+    return (
+        <div className="flex h-screen">
+            <AppSidebar variant="floating" />
+            {children}
+        </div>
+    );
 }
 
 export default VeterinaryLayout;

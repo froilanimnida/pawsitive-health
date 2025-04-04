@@ -5,8 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { NewClinicAccountSchema } from "@/schemas/clinic-signup-definition";
+import { NewClinicAccountSchema, NewClinicAccountType } from "@/schemas/clinic-signup-definition";
 import { Checkbox } from "@/components/ui/checkbox";
 import toast from "react-hot-toast";
 import { createClinicAccount } from "@/actions/auth";
@@ -143,7 +142,7 @@ const ClinicSignUp = () => {
         shouldFocusError: true,
         mode: "onBlur",
     });
-    const onSubmit = (values: z.infer<typeof NewClinicAccountSchema>) => {
+    const onSubmit = (values: NewClinicAccountType) => {
         toast.promise(createClinicAccount(values), {
             loading: "Creating account...",
             success: "Successfully created account",

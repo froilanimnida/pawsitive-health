@@ -9,6 +9,7 @@ import { getUserId } from "./user";
 import { endOfDay, startOfDay } from "date-fns";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import { AppointmentDetailsResponse, GetUserAppointmentsResponse } from "@/types/actions/appointments";
 type AppointmentWithRelations = Prisma.appointmentsGetPayload<{
     include: {
         pets: {
@@ -27,7 +28,7 @@ type AppointmentWithRelations = Prisma.appointmentsGetPayload<{
 
 async function getExistingAppointments(
     date: Date,
-    vetId: number
+    vetId: number,
 ): Promise<
     ActionResponse<{
         appointments: {
@@ -69,32 +70,50 @@ async function getExistingAppointments(
     }
 }
 
-const getUserAppointments = async (): Promise<ActionResponse<{ appointments: AppointmentWithRelations[] }>> => {
+const getUserAppointments = async (): Promise<ActionResponse<{ appointments: GetUserAppointmentsResponse[] }>> => {
     try {
         const session = await auth();
         if (!session || !session.user || !session.user.email) {
             throw new Error("User not found");
         }
+
         const appointments = await prisma.appointments.findMany({
             where: {
                 pets: {
                     user_id: await getUserId(session?.user?.email),
+                    deleted: false,
                 },
             },
-            include: {
+            select: {
+                appointment_id: true,
+                appointment_uuid: true,
+                appointment_date: true,
+                appointment_type: true,
+                notes: true,
+                status: true,
                 pets: {
-                    include: {
-                        users: true,
+                    select: {
+                        name: true,
                     },
                 },
                 veterinarians: {
-                    include: {
-                        users: true,
+                    select: {
+                        users: {
+                            select: {
+                                first_name: true,
+                                last_name: true,
+                            },
+                        },
                     },
                 },
-                clinics: true,
+                clinics: {
+                    select: {
+                        name: true,
+                    },
+                },
             },
         });
+
         return { success: true, data: { appointments } };
     } catch (error) {
         return {
@@ -105,7 +124,7 @@ const getUserAppointments = async (): Promise<ActionResponse<{ appointments: App
 };
 
 const createUserAppointment = async (
-    values: z.infer<typeof AppointmentSchema>
+    values: z.infer<typeof AppointmentSchema>,
 ): Promise<ActionResponse<{ appointment_uuid: string }>> => {
     try {
         const session = await auth();
@@ -236,40 +255,98 @@ const getVeterinarianAppointments = async (): Promise<
         };
     }
 };
-
-interface AppointmentDetails extends VetAppointmentWithRelations {
-    clinics?: clinics;
-}
-
 const getAppointment = async (
     appointment_uuid: string,
-    is_user: boolean = false
-): Promise<ActionResponse<{ appointment: AppointmentDetails }>> => {
+    is_user: boolean = false,
+): Promise<ActionResponse<{ appointment: AppointmentDetailsResponse }>> => {
     try {
         const session = await auth();
         if (!session || !session.user || !session.user.email) {
             throw new Error("User not found");
         }
-        const user_id = await getUserId(session?.user?.email);
+
         const appointment = await prisma.appointments.findFirst({
             where: {
                 appointment_uuid: appointment_uuid,
-                pets: {
-                    user_id: user_id,
-                },
             },
-            include: {
-                pets: {
-                    include: {
-                        users: true,
-                    },
-                },
+            select: {
+                appointment_id: true,
+                appointment_uuid: true,
+                appointment_date: true,
+                appointment_type: true,
+                created_at: true,
+                duration_minutes: true,
+                notes: true,
+                status: true,
+                pets: is_user
+                    ? {
+                          select: {
+                              name: true,
+                              species: true,
+                              breed: true,
+                              weight_kg: true,
+                          },
+                      }
+                    : undefined,
                 veterinarians: {
-                    include: {
-                        users: true,
+                    select: {
+                        specialization: true,
+                        users: {
+                            select: {
+                                first_name: true,
+                                last_name: true,
+                            },
+                        },
                     },
                 },
-                clinics: is_user,
+                clinics: is_user
+                    ? {
+                          select: {
+                              name: true,
+                              address: true,
+                              city: true,
+                              state: true,
+                              postal_code: true,
+                              phone_number: true,
+                          },
+                      }
+                    : undefined,
+            },
+        });
+
+        if (!appointment) {
+            return { success: false, error: "Appointment not found" };
+        }
+
+        return {
+            success: true,
+            data: {
+                appointment: appointment as unknown as AppointmentDetailsResponse,
+            },
+        };
+    } catch (error) {
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "An unexpected error occurred",
+        };
+    }
+};
+
+const cancelAppointment = async (appointment_uuid: string): Promise<ActionResponse<{ appointment_uuid: string }>> => {
+    try {
+        const session = await auth();
+        if (!session || !session.user || !session.user.email) {
+            return {
+                success: false,
+                error: "User not found",
+            };
+        }
+        const appointment = await prisma.appointments.update({
+            where: {
+                appointment_uuid: appointment_uuid,
+            },
+            data: {
+                status: "cancelled",
             },
         });
         if (!appointment) {
@@ -277,12 +354,39 @@ const getAppointment = async (
         }
         return {
             success: true,
-            data: {
-                appointment: {
-                    ...appointment,
-                    clinics: appointment.clinics ?? undefined,
-                },
+            data: { appointment_uuid: appointment.appointment_uuid },
+        };
+    } catch (error) {
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "An unexpected error occurred",
+        };
+    }
+};
+
+const acceptAppointment = async (appointment_uuid: string): Promise<ActionResponse<{ appointment_uuid: string }>> => {
+    try {
+        const session = await auth();
+        if (!session || !session.user || !session.user.email) {
+            return {
+                success: false,
+                error: "User not found",
+            };
+        }
+        const appointment = await prisma.appointments.update({
+            where: {
+                appointment_uuid: appointment_uuid,
             },
+            data: {
+                status: "confirmed",
+            },
+        });
+        if (!appointment) {
+            return { success: false, error: "Appointment not found" };
+        }
+        return {
+            success: true,
+            data: { appointment_uuid: appointment.appointment_uuid },
         };
     } catch (error) {
         return {
@@ -299,4 +403,6 @@ export {
     getExistingAppointments,
     getVeterinarianAppointments,
     getAppointment,
+    cancelAppointment,
+    acceptAppointment,
 };

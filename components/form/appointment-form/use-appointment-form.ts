@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { appointment_type, type vet_availability } from "@prisma/client";
-import { AppointmentSchema } from "@/schemas/appointment-definition";
+import { AppointmentSchema, AppointmentType } from "@/schemas/appointment-definition";
 import { addMinutes, format } from "date-fns";
 import { getVeterinariansByClinic } from "@/actions/veterinary";
 import { getVeterinaryAvailability } from "@/actions/veterinarian-availability";
@@ -57,7 +56,7 @@ export function useAppointmentForm(uuid: string) {
                     vets.map((vet) => ({
                         label: `${vet.name} (${toTitleCase(vet.specialization)})`,
                         value: vet.id,
-                    }))
+                    })),
                 );
             } catch {
                 setVeterinarians([]);
@@ -149,7 +148,7 @@ export function useAppointmentForm(uuid: string) {
         loadTimeSlots();
     }, [selectedDate, selectedVetId, selectedClinicId]);
 
-    const onSubmit = async (values: z.infer<typeof AppointmentSchema>) => {
+    const onSubmit = async (values: AppointmentType) => {
         try {
             const submissionData = { ...values };
 

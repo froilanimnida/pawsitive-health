@@ -1,15 +1,16 @@
 "use server";
 import { auth } from "@/auth";
 import type { PetSchema } from "@/schemas/pet-definition";
-import { type breed_type, type pet_sex_type, type species_type } from "@prisma/client";
+import { procedure_type, type breed_type, type pet_sex_type, type species_type } from "@prisma/client";
 import { z } from "zod";
 import { getUserId } from "./user";
 import { type ActionResponse } from "@/types/server-action-response";
 import { prisma } from "@/lib/prisma";
 import type { Pets } from "@/types/pets";
 import { formatDecimal } from "@/lib/functions/format-decimal";
+import { PetOnboardingSchema } from "@/schemas/onboarding-definition";
 
-const addPet = async (values: z.infer<typeof PetSchema>): Promise<ActionResponse<{ pet_uuid: string }>> => {
+const addPet = async (values: PetOnboardingSchema): Promise<ActionResponse<{ pet_uuid: string }>> => {
     try {
         const session = await auth();
         if (!session || !session.user || !session.user.email) {
@@ -24,13 +25,38 @@ const addPet = async (values: z.infer<typeof PetSchema>): Promise<ActionResponse
                 species: values.species as species_type,
                 date_of_birth: values.date_of_birth,
                 weight_kg: values.weight_kg,
-                medical_history: values.medical_history,
-                vaccination_status: values.vaccination_status,
                 user_id: user_id,
             },
         });
-        if (!pet) {
-            throw await Promise.reject("Failed to add pet");
+
+        if (!pet) throw await Promise.reject("Failed to add pet");
+
+        if (values.healthcare) {
+            if (values.healthcare.vaccinations?.length) {
+                await prisma.vaccinations.createMany({
+                    data: values.healthcare.vaccinations.map((vac) => ({
+                        pet_id: pet.pet_id,
+                        vaccine_name: vac.vaccine_name,
+                        administered_date: vac.administered_date,
+                        next_due_date: vac.next_due_date,
+                        batch_number: vac.batch_number || undefined,
+                    })),
+                });
+            }
+
+            if (values.healthcare.procedures?.length) {
+                await prisma.healthcare_procedures.createMany({
+                    data: values.healthcare.procedures.map((proc) => ({
+                        pet_id: pet.pet_id,
+                        procedure_type: proc.procedure_type as procedure_type,
+                        procedure_date: proc.procedure_date,
+                        next_due_date: proc.next_due_date,
+                        product_used: proc.product_used,
+                        dosage: proc.dosage,
+                        notes: proc.notes,
+                    })),
+                });
+            }
         }
         return { success: true, data: { pet_uuid: pet.pet_uuid } };
     } catch (error) {
@@ -48,7 +74,6 @@ const getPet = async (pet_uuid: string): Promise<ActionResponse<{ pet: Pets }>> 
                 pet_uuid: pet_uuid,
             },
         });
-        // Make the weight_kg into a localized string
         if (!pet) return { success: false, error: "Pet not found" };
         const petInfo = {
             ...pet,
@@ -78,8 +103,6 @@ const updatePet = async (
                 sex: values.sex as pet_sex_type,
                 species: values.species as species_type,
                 weight_kg: values.weight_kg,
-                medical_history: values.medical_history,
-                vaccination_status: values.vaccination_status,
             },
         });
         if (!pet) return { success: false, error: "Failed to update pet" };
@@ -103,6 +126,9 @@ const getPets = async (): Promise<ActionResponse<{ pets: Pets[] }>> => {
         const petsData = await prisma.pets.findMany({
             where: {
                 user_id: userId,
+            },
+            orderBy: {
+                date_of_birth: "desc",
             },
         });
 

@@ -10,3 +10,5 @@ export const VeterinarianSchema = z.object({
 		.string()
 		.nonempty({ message: 'Specialization is required.' }),
 });
+
+export type VeterinarianType = z.infer<typeof VeterinarianSchema>;
