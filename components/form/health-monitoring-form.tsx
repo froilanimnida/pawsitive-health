@@ -1,5 +1,5 @@
 "use client";
-import { HealthMonitoringSchema } from "@/schemas/health-monitoring";
+import { HealthMonitoringSchema, HealthMonitoringType } from "@/schemas/health-monitoring";
 import { type TextFormField } from "@/types/forms/text-form-field";
 import { zodResolver } from "@hookform/resolvers/zod";
 import React, { useState } from "react";
@@ -7,7 +7,6 @@ import { useForm } from "react-hook-form";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import toast from "react-hot-toast";
-import { z } from "zod";
 import { Button } from "@/components/ui/button";
 
 export const HealthMonitoringForm = () => {
@@ -70,7 +69,7 @@ export const HealthMonitoringForm = () => {
         resolver: zodResolver(HealthMonitoringSchema),
     });
     const { handleSubmit, control } = healthMonitoringForm;
-    const onSubmit = async (data: z.infer<typeof HealthMonitoringSchema>) => {
+    const onSubmit = async (data: HealthMonitoringType) => {
         setIsLoading(true);
         try {
             console.log(data);

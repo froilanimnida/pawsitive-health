@@ -6,8 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
 import { getSession, signIn } from "next-auth/react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { LoginSchema } from "@/schemas/auth-definitions";
-import { z } from "zod";
+import { LoginSchema, LoginType } from "@/schemas/auth-definitions";
 import toast from "react-hot-toast";
 import { TextFormField } from "@/types/forms/text-form-field";
 import { useRouter } from "next/navigation";
@@ -47,7 +46,7 @@ const UserLoginForm = () => {
         reValidateMode: "onChange",
     });
 
-    const onSubmit = async (values: z.infer<typeof LoginSchema>) => {
+    const onSubmit = async (values: LoginType) => {
         setIsLoading(true);
         await toast
             .promise(
@@ -63,7 +62,7 @@ const UserLoginForm = () => {
                     loading: "Signing in...",
                     success: "Successfully signed in, redirecting please wait...",
                     error: "Failed to sign in. Please check your credentials.",
-                }
+                },
             )
             .finally(() => {
                 setIsLoading(false);

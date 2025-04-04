@@ -1,8 +1,7 @@
 "use client";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { VeterinarianSchema } from "@/schemas/veterinarian-definition";
+import { VeterinarianSchema, VeterinarianType } from "@/schemas/veterinarian-definition";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import {
@@ -104,7 +103,7 @@ const NewVeterinaryForm = () => {
         },
     });
 
-    const onSubmit = async (values: z.infer<typeof VeterinarianSchema>) => {
+    const onSubmit = async (values: VeterinarianType) => {
         await toast
             .promise(newVeterinarian(values), {
                 loading: "Creating a new veterinarian...",

@@ -1,6 +1,6 @@
 "use client";
 import { createMedication } from "@/actions/medications";
-import { MedicineSchema } from "@/schemas/medicine-definition";
+import { MedicineSchema, MedicineType } from "@/schemas/medicine-definition";
 import { type TextFormField } from "@/types/forms/text-form-field";
 import { zodResolver } from "@hookform/resolvers/zod";
 import React, { useState } from "react";
@@ -8,7 +8,6 @@ import { useForm } from "react-hook-form";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import toast from "react-hot-toast";
-import { z } from "zod";
 import { Button } from "@/components/ui/button";
 
 const MedicineForm = () => {
@@ -64,7 +63,7 @@ const MedicineForm = () => {
         mode: "onBlur",
         reValidateMode: "onChange",
     });
-    const onSubmit = async (values: z.infer<typeof MedicineSchema>) => {
+    const onSubmit = async (values: MedicineType) => {
         setIsLoading(true);
         await toast
             .promise(createMedication(values), {
@@ -74,7 +73,7 @@ const MedicineForm = () => {
             })
             .finally(() => {
                 setIsLoading(false);
-                //medicineForm.reset();
+                medicineForm.reset();
             });
     };
     return (

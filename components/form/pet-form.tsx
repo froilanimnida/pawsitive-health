@@ -14,12 +14,13 @@ import { Calendar as CalendarIcon, Plus, X } from "lucide-react";
 import { format } from "date-fns";
 import { PetSchema } from "@/schemas/pet-definition";
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { z } from "zod";
 import toast from "react-hot-toast";
 import { addPet } from "@/actions/pets";
 import { toTitleCase } from "@/lib/functions/text/title-case";
 import { breed_type, pet_sex_type, procedure_type, species_type } from "@prisma/client";
 import { SelectFormField } from "@/types/forms/select-form-field";
+import { Textarea } from "../ui/textarea";
+import { PetOnboardingSchema } from "@/schemas/onboarding-definition";
 
 const AddPetForm = () => {
     const [selectedBreed, setSelectedBreed] = useState<breed_type | string>("");
@@ -157,7 +158,7 @@ const AddPetForm = () => {
             },
         ]);
     };
-    const onSubmit = async (values: z.infer<typeof PetSchema>) => {
+    const onSubmit = async (values: PetOnboardingSchema) => {
         await toast.promise(addPet(values), {
             loading: "Adding pet...",
             success: "Pet added successfully",
@@ -399,7 +400,7 @@ const AddPetForm = () => {
                                     <X className="h-4 w-4" />
                                 </Button>
 
-                                <div className="gap-4 flex flex-col">
+                                <div className="flex flex-col gap-3">
                                     <FormLabel>Procedure Type</FormLabel>
                                     <Select
                                         value={procedure.procedure_type}
@@ -410,7 +411,7 @@ const AddPetForm = () => {
                                         }}
                                     >
                                         <FormControl>
-                                            <SelectTrigger>
+                                            <SelectTrigger className="w-full">
                                                 <SelectValue placeholder="Select procedure type" />
                                             </SelectTrigger>
                                         </FormControl>
@@ -426,7 +427,7 @@ const AddPetForm = () => {
                                     </Select>
                                 </div>
 
-                                <div>
+                                <div className="flex flex-col gap-3">
                                     <FormLabel>Date Performed</FormLabel>
                                     <Popover>
                                         <PopoverTrigger asChild>
@@ -459,7 +460,7 @@ const AddPetForm = () => {
                                     </Popover>
                                 </div>
 
-                                <div>
+                                <div className="flex flex-col gap-3">
                                     <FormLabel>Product Used</FormLabel>
                                     <Input
                                         value={procedure.product_used}
@@ -471,7 +472,7 @@ const AddPetForm = () => {
                                     />
                                 </div>
 
-                                <div>
+                                <div className="flex flex-col gap-3">
                                     <FormLabel>Dosage</FormLabel>
                                     <Input
                                         value={procedure.dosage}
@@ -483,9 +484,9 @@ const AddPetForm = () => {
                                     />
                                 </div>
 
-                                <div className="md:col-span-2">
+                                <div className="md:col-span-2 flex flex-col gap-3">
                                     <FormLabel>Notes</FormLabel>
-                                    <Input
+                                    <Textarea
                                         value={procedure.notes}
                                         onChange={(e) => {
                                             const newProcedures = [...procedures];
