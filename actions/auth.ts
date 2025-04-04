@@ -7,6 +7,8 @@ import { signOut } from "next-auth/react";
 import { NewClinicAccountSchema } from "@/schemas/clinic-signup-definition";
 import { hashPassword, verifyPassword } from "@/lib/functions/security/password-check";
 import type { ActionResponse } from "@/types/server-action-response";
+import jwt from "jsonwebtoken";
+import { generateVerificationToken } from "@/lib/functions/security/generate-verification-token";
 
 const createAccount = async (values: z.infer<typeof SignUpSchema>): Promise<ActionResponse<{ user_uuid: string }>> => {
     try {
@@ -19,7 +21,7 @@ const createAccount = async (values: z.infer<typeof SignUpSchema>): Promise<Acti
                 OR: [{ email: values.email }, { phone_number: values.phone_number }],
             },
         });
-        if (user !== null) return { success: false, error: "email_or_phone_number_already_exists" };
+        if (user) return { success: false, error: "email_or_phone_number_already_exists" };
         const result = await prisma.users.create({
             data: {
                 email: formData.data.email,
@@ -28,6 +30,9 @@ const createAccount = async (values: z.infer<typeof SignUpSchema>): Promise<Acti
                 last_name: formData.data.last_name,
                 phone_number: formData.data.phone_number,
                 role: role_type.user,
+                email_verified: false,
+                email_verification_token: generateVerificationToken(formData.data.email),
+                email_verification_expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
             },
         });
         if (result.user_id === null) return { success: false, error: "Failed to create account" };
@@ -36,6 +41,30 @@ const createAccount = async (values: z.infer<typeof SignUpSchema>): Promise<Acti
         return {
             success: false,
             error: error instanceof Error ? error.message : "An unexpected error occurred",
+        };
+    }
+};
+
+const verifyEmail = async (token: string): Promise<ActionResponse<{ verified: boolean }>> => {
+    try {
+        const decoded = jwt.verify(token, process.env.EMAIL_VERIFICATION_SECRET || "fallback-secret-key") as {
+            email: string;
+        };
+
+        const result = await prisma.users.updateMany({
+            where: { email: decoded.email },
+            data: { email_verified: true, email_verification_token: null, email_verification_expires_at: null },
+        });
+
+        if (result.count === 0) {
+            return { success: false, error: "User not found" };
+        }
+
+        return { success: true, data: { verified: true } };
+    } catch (error) {
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "Invalid or expired token",
         };
     }
 };
@@ -62,6 +91,9 @@ const createClinicAccount = async (
                 last_name: formData.data.last_name,
                 phone_number: formData.data.phone_number,
                 role: role_type.client,
+                email_verified: false,
+                email_verification_token: generateVerificationToken(formData.data.email),
+                email_verification_expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
             },
         });
         if (result.user_id === null) return { success: false, error: "Failed to create account" };
@@ -109,6 +141,5 @@ const loginAccount = async (email: string, password: string): Promise<ActionResp
 };
 
 // export const createVeterinarianAccount
-// export const verifyEmail
 
-export { loginAccount, createAccount, createClinicAccount, logout };
+export { loginAccount, createAccount, createClinicAccount, logout, verifyEmail };
