@@ -23,8 +23,23 @@ import { procedure_type } from "@prisma/client";
 const AddPetForm = () => {
     const [selectedBreed, setSelectedBreed] = useState<string | undefined>(undefined);
     const [selectedSpecies, setSelectedSpecies] = useState<string>("dog");
-    const [procedures, setProcedures] = useState<any[]>([]);
-    const [vaccinations, setVaccinations] = useState<any[]>([]);
+    const [procedures, setProcedures] = useState<
+        {
+            procedure_type: procedure_type;
+            procedure_date: Date;
+            product_used: string;
+            dosage: string;
+            notes: string;
+        }[]
+    >([]);
+    const [vaccinations, setVaccinations] = useState<
+        {
+            vaccine_name: string;
+            administered_date: Date;
+            next_due_date: Date | null;
+            batch_number: string;
+        }[]
+    >([]);
 
     const getBreedOptions = () => {
         if (selectedSpecies === "dog") {
@@ -205,7 +220,7 @@ const AddPetForm = () => {
                                                     variant="outline"
                                                     className={cn(
                                                         "w-full justify-start text-left font-normal",
-                                                        !field.value && "text-muted-foreground"
+                                                        !field.value && "text-muted-foreground",
                                                     )}
                                                 >
                                                     <CalendarIcon className="mr-2 h-4 w-4" />
@@ -229,7 +244,7 @@ const AddPetForm = () => {
                                                         const dateOnly = new Date(
                                                             date.getFullYear(),
                                                             date.getMonth(),
-                                                            date.getDate()
+                                                            date.getDate(),
                                                         );
 
                                                         field.onChange(dateOnly);
@@ -338,6 +353,7 @@ const AddPetForm = () => {
                                                     mode="single"
                                                     selected={vaccination.administered_date}
                                                     onSelect={(date) => {
+                                                        if (!date) return;
                                                         const newVaccinations = [...vaccinations];
                                                         newVaccinations[index].administered_date = date;
                                                         setVaccinations(newVaccinations);
@@ -393,7 +409,7 @@ const AddPetForm = () => {
                                         value={procedure.procedure_type}
                                         onValueChange={(value) => {
                                             const newProcedures = [...procedures];
-                                            newProcedures[index].procedure_type = value;
+                                            newProcedures[index].procedure_type = value as procedure_type;
                                             setProcedures(newProcedures);
                                         }}
                                     >
@@ -436,6 +452,7 @@ const AddPetForm = () => {
                                                 mode="single"
                                                 selected={procedure.procedure_date}
                                                 onSelect={(date) => {
+                                                    if (!date) return;
                                                     const newProcedures = [...procedures];
                                                     newProcedures[index].procedure_date = date;
                                                     setProcedures(newProcedures);

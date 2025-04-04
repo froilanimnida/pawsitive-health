@@ -7,7 +7,6 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toTitleCase } from "@/lib/functions/text/title-case";
 import { formatDecimal } from "@/lib/functions/format-decimal";
-import { cancelAppointment } from "@/actions/appointment";
 import {
     Dialog,
     DialogClose,
@@ -18,8 +17,8 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "../ui/dialog";
-import toast from "react-hot-toast";
 import { CancelAppointmentButton } from "./cancel-appointment-button";
+import { AppointmentDetailsResponse } from "@/types/actions/appointments";
 
 export const statusColors: Record<string, string> = {
     confirmed: "bg-green-100 text-green-800 border-green-200",
@@ -41,37 +40,7 @@ export const appointmentTypeLabels: Record<string, string> = {
 };
 
 export interface AppointmentCardProps {
-    appointment: {
-        appointment_id: number;
-        appointment_uuid: string;
-        appointment_date: Date;
-        appointment_type: string;
-        created_at: Date;
-        duration_minutes?: number;
-        notes?: string | null;
-        status: string;
-        pets?: {
-            name: string;
-            species: string;
-            breed?: string;
-            weight_kg?: number;
-        };
-        veterinarians?: {
-            specialization?: string;
-            users?: {
-                first_name: string;
-                last_name: string;
-            };
-        };
-        clinics?: {
-            name: string;
-            address: string;
-            city: string;
-            state: string;
-            postal_code: string;
-            phone_number: string;
-        };
-    };
+    appointment: AppointmentDetailsResponse;
     viewerType: "user" | "vet" | "clinic";
     additionalActions?: React.ReactNode;
     showFooter?: boolean;
@@ -91,14 +60,6 @@ export function AppointmentCard({
         ? `${appointment.veterinarians.users.first_name} ${appointment.veterinarians.users.last_name}`
         : "Unknown Veterinarian";
 
-    const handleCancelAppointment = () => {
-        toast.promise(cancelAppointment(appointment.appointment_uuid), {
-            success: "Appointment cancelled successfully.",
-            error: "Failed to cancel appointment.",
-            loading: "Cancelling appointment...",
-        });
-    };
-
     return (
         <Card className="overflow-hidden">
             <CardHeader className="pb-0">
@@ -109,7 +70,7 @@ export function AppointmentCard({
                     </Badge>
                 </div>
                 <CardDescription>
-                    Appointment #{appointment.appointment_id} • Created{" "}
+                    Appointment #{appointment.appointment_uuid} • Created{" "}
                     {format(new Date(appointment.created_at || new Date()), "MMM d, yyyy")}
                 </CardDescription>
             </CardHeader>
@@ -175,7 +136,7 @@ export function AppointmentCard({
                                         <div>
                                             <div className="font-medium">Dr. {vetName}</div>
                                             <div className="text-sm text-gray-500">
-                                                {toTitleCase(appointment.veterinarians.specialization)}
+                                                {toTitleCase(appointment.veterinarians.specialization ?? "")}
                                             </div>
                                         </div>
                                     </div>
@@ -184,9 +145,7 @@ export function AppointmentCard({
                         )}
                     </div>
 
-                    {/* Right Column */}
                     <div className="space-y-6">
-                        {/* Show clinic info for users and vets */}
                         {viewerType === "user" && appointment.clinics && (
                             <div className="space-y-2">
                                 <h3 className="text-lg font-medium">Clinic</h3>

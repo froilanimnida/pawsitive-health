@@ -69,7 +69,7 @@ export default async function PetDetails({ params }: { params: Promise<{ uuid: s
                             </div>
                         </div>
 
-                        <div className="space-y-4">
+                        {/*<div className="space-y-4">
                             <h3 className="text-lg font-semibold">Medical Information</h3>
                             <div className="space-y-3">
                                 <div>
@@ -84,7 +84,7 @@ export default async function PetDetails({ params }: { params: Promise<{ uuid: s
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </div>*/}
                     </div>
                 </CardContent>
 
