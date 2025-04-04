@@ -187,6 +187,8 @@ model users {
     last_login                    DateTime?             @db.Timestamptz(6)
     disabled                      Boolean?              @default(false)
     deleted_at                    DateTime?             @db.Timestamptz(6)
+    otp_token                     String?               @default("") @db.VarChar(10)
+    otp_expires_at                DateTime?             @db.Timestamptz(6)
     email_verified                Boolean?              @default(false)
     email_verification_token      String?               @db.VarChar(255)
     email_verification_expires_at DateTime?             @db.Timestamptz(6)

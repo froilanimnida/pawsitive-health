@@ -44,5 +44,10 @@ export const LoginSchema = z.object({
     password: z.string().min(8, { message: "Password must be 8 characters long." }).max(255).nonempty(),
 });
 
+export const OtpSchema = z.object({
+    otp: z.string().regex(/^\d{6}$/, { message: "OTP must be a 6-digit number." }),
+});
+
 export type SignUpType = z.infer<typeof SignUpSchema>;
 export type LoginType = z.infer<typeof LoginSchema>;
+export type OtpType = z.infer<typeof OtpSchema>;

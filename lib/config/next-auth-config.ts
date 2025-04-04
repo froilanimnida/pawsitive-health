@@ -1,4 +1,4 @@
-import { loginAccount } from "@/actions/auth";
+import { nextAuthLogin } from "@/actions/auth";
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { role_type } from "@prisma/client";
@@ -15,7 +15,7 @@ export const config = {
                 if (!credentials || !credentials.email || !credentials.password) {
                     return null;
                 }
-                const data = await loginAccount(credentials?.email, credentials?.password);
+                const data = await nextAuthLogin(credentials?.email, credentials?.password);
                 const userData = data.success ? data.data : null;
                 if (userData === null || userData === undefined) {
                     return null;
