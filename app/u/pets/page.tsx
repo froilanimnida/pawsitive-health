@@ -65,7 +65,7 @@ const PetsPage = () => {
                     <DialogTrigger asChild>
                         <Button>Add Pet</Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent className=" max-h-11/12 overflow-y-auto w-full">
                         <DialogHeader>
                             <DialogTitle>Add a new pet to your account</DialogTitle>
                             <DialogDescription>

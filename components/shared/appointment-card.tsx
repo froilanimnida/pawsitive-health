@@ -28,17 +28,6 @@ export const statusColors: Record<string, string> = {
     pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
 };
 
-export const appointmentTypeLabels: Record<string, string> = {
-    wellness_checkup: "Wellness Checkup",
-    sick_visit: "Sick Visit",
-    vaccination: "Vaccination",
-    surgery: "Surgery",
-    dental_cleaning: "Dental Cleaning",
-    behavioral_consultation: "Behavioral Consultation",
-    follow_up: "Follow Up",
-    emergency: "Emergency",
-};
-
 export interface AppointmentCardProps {
     appointment: AppointmentDetailsResponse;
     viewerType: "user" | "vet" | "clinic";
@@ -175,10 +164,7 @@ export function AppointmentCard({
                                 <div className="p-4 space-y-4">
                                     <div>
                                         <div className="text-sm text-gray-500">Appointment Type</div>
-                                        <div className="font-medium">
-                                            {appointmentTypeLabels[appointment.appointment_type] ||
-                                                appointment.appointment_type}
-                                        </div>
+                                        <div className="font-medium">{toTitleCase(appointment.appointment_type)}</div>
                                     </div>
 
                                     <div>

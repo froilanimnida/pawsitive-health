@@ -18,11 +18,12 @@ import type { z } from "zod";
 import toast from "react-hot-toast";
 import { addPet } from "@/actions/pets";
 import { toTitleCase } from "@/lib/functions/text/title-case";
-import { procedure_type } from "@prisma/client";
+import { breed_type, pet_sex_type, procedure_type, species_type } from "@prisma/client";
+import { SelectFormField } from "@/types/forms/select-form-field";
 
 const AddPetForm = () => {
-    const [selectedBreed, setSelectedBreed] = useState<string | undefined>(undefined);
-    const [selectedSpecies, setSelectedSpecies] = useState<string>("dog");
+    const [selectedBreed, setSelectedBreed] = useState<breed_type | string>("");
+    const [selectedSpecies, setSelectedSpecies] = useState<species_type>("dog");
     const [procedures, setProcedures] = useState<
         {
             procedure_type: procedure_type;
@@ -86,15 +87,7 @@ const AddPetForm = () => {
         },
     ];
 
-    const selectFields: {
-        name: "species" | "breed" | "sex";
-        label: string;
-        placeholder: string;
-        description: string;
-        options: { value: string; label: string }[];
-        defaultValue?: string;
-        onChange?: (value: string) => void;
-    }[] = [
+    const selectFields: SelectFormField[] = [
         {
             name: "species",
             label: "Species",
@@ -105,14 +98,16 @@ const AddPetForm = () => {
             ],
             description: "Select the species of your pet",
             defaultValue: selectedSpecies,
+            required: true,
             onChange: (value) => {
-                setSelectedSpecies(value);
+                setSelectedSpecies(value as species_type);
                 form.setValue("breed", "");
             },
         },
         {
             name: "breed",
             label: "Breed",
+            required: true,
             placeholder: "Breed",
             description: "Select the breed of your pet",
             options: getBreedOptions().map((breed) => ({
@@ -121,7 +116,7 @@ const AddPetForm = () => {
             })),
             defaultValue: selectedBreed,
             onChange: (value) => {
-                setSelectedBreed(value);
+                setSelectedBreed(value as breed_type);
             },
         },
         {
@@ -134,7 +129,8 @@ const AddPetForm = () => {
                 { value: "female", label: "Female" },
                 { value: "prefer_not_to_say", label: "Prefer not to say" },
             ],
-            defaultValue: "prefer_not_to_say",
+            defaultValue: "male" as pet_sex_type,
+            required: true,
         },
     ];
     const addProcedure = () => {
@@ -173,7 +169,7 @@ const AddPetForm = () => {
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 w-full">
                 <Tabs defaultValue="basic" className="w-full">
-                    <TabsList className="grid grid-cols-2 mb-4">
+                    <TabsList className="flex flex-wrap justify-start items-start w-full mb-4">
                         <TabsTrigger value="basic">Basic Information</TabsTrigger>
                         <TabsTrigger value="healthcare">Healthcare History</TabsTrigger>
                     </TabsList>
@@ -266,7 +262,7 @@ const AddPetForm = () => {
                                 <FormField
                                     key={selectField.name}
                                     control={form.control}
-                                    name={selectField.name}
+                                    name={selectField.name as "species" | "breed" | "sex"}
                                     render={({ field, fieldState }) => (
                                         <FormItem>
                                             <FormLabel>{selectField.label}</FormLabel>
@@ -279,7 +275,7 @@ const AddPetForm = () => {
                                                 defaultValue={field.value || selectField.defaultValue}
                                             >
                                                 <FormControl>
-                                                    <SelectTrigger>
+                                                    <SelectTrigger className="w-full">
                                                         <SelectValue placeholder={selectField.placeholder} />
                                                     </SelectTrigger>
                                                 </FormControl>
@@ -300,11 +296,11 @@ const AddPetForm = () => {
                         </div>
                     </TabsContent>
                     <TabsContent value="healthcare" className="space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div className="grid grid-cols-1 gap-4 mb-6">
                             {vaccinations.map((vaccination, index) => (
                                 <div
                                     key={index}
-                                    className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4 p-4 border rounded-md relative"
+                                    className="grid grid-cols-3 gap-4 mb-4 p-4 border rounded-md relative place-content-center"
                                 >
                                     <Button
                                         variant="ghost"
@@ -320,7 +316,7 @@ const AddPetForm = () => {
                                         <X className="h-4 w-4" />
                                     </Button>
 
-                                    <div className="gap-4 flex flex-col">
+                                    <div className="gap-4 flex flex-col w-auto">
                                         <FormLabel>Vaccine Name</FormLabel>
                                         <Input
                                             value={vaccination.vaccine_name}
@@ -332,8 +328,8 @@ const AddPetForm = () => {
                                         />
                                     </div>
 
-                                    <div>
-                                        <FormLabel>Administration Date</FormLabel>
+                                    <div className="gap-4 flex flex-col">
+                                        <FormLabel>Vaccination Date</FormLabel>
                                         <Popover>
                                             <PopoverTrigger asChild>
                                                 <Button
@@ -364,7 +360,7 @@ const AddPetForm = () => {
                                         </Popover>
                                     </div>
 
-                                    <div>
+                                    <div className="gap-4 flex flex-col">
                                         <FormLabel>Batch Number</FormLabel>
                                         <Input
                                             value={vaccination.batch_number}

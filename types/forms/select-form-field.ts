@@ -1,14 +1,14 @@
 import BaseFormField from "@/types/forms/base-fields";
 
-export interface SelectOption {
+export interface SelectOption<T = string> {
     label: string;
-    value: string;
+    value: T;
 }
 
-export interface SelectFormField extends BaseFormField {
+export interface SelectFormField<T = string> extends BaseFormField {
     name: string;
-    options: SelectOption[];
-    defaultValue?: string;
-    onChange?: (value: string) => void;
+    options: SelectOption<T>[];
+    defaultValue?: T;
+    onChange?: (value: T) => void;
     isSearchable?: boolean;
 }
