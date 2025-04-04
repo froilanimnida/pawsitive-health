@@ -17,6 +17,8 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
+import { statusColors } from "@/components/shared/appointment-card";
 
 export const metadata: Metadata = {
     title: "PawsitiveHealth | Appointments",
@@ -25,7 +27,7 @@ export const metadata: Metadata = {
 
 const AppointmentsHistory = async () => {
     const data = await getUserAppointments();
-    const appointments = data.success ? data.data?.appointments ?? [] : [];
+    const appointments = data.success ? (data.data?.appointments ?? []) : [];
     if (!appointments || appointments.length === 0) {
         return (
             <div className="text-center py-10 w-full mx-auto">
@@ -36,9 +38,9 @@ const AppointmentsHistory = async () => {
     }
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-3 w-full lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 w-full lg:grid-cols-2 xl:grid-cols-3 gap-4">
             {appointments.map((appointment) => (
-                <Card key={appointment.appointment_id}>
+                <Card className="w-full" key={appointment.appointment_id}>
                     <CardHeader>
                         <CardTitle>{toTitleCase(appointment.pets?.name ?? "")}</CardTitle>
                         <CardDescription>
@@ -47,7 +49,9 @@ const AppointmentsHistory = async () => {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Badge>{appointment.status.toLocaleUpperCase()}</Badge>
+                        <Badge className={cn("px-3 py-1 text-sm", statusColors[appointment.status] || "bg-gray-100")}>
+                            {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+                        </Badge>
                         <div className="flex flex-col space-y-2">
                             <div>
                                 <span className="font-semibold">Date:</span>{" "}
@@ -82,32 +86,35 @@ const AppointmentsHistory = async () => {
 function Appointments() {
     return (
         <section className="p-4 w-full min-h-screen">
+            <div className="w-full flex flex-row justify-between">
+                <h1 className="text-2xl font-bold mb-6">Appointments</h1>
+                <Dialog>
+                    <DialogTrigger asChild>
+                        <Button>New Appointment</Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Create New Appointment</DialogTitle>
+                            <DialogDescription>
+                                Please select a pet and a veterinarian to create a new appointment.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter>
+                            <DialogClose asChild>
+                                <Button asChild>
+                                    <Link href="/u/pets">Okay</Link>
+                                </Button>
+                            </DialogClose>
+                            <DialogClose asChild>
+                                <Button variant="outline">Cancel</Button>
+                            </DialogClose>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+            </div>
             <Suspense fallback={<SkeletonCard />}>
                 <AppointmentsHistory />
             </Suspense>
-            <Dialog>
-                <DialogTrigger asChild>
-                    <Button>New Appointment</Button>
-                </DialogTrigger>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Create New Appointment</DialogTitle>
-                        <DialogDescription>
-                            Please select a pet and a veterinarian to create a new appointment.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter>
-                        <DialogClose asChild>
-                            <Button asChild>
-                                <Link href="/u/pets">Okay</Link>
-                            </Button>
-                        </DialogClose>
-                        <DialogClose asChild>
-                            <Button variant="outline">Cancel</Button>
-                        </DialogClose>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
         </section>
     );
 }

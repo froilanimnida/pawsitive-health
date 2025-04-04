@@ -19,6 +19,7 @@ import {
     DialogTrigger,
 } from "../ui/dialog";
 import toast from "react-hot-toast";
+import { CancelAppointmentButton } from "./cancel-appointment-button";
 
 export const statusColors: Record<string, string> = {
     confirmed: "bg-green-100 text-green-800 border-green-200",
@@ -254,13 +255,7 @@ export function AppointmentCard({
                                         </DialogDescription>
                                     </DialogHeader>
                                     <DialogFooter>
-                                        <Button
-                                            onClick={() => handleCancelAppointment()}
-                                            type="button"
-                                            variant="destructive"
-                                        >
-                                            Cancel Appointment
-                                        </Button>
+                                        <CancelAppointmentButton appointmentUuid={appointment.appointment_uuid} />
                                         <DialogClose asChild>
                                             <Button variant="outline">Cancel</Button>
                                         </DialogClose>

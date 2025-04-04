@@ -24,7 +24,7 @@ export const metadata: Metadata = {
 
 async function PetList() {
     const pets = await getPets();
-    const petsData = pets.success ? pets.data?.pets ?? [] : [];
+    const petsData = pets.success ? (pets.data?.pets ?? []) : [];
     if (!petsData || petsData.length === 0) {
         return (
             <div className="text-center py-10">
@@ -35,7 +35,7 @@ async function PetList() {
     }
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-3 w-full lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 w-full lg:grid-cols-3 gap-4">
             {petsData.map((pet) => (
                 <Card key={pet.pet_id}>
                     <CardHeader>
