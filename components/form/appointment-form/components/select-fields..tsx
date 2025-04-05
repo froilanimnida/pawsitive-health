@@ -1,5 +1,16 @@
-import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+    FormControl,
+    FormDescription,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui";
 import type { SelectFormField } from "@/types/forms/select-form-field";
 import type { Control } from "react-hook-form";
 import type { AppointmentControlSchema } from "../form-control-type";
@@ -63,8 +74,8 @@ export function SelectFields({ fields, control, selectedClinicId, isLoadingVets 
                                                 {!selectedClinicId
                                                     ? "Please select a clinic first"
                                                     : isLoadingVets
-                                                    ? "Loading veterinarians..."
-                                                    : "No veterinarians found for this clinic"}
+                                                      ? "Loading veterinarians..."
+                                                      : "No veterinarians found for this clinic"}
                                             </div>
                                         ) : (
                                             field.options.map((option) => (

@@ -1,13 +1,13 @@
-import React from 'react';
-import { Metadata } from 'next';
+import React from "react";
+import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-	title: 'PawsitiveHealth | Client Dashboard',
-	description: 'PawsitiveHealth is a pet health care service.',
+    title: "PawsitiveHealth | Client Dashboard",
+    description: "PawsitiveHealth is a pet health care service.",
 };
 
 const ClientDashboard = () => {
-	return <div>ClientDashboard</div>;
+    return <div>ClientDashboard</div>;
 };
 
 export default ClientDashboard;

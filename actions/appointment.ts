@@ -1,13 +1,11 @@
 "use server";
+import { prisma } from "@/lib";
+import { getPet, getUserId } from "@/actions";
+import { AppointmentType } from "@/schemas";
 import { auth } from "@/auth";
-import { AppointmentSchema } from "@/schemas/appointment-definition";
-import { type appointment_type, type clinics, type Prisma } from "@prisma/client";
+import { type appointment_type, type Prisma } from "@prisma/client";
 import type { ActionResponse } from "@/types/server-action-response";
-import type { z } from "zod";
-import { getPet } from "./pets";
-import { getUserId } from "./user";
 import { endOfDay, startOfDay } from "date-fns";
-import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { AppointmentDetailsResponse, GetUserAppointmentsResponse } from "@/types/actions/appointments";
 type AppointmentWithRelations = Prisma.appointmentsGetPayload<{
@@ -124,7 +122,7 @@ const getUserAppointments = async (): Promise<ActionResponse<{ appointments: Get
 };
 
 const createUserAppointment = async (
-    values: z.infer<typeof AppointmentSchema>,
+    values: AppointmentType,
 ): Promise<ActionResponse<{ appointment_uuid: string }>> => {
     try {
         const session = await auth();

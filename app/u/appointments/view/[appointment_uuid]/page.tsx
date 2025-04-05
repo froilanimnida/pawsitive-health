@@ -1,6 +1,6 @@
 import React from "react";
 import { notFound } from "next/navigation";
-import { getAppointment } from "@/actions/appointment";
+import { getAppointment } from "@/actions";
 import { Metadata } from "next";
 import { AppointmentCard } from "@/components/shared/appointment-card";
 

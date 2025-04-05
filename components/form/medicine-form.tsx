@@ -1,14 +1,22 @@
 "use client";
-import { createMedication } from "@/actions/medications";
-import { MedicineSchema, MedicineType } from "@/schemas/medicine-definition";
+import { createMedication } from "@/actions";
+import { MedicineSchema, MedicineType } from "@/schemas";
 import { type TextFormField } from "@/types/forms/text-form-field";
 import { zodResolver } from "@hookform/resolvers/zod";
-import React, { useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import {
+    Button,
+    Form,
+    FormControl,
+    FormDescription,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+    Input,
+} from "@/components/ui";
 import toast from "react-hot-toast";
-import { Button } from "@/components/ui/button";
 
 const MedicineForm = () => {
     const [isLoading, setIsLoading] = useState(false);

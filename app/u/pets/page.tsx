@@ -1,21 +1,25 @@
 import React, { Suspense } from "react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { SkeletonCard } from "@/components/ui/skeleton-card";
 import {
+    Button,
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
     Dialog,
     DialogContent,
     DialogDescription,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-} from "@/components/ui/dialog";
-import AddPetForm from "@/components/form/pet-form";
+    SkeletonCard,
+} from "@/components/ui";
 import type { Metadata } from "next";
-import { getPets } from "@/actions/pets";
-import { calculateAge } from "@/lib/functions/calculate-age";
+import { getPets } from "@/actions";
+import { calculateAge, toTitleCase } from "@/lib";
 import Link from "next/link";
-import { toTitleCase } from "@/lib/functions/text/title-case";
+import AddPetForm from "@/components/form/pet-form";
 
 export const metadata: Metadata = {
     title: "PawsitiveHealth | User Pets",

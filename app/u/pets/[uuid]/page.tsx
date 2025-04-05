@@ -1,11 +1,10 @@
 import React from "react";
 import { notFound } from "next/navigation";
-import { getPet } from "@/actions/pets";
+import { getPet } from "@/actions";
 import type { Metadata } from "next";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, Button } from "@/components/ui";
 import Link from "next/link";
-import { toTitleCase } from "@/lib/functions/text/title-case";
+import { toTitleCase } from "@/lib";
 
 export async function generateMetadata({ params }: { params: Promise<{ uuid: string }> }): Promise<Metadata> {
     const { uuid } = await params;

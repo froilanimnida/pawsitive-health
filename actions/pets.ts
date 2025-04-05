@@ -1,14 +1,11 @@
 "use server";
-import { auth } from "@/auth";
-import type { PetSchema } from "@/schemas/pet-definition";
+import { formatDecimal, prisma } from "@/lib";
+import { PetOnboardingSchema, type PetType } from "@/schemas";
 import { procedure_type, type breed_type, type pet_sex_type, type species_type } from "@prisma/client";
-import { z } from "zod";
-import { getUserId } from "./user";
+import { getUserId } from "@/actions";
+import { auth } from "@/auth";
 import { type ActionResponse } from "@/types/server-action-response";
-import { prisma } from "@/lib/prisma";
 import type { Pets } from "@/types/pets";
-import { formatDecimal } from "@/lib/functions/format-decimal";
-import { PetOnboardingSchema } from "@/schemas/onboarding-definition";
 
 const addPet = async (values: PetOnboardingSchema): Promise<ActionResponse<{ pet_uuid: string }>> => {
     try {
@@ -88,10 +85,7 @@ const getPet = async (pet_uuid: string): Promise<ActionResponse<{ pet: Pets }>> 
     }
 };
 
-const updatePet = async (
-    values: z.infer<typeof PetSchema>,
-    pet_id: number,
-): Promise<ActionResponse<{ pet_uuid: string }>> => {
+const updatePet = async (values: PetType, pet_id: number): Promise<ActionResponse<{ pet_uuid: string }>> => {
     try {
         const pet = await prisma.pets.update({
             where: {

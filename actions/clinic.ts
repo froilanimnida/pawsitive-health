@@ -1,4 +1,5 @@
-import { prisma } from "@/lib/prisma";
+"use server";
+import { prisma } from "@/lib";
 import type { ActionResponse } from "@/types/server-action-response";
 import type { clinics } from "@prisma/client";
 

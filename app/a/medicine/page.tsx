@@ -1,15 +1,20 @@
-import React, { Suspense } from "react";
-import { SkeletonCard } from "@/components/ui/skeleton-card";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Suspense } from "react";
 import {
+    Button,
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
     Dialog,
     DialogContent,
     DialogDescription,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-} from "@/components/ui/dialog";
+    SkeletonCard,
+} from "@/components/ui";
 import { type Metadata } from "next";
 import { getMedicationsList } from "@/actions/medications";
 import MedicineForm from "@/components/form/medicine-form";
@@ -21,7 +26,7 @@ export const metadata: Metadata = {
 
 const MedicineCardList = async () => {
     const medicines = await getMedicationsList();
-    const medicinesData = medicines.success ? medicines.data?.medication ?? [] : [];
+    const medicinesData = medicines.success ? (medicines.data?.medication ?? []) : [];
     if (!medicinesData || medicinesData.length === 0) {
         return (
             <div className="text-center py-10">

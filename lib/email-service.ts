@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 import { render } from "@react-email/render";
-import type { EmailTemplate, EmailOptions } from "../types/email-types";
+import type { EmailTemplate, EmailOptions } from "@/types/email-types";
 
 class EmailService {
     private transporter: nodemailer.Transporter;
@@ -17,14 +17,10 @@ class EmailService {
         });
     }
 
-    /**
-     * Send an email with a React template
-     */
     async sendMail<T>(template: EmailTemplate<T>, data: T, options: EmailOptions): Promise<boolean> {
         try {
             const html = await render(template(data));
 
-            // Send the email
             await this.transporter.sendMail({
                 from: options.from || process.env.EMAIL_FROM,
                 to: options.to,
@@ -34,15 +30,11 @@ class EmailService {
             });
 
             return true;
-        } catch (error) {
-            console.error("Error sending email:", error);
+        } catch {
             return false;
         }
     }
 
-    /**
-     * Quick way to send a simple email without a template
-     */
     async sendSimpleEmail(options: EmailOptions): Promise<boolean> {
         try {
             await this.transporter.sendMail({
@@ -54,12 +46,10 @@ class EmailService {
             });
 
             return true;
-        } catch (error) {
-            console.error("Error sending simple email:", error);
+        } catch {
             return false;
         }
     }
 }
 
-const emailService = new EmailService();
-export default emailService;
+export { EmailService };

@@ -1,17 +1,30 @@
 "use client";
 import { useState } from "react";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import {
+    Button,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    Form,
+    FormControl,
+    FormDescription,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+    Input,
+} from "@/components/ui";
 import { useForm } from "react-hook-form";
 import { getSession, signIn } from "next-auth/react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { LoginSchema, LoginType, OtpSchema } from "@/schemas/auth-definitions";
+import { LoginSchema, LoginType, OtpSchema } from "@/schemas";
 import toast from "react-hot-toast";
 import { TextFormField } from "@/types/forms/text-form-field";
 import { useRouter } from "next/navigation";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog";
-import { loginAccount, verifyOTPToken } from "@/actions/auth";
+import { loginAccount, verifyOTPToken } from "@/actions";
 
 const UserLoginForm = () => {
     const [isLoading, setIsLoading] = useState(false);
@@ -83,7 +96,6 @@ const UserLoginForm = () => {
         setIsOtpLoading(true);
 
         try {
-            // First verify the OTP
             const otpResult = await verifyOTPToken(email, values.otp);
 
             if (!otpResult.success || !otpResult.data?.correct) {
@@ -92,11 +104,9 @@ const UserLoginForm = () => {
                 return;
             }
 
-            // OTP is valid
             toast.success("OTP verified successfully!");
             setShowOtpDialog(false);
-        } catch (error) {
-            console.error("OTP verification error:", error);
+        } catch {
             toast.error("Failed to verify OTP");
             setIsOtpLoading(false);
             return;
@@ -104,36 +114,24 @@ const UserLoginForm = () => {
             setIsOtpLoading(false);
         }
 
-        // After the try/catch block, handle sign-in separately
-        console.log("Attempting sign in with credentials:", { email });
-
-        // Sign in with credentials - this might show the CredentialsSignIn "error"
-        // but it's part of NextAuth's normal flow
         const signInResult = await signIn("credentials", {
             email,
             password,
             redirect: false,
         });
 
-        console.log("Sign in result:", signInResult);
-
         if (signInResult?.error) {
-            console.error("SignIn error:", signInResult.error);
             toast.error("Authentication failed: " + signInResult.error);
             return;
         }
 
-        // Get session and handle redirect
         const session = await getSession();
-        console.log("Session after sign in:", session);
 
         if (session?.user?.role) {
             toast.success("Signed in successfully as " + session.user.role);
 
-            // Add a small delay to ensure the toast is visible
             await new Promise((resolve) => setTimeout(resolve, 500));
 
-            // Redirect based on role
             if (session.user.role === "client") router.push("/c");
             else if (session.user.role === "veterinarian") router.push("/v");
             else if (session.user.role === "admin") router.push("/a");

@@ -1,9 +1,8 @@
 "use client";
-import { useForm } from "react-hook-form";
+import { Form, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { VeterinarianSchema, VeterinarianType } from "@/schemas/veterinarian-definition";
+import { VeterinarianSchema, VeterinarianType } from "@/schemas";
 import { useState } from "react";
-import { Input } from "@/components/ui/input";
 import {
     Select,
     SelectContent,
@@ -12,14 +11,20 @@ import {
     SelectLabel,
     SelectValue,
     SelectTrigger,
-} from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { FormControl, Form, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+    FormField,
+    FormItem,
+    FormLabel,
+    FormControl,
+    Input,
+    FormDescription,
+    FormMessage,
+} from "@/components/ui";
 import { veterinary_specialization } from "@prisma/client";
 import type { TextFormField } from "@/types/forms/text-form-field";
-import { toTitleCase } from "@/lib/functions/text/title-case";
+import { toTitleCase } from "@/lib";
 import toast from "react-hot-toast";
-import { newVeterinarian } from "@/actions/veterinary";
+import { newVeterinarian } from "@/actions";
+import { Button } from "react-day-picker";
 
 const NewVeterinaryForm = () => {
     const [isLoading, setIsLoading] = useState(false);

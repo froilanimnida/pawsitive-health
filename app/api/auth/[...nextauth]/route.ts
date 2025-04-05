@@ -1,9 +1,9 @@
 import NextAuth, { type AuthOptions } from "next-auth";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import { PrismaClient } from "@prisma/client";
-import { config } from "@/lib/config/next-auth-config";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/lib";
+import { nextAuthLogin } from "@/actions";
+import CredentialsProvider from "next-auth/providers/credentials";
+import { role_type } from "@prisma/client";
 
 const authOptions: AuthOptions = {
     adapter: PrismaAdapter(prisma),
@@ -11,7 +11,33 @@ const authOptions: AuthOptions = {
     pages: {
         signIn: "/auth/login",
     },
-    providers: config.providers,
+    providers: [
+        CredentialsProvider({
+            name: "Credentials",
+            credentials: {
+                email: {},
+                password: {},
+            },
+            async authorize(credentials) {
+                if (!credentials || !credentials.email || !credentials.password) {
+                    return null;
+                }
+                const data = await nextAuthLogin(credentials?.email, credentials?.password);
+                const userData = data.success ? data.data : null;
+                if (userData === null || userData === undefined) {
+                    return null;
+                }
+                return {
+                    id: userData.user.user_id.toString(),
+                    email: userData.user.email,
+                    role: userData.user.role as role_type,
+                    name: userData.user.first_name
+                        ? `${userData.user.first_name} ${userData.user.last_name || ""}`.trim()
+                        : null,
+                };
+            },
+        }),
+    ],
     callbacks: {
         async jwt({ token, user }) {
             if (user) {
@@ -22,7 +48,6 @@ const authOptions: AuthOptions = {
             return token;
         },
         async session({ session, token }) {
-            console.log("Session callback:", session, token);
             if (token && session.user) {
                 session.user.email = token.email;
                 session.user.role = token.role;

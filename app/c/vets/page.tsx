@@ -1,20 +1,27 @@
 import React, { Suspense } from "react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { SkeletonCard } from "@/components/ui/skeleton-card";
 import {
+    Button,
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
     Dialog,
     DialogContent,
     DialogDescription,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-} from "@/components/ui/dialog";
+    SkeletonCard,
+} from "@/components/ui";
 import NewVeterinaryForm from "@/components/form/new-vet-form";
 import type { Metadata } from "next";
-import { getClinicVeterinarians } from "@/actions/veterinary";
+import { getClinicVeterinarians } from "@/actions";
 import Link from "next/link";
+
 export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
     title: "PawsitiveHealth | Veterinaries",
     description: "PawsitiveHealth is a pet health care service.",
@@ -22,7 +29,7 @@ export const metadata: Metadata = {
 
 const Veterinaries = async () => {
     const data = await getClinicVeterinarians();
-    const veterinaries = data.success ? data.data?.veterinarians ?? [] : [];
+    const veterinaries = data.success ? (data.data?.veterinarians ?? []) : [];
     if (!veterinaries || veterinaries.length === 0) {
         return (
             <div className="text-center py-10">

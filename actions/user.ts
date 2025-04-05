@@ -1,6 +1,5 @@
 "use server";
-
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib";
 
 const getUserId = async (email: string) => {
     const user = await prisma.users.findUnique({

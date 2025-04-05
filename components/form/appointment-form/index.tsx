@@ -1,6 +1,5 @@
 "use client";
-import { Button } from "@/components/ui/button";
-import { Form } from "@/components/ui/form";
+import { Button, Form } from "@/components/ui";
 import { useAppointmentForm } from "./use-appointment-form";
 import { SelectFields } from "./components/select-fields.";
 import { TextFields } from "./components/text-fields";

@@ -1,26 +1,42 @@
 "use client";
 import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
-import { FormItem, Form, FormControl, FormField, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+    FormItem,
+    Form,
+    FormControl,
+    FormField,
+    FormLabel,
+    FormMessage,
+    FormDescription,
+    Input,
+    Select,
+    SelectTrigger,
+    SelectValue,
+    SelectContent,
+    SelectItem,
+    Button,
+    Popover,
+    PopoverTrigger,
+    PopoverContent,
+    Calendar,
+    Textarea,
+    TabsList,
+    TabsTrigger,
+    TabsContent,
+    Tabs,
+} from "@/components/ui";
 import { CatBreeds, DogBreeds } from "@/types/breed-types";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
-import { cn } from "@/lib/utils";
-import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib";
 import { Calendar as CalendarIcon, Plus, X } from "lucide-react";
 import { format } from "date-fns";
-import { PetSchema } from "@/schemas/pet-definition";
+import { PetOnboardingSchema, PetSchema } from "@/schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
 import { addPet } from "@/actions/pets";
-import { toTitleCase } from "@/lib/functions/text/title-case";
+import { toTitleCase } from "@/lib";
 import { breed_type, pet_sex_type, procedure_type, species_type } from "@prisma/client";
 import { SelectFormField } from "@/types/forms/select-form-field";
-import { Textarea } from "../ui/textarea";
-import { PetOnboardingSchema } from "@/schemas/onboarding-definition";
 
 const AddPetForm = () => {
     const [selectedBreed, setSelectedBreed] = useState<breed_type | string>("");

@@ -1,7 +1,6 @@
-import { getPets } from "@/actions/pets";
+import { getPets, getClinics } from "@/actions";
 import React from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { getClinics } from "@/actions/clinic";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui";
 import type { Metadata } from "next";
 import AppointmentForm from "@/components/form/appointment-form/index";
 import { notFound } from "next/navigation";
