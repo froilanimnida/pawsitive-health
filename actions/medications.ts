@@ -1,9 +1,8 @@
 "use server";
-import { prisma } from "@/lib/prisma";
-import { MedicineSchema } from "@/schemas/medicine-definition";
+import { prisma } from "@/lib";
+import { type MedicineType } from "@/schemas";
 import type { ActionResponse } from "@/types/server-action-response";
 import type { medications } from "@prisma/client";
-import { z } from "zod";
 
 const getMedicationsList = async (): Promise<ActionResponse<{ medication: medications[] }>> => {
     try {
@@ -25,9 +24,7 @@ const getMedicationsList = async (): Promise<ActionResponse<{ medication: medica
     }
 };
 
-const createMedication = async (
-    values: z.infer<typeof MedicineSchema>,
-): Promise<ActionResponse<{ medication_uuid: string }>> => {
+const createMedication = async (values: MedicineType): Promise<ActionResponse<{ medication_uuid: string }>> => {
     try {
         const medications = await prisma.medications.create({
             data: {

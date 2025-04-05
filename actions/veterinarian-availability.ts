@@ -1,8 +1,8 @@
 "use server";
+import { getUserId } from "@/actions";
 import { auth } from "@/auth";
 import { type vet_availability } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { getUserId } from "./user";
 import type { ActionResponse } from "@/types/server-action-response";
 
 function getVeterinaryAvailability(): Promise<ActionResponse<{ availability: vet_availability[] }>>; // Logic for the veterinary role itself

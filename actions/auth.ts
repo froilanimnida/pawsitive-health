@@ -1,12 +1,12 @@
 "use server";
 import { LoginType, SignUpSchema, NewClinicAccountSchema } from "@/schemas";
+import { OtpVerificationEmail, ClinicOnboardingEmail, UserOnboardingEmail } from "@/templates";
+import { hashPassword, verifyPassword, prisma, generateOtp, generateVerificationToken, emailService } from "@/lib";
 import type { z } from "zod";
 import { role_type, type users } from "@prisma/client";
 import { signOut } from "next-auth/react";
-import { hashPassword, verifyPassword, prisma, generateOtp, generateVerificationToken, emailService } from "@/lib";
 import type { ActionResponse } from "@/types/server-action-response";
 import jwt from "jsonwebtoken";
-import { OtpVerificationEmail, ClinicOnboardingEmail, UserOnboardingEmail } from "@/templates";
 
 const createAccount = async (values: z.infer<typeof SignUpSchema>): Promise<ActionResponse<{ user_uuid: string }>> => {
     try {

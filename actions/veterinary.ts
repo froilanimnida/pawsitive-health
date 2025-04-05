@@ -1,17 +1,15 @@
 "use server";
+import { VeterinarianSchema, VeterinarianType } from "@/schemas";
+import { generateVerificationToken, hashPassword } from "@/lib";
+import { prisma } from "@/lib";
+import { getUserId } from "@/actions";
 import { role_type, type users, type veterinarians } from "@prisma/client";
-import { VeterinarianSchema } from "@/schemas/veterinarian-definition";
-import { hashPassword } from "@/lib/functions/security/password-check";
 import { type veterinary_specialization } from "@prisma/client";
-import { z } from "zod";
 import { auth } from "@/auth";
-import { prisma } from "@/lib/prisma";
-import { getUserId } from "./user";
 import { ActionResponse } from "@/types/server-action-response";
-import { generateVerificationToken } from "@/lib/functions/security/generate-verification-token";
 
 const newVeterinarian = async (
-    values: z.infer<typeof VeterinarianSchema>,
+    values: VeterinarianType,
 ): Promise<ActionResponse<{ user_uuid: string; veterinarian_uuid: string }>> => {
     try {
         const formData = VeterinarianSchema.safeParse(values);
