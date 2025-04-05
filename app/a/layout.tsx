@@ -1,10 +1,10 @@
-import React from "react";
+import React, { ReactNode } from "react";
 import { AppSidebar } from "@/components/shared/layout/app-sidebar";
 
 async function AdminLayout({
     children,
 }: Readonly<{
-    children: React.ReactNode;
+    children: ReactNode;
 }>) {
     return (
         <div className="flex h-screen">

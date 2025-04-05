@@ -1,5 +1,4 @@
-import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage, Input } from "@/components/ui";
 import type { TextFormField } from "@/types/forms/text-form-field";
 import type { AppointmentControlSchema } from "../form-control-type";
 import type { Control } from "react-hook-form";

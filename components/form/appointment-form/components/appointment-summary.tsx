@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui";
 import { Clock, Calendar, User } from "lucide-react";
 
 interface AppointmentSummaryProps {

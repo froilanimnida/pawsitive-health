@@ -1,11 +1,18 @@
 import React, { Suspense } from "react";
-import { SkeletonCard } from "@/components/ui/skeleton-card";
+import {
+    Button,
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+    SkeletonCard,
+} from "@/components/ui";
 import { type Metadata } from "next";
-import { getVeterinarianAppointments } from "@/actions/appointment";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { getVeterinarianAppointments } from "@/actions";
 import Link from "next/link";
-import { toTitleCase } from "@/lib/functions/text/title-case";
+import { toTitleCase } from "@/lib";
 
 export const metadata: Metadata = {
     title: "PawsitiveHealth | Veterinary Appointment",
@@ -14,7 +21,7 @@ export const metadata: Metadata = {
 
 const Appointments = async () => {
     const appointmentsResponse = await getVeterinarianAppointments();
-    const appointments = appointmentsResponse.success ? appointmentsResponse.data?.appointments ?? [] : [];
+    const appointments = appointmentsResponse.success ? (appointmentsResponse.data?.appointments ?? []) : [];
     if (!appointments || appointments.length === 0) {
         return (
             <div className="text-center py-10 w-full mx-auto">

@@ -1,14 +1,21 @@
 "use client";
-import React from "react";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import {
+    Button,
+    Checkbox,
+    Form,
+    FormControl,
+    FormDescription,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+    Input,
+} from "@/components/ui";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { NewClinicAccountSchema, NewClinicAccountType } from "@/schemas/clinic-signup-definition";
-import { Checkbox } from "@/components/ui/checkbox";
+import { NewClinicAccountSchema, NewClinicAccountType } from "@/schemas";
 import toast from "react-hot-toast";
-import { createClinicAccount } from "@/actions/auth";
+import { createClinicAccount } from "@/actions";
 import { OperatingHoursField } from "./operating-hours-field";
 import type { TextFormField } from "@/types/forms/text-form-field";
 

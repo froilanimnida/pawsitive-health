@@ -27,4 +27,5 @@ export { getVeterinaryAvailability } from "./veterinarian-availability";
 //export {} from "./medical-records";
 //export {} from "./health-monitoring";
 export { getClinicSchedule } from "./clinic-schedule";
+export { createMedication, getMedicationsList } from "./medications";
 export { sendEmail, sendSimpleEmail } from "./send-email";

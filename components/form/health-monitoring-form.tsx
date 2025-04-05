@@ -1,13 +1,21 @@
 "use client";
-import { HealthMonitoringSchema, HealthMonitoringType } from "@/schemas/health-monitoring";
+import { HealthMonitoringSchema, HealthMonitoringType } from "@/schemas";
 import { type TextFormField } from "@/types/forms/text-form-field";
 import { zodResolver } from "@hookform/resolvers/zod";
-import React, { useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import {
+    Button,
+    Form,
+    FormControl,
+    FormDescription,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+    Input,
+} from "@/components/ui";
 import toast from "react-hot-toast";
-import { Button } from "@/components/ui/button";
 
 export const HealthMonitoringForm = () => {
     const [isLoading, setIsLoading] = useState(false);
@@ -70,7 +78,7 @@ export const HealthMonitoringForm = () => {
     });
     const { handleSubmit, control } = healthMonitoringForm;
     const onSubmit = async (data: HealthMonitoringType) => {
-        console.log(data)
+        console.log(data);
         setIsLoading(true);
         try {
             toast.success("Health monitoring data saved successfully");

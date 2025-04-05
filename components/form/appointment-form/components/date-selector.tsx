@@ -1,9 +1,18 @@
-import { Calendar } from "@/components/ui/calendar";
-import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
+import {
+    FormControl,
+    FormDescription,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+    Calendar,
+    Button,
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui";
 import { Calendar as CalendarIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib";
 import { format } from "date-fns";
 import type { Control } from "react-hook-form";
 import type { AppointmentControlSchema } from "../form-control-type";
@@ -28,7 +37,7 @@ export function DateSelector({ control, onSelect }: DateSelectorProps) {
                                     variant="outline"
                                     className={cn(
                                         "w-full justify-start text-left font-normal",
-                                        !field.value && "text-muted-foreground"
+                                        !field.value && "text-muted-foreground",
                                     )}
                                 >
                                     <CalendarIcon className="mr-2 h-4 w-4" />
