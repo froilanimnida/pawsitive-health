@@ -1,15 +1,11 @@
 "use server";
-import { prisma } from "@/lib/prisma";
 import { LoginType, SignUpSchema, NewClinicAccountSchema } from "@/schemas";
 import type { z } from "zod";
 import { role_type, type users } from "@prisma/client";
 import { signOut } from "next-auth/react";
-import { hashPassword, verifyPassword } from "@/lib/functions/security/password-check";
+import { hashPassword, verifyPassword, prisma, generateOtp, generateVerificationToken, emailService } from "@/lib";
 import type { ActionResponse } from "@/types/server-action-response";
 import jwt from "jsonwebtoken";
-import { generateVerificationToken } from "@/lib/functions/security/generate-verification-token";
-import { generateOtp } from "@/lib/functions/security/otp-generator";
-import emailService from "@/lib/email-service";
 import { OtpVerificationEmail, ClinicOnboardingEmail, UserOnboardingEmail } from "@/templates";
 
 const createAccount = async (values: z.infer<typeof SignUpSchema>): Promise<ActionResponse<{ user_uuid: string }>> => {

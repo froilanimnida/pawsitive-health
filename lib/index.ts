@@ -1,5 +1,5 @@
 export { config } from "./config/next-auth-config";
-export {} from "./email-service";
+export { emailService } from "./email-service";
 export { calculateAge } from "./functions/calculate-age";
 export { formatDecimal } from "./functions/format-decimal";
 export { getLocation } from "./functions/location";
