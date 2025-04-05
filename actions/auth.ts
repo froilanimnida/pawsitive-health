@@ -1,10 +1,9 @@
 "use server";
 import { prisma } from "@/lib/prisma";
-import { LoginType, SignUpSchema } from "@/schemas/auth-definitions";
+import { LoginType, SignUpSchema, NewClinicAccountSchema } from "@/schemas";
 import type { z } from "zod";
 import { role_type, type users } from "@prisma/client";
 import { signOut } from "next-auth/react";
-import { NewClinicAccountSchema } from "@/schemas/clinic-signup-definition";
 import { hashPassword, verifyPassword } from "@/lib/functions/security/password-check";
 import type { ActionResponse } from "@/types/server-action-response";
 import jwt from "jsonwebtoken";
