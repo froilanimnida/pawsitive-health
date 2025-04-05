@@ -7,7 +7,8 @@ import { type appointment_type, type Prisma } from "@prisma/client";
 import type { ActionResponse } from "@/types/server-action-response";
 import { endOfDay, startOfDay } from "date-fns";
 import { AppointmentDetailsResponse, GetUserAppointmentsResponse } from "@/types/actions/appointments";
-import AppointmentConfirmation from "@/templates/appointment/confirmation";
+import { AppointmentConfirmation, AppointmentConfirmed } from "@/templates";
+
 type AppointmentWithRelations = Prisma.appointmentsGetPayload<{
     include: {
         pets: {
@@ -406,6 +407,7 @@ const acceptAppointment = async (appointment_uuid: string): Promise<ActionRespon
                 error: "User not found",
             };
         }
+
         const appointment = await prisma.appointments.update({
             where: {
                 appointment_uuid: appointment_uuid,
@@ -413,15 +415,72 @@ const acceptAppointment = async (appointment_uuid: string): Promise<ActionRespon
             data: {
                 status: "confirmed",
             },
+            include: {
+                pets: {
+                    include: {
+                        users: true,
+                    },
+                },
+                veterinarians: {
+                    include: {
+                        users: true,
+                    },
+                },
+                clinics: true,
+            },
         });
-        if (!appointment) {
-            return { success: false, error: "Appointment not found" };
-        }
+
+        if (!appointment.pets) return { success: false, error: "Pet not found" };
+        if (!appointment.veterinarians) return { success: false, error: "Veterinarian not found" };
+        if (!appointment.clinics) return { success: false, error: "Clinic not found" };
+        if (!appointment.veterinarians.users) return { success: false, error: "Veterinarian not found" };
+        if (!appointment.pets.users) return { success: false, error: "User not found." };
+        const ownerEmail = appointment.pets.users.email;
+
+        const appointmentTime = new Intl.DateTimeFormat("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+        }).format(appointment.appointment_date);
+
+        const appointmentDate = new Intl.DateTimeFormat("en-US", {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+        }).format(appointment.appointment_date);
+        const endDateTime = new Date(appointment.appointment_date);
+        endDateTime.setMinutes(endDateTime.getMinutes() + 30);
+
+        await sendEmail(
+            AppointmentConfirmed,
+            {
+                petName: appointment.pets.name,
+                ownerName: `${appointment.pets.users.first_name} ${appointment.pets.users.last_name}`,
+                vetName: `${appointment.veterinarians.users.first_name} ${appointment.veterinarians.users.last_name}`,
+                date: appointmentDate,
+                time: appointmentTime,
+                clinicName: appointment.clinics.name,
+                clinicAddress: `${appointment.clinics.address}, ${appointment.clinics.city}, ${appointment.clinics.state} ${appointment.clinics.postal_code}`,
+                clinicPhone: appointment.clinics.phone_number,
+                appointmentType: toTitleCase(appointment.appointment_type),
+                appointmentId: appointment.appointment_uuid,
+                instructions: appointment.notes || undefined,
+                appointmentDateTime: appointment.appointment_date,
+                appointmentEndDateTime: endDateTime,
+            },
+            {
+                to: ownerEmail,
+                subject: `Your Appointment for ${appointment.pets.name} has been Confirmed`,
+            },
+        );
+
         return {
             success: true,
             data: { appointment_uuid: appointment.appointment_uuid },
         };
     } catch (error) {
+        console.error("Error confirming appointment:", error);
         return {
             success: false,
             error: error instanceof Error ? error.message : "An unexpected error occurred",
