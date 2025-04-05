@@ -64,18 +64,32 @@ const addPet = async (values: PetOnboardingSchema): Promise<ActionResponse<{ pet
     }
 };
 
-const getPet = async (pet_uuid: string): Promise<ActionResponse<{ pet: Pets }>> => {
+/**
+ * Get a pet by its UUID
+ */
+function getPet(pet_uuid: string): Promise<ActionResponse<{ pet: Pets }>>;
+/**
+ * Get a pet by its ID
+ */
+function getPet(pet_id: number): Promise<ActionResponse<{ pet: Pets }>>;
+/**
+ * Implementation that handles both overloads
+ */
+async function getPet(identifier: string | number): Promise<ActionResponse<{ pet: Pets }>> {
     try {
+        const where = typeof identifier === "string" ? { pet_uuid: identifier } : { pet_id: identifier };
+
         const pet = await prisma.pets.findUnique({
-            where: {
-                pet_uuid: pet_uuid,
-            },
+            where,
         });
+
         if (!pet) return { success: false, error: "Pet not found" };
+
         const petInfo = {
             ...pet,
             weight_kg: formatDecimal(pet.weight_kg),
         };
+
         return { success: true, data: { pet: petInfo } };
     } catch (error) {
         return {
@@ -83,7 +97,7 @@ const getPet = async (pet_uuid: string): Promise<ActionResponse<{ pet: Pets }>> 
             error: error instanceof Error ? error.message : "An unexpected error occurred",
         };
     }
-};
+}
 
 const updatePet = async (values: PetType, pet_id: number): Promise<ActionResponse<{ pet_uuid: string }>> => {
     try {

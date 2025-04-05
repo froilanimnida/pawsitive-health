@@ -54,7 +54,7 @@ export default async function PetDetails({ params }: { params: Promise<{ uuid: s
                                 <div>{toTitleCase(pet.breed)}</div>
 
                                 <div className="text-sm font-medium text-muted-foreground">Sex</div>
-                                <div>{pet.sex}</div>
+                                <div>{toTitleCase(pet.sex)}</div>
 
                                 {pet.date_of_birth && (
                                     <>
@@ -67,23 +67,6 @@ export default async function PetDetails({ params }: { params: Promise<{ uuid: s
                                 <div>{pet.weight_kg?.toString()} kg</div>
                             </div>
                         </div>
-
-                        {/*<div className="space-y-4">
-                            <h3 className="text-lg font-semibold">Medical Information</h3>
-                            <div className="space-y-3">
-                                <div>
-                                    <div className="text-sm font-medium text-muted-foreground">Vaccination Status</div>
-                                    <div className="mt-1">{pet.vaccination_status || "Unknown"}</div>
-                                </div>
-
-                                <div>
-                                    <div className="text-sm font-medium text-muted-foreground">Medical History</div>
-                                    <div className="mt-1 text-sm">
-                                        {pet.medical_history || "No medical history available"}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>*/}
                     </div>
                 </CardContent>
 

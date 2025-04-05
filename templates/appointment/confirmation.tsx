@@ -56,12 +56,7 @@ export default function AppointmentConfirmation({
 
                         <Hr style={styles.divider} />
 
-                        <Text>
-                            If you need to reschedule or cancel this appointment, please contact us at least 24 hours in
-                            advance.
-                        </Text>
-
-                        <Button style={styles.button} href="https://yourdomain.com/appointments">
+                        <Button style={styles.button} href={`${process.env.FRONTEND_URL}/u/appointments`}>
                             Manage Your Appointments
                         </Button>
                     </Section>

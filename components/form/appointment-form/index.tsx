@@ -32,6 +32,7 @@ export function AppointmentForm({
         handleClinicChange,
         handleDateSelect,
         handleVetChange,
+        loading,
     } = useAppointmentForm(params.uuid);
 
     const textFields = getAppointmentFields();
@@ -52,11 +53,8 @@ export function AppointmentForm({
                     selectedClinicId={selectedClinicId}
                     isLoadingVets={isLoadingVets}
                 />
-
                 <TextFields fields={textFields} control={form.control} />
-
                 <DateSelector control={form.control} onSelect={handleDateSelect} />
-
                 <TimeSelector
                     control={form.control}
                     selectedDate={selectedDate}
@@ -79,7 +77,9 @@ export function AppointmentForm({
                         }`}
                     />
                 )}
-                <Button type="submit">Add Appointment</Button>
+                <Button disabled={loading} type="submit">
+                    Add Appointment
+                </Button>
             </form>
         </Form>
     );

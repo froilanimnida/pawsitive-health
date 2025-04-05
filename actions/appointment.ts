@@ -1,13 +1,13 @@
 "use server";
-import { prisma } from "@/lib";
-import { getPet, getUserId } from "@/actions";
+import { prisma, toTitleCase } from "@/lib";
+import { getClinic, getPet, getUserId, sendEmail } from "@/actions";
 import { AppointmentType } from "@/schemas";
 import { auth } from "@/auth";
 import { type appointment_type, type Prisma } from "@prisma/client";
 import type { ActionResponse } from "@/types/server-action-response";
 import { endOfDay, startOfDay } from "date-fns";
-import { redirect } from "next/navigation";
 import { AppointmentDetailsResponse, GetUserAppointmentsResponse } from "@/types/actions/appointments";
+import AppointmentConfirmation from "@/templates/appointment/confirmation";
 type AppointmentWithRelations = Prisma.appointmentsGetPayload<{
     include: {
         pets: {
@@ -48,8 +48,7 @@ async function getExistingAppointments(
                     gte: startDate,
                     lte: endDate,
                 },
-                // Optionally exclude cancelled appointments
-                // status: { not: "cancelled" }
+                status: { not: "cancelled" },
             },
             select: {
                 appointment_date: true,
@@ -148,7 +147,43 @@ const createUserAppointment = async (
                 clinic_id: Number(values.clinic_id),
             },
         });
-        redirect(`/u/appointments/view?appointment_uuid=${appointment.appointment_uuid}`);
+        const vet_info = await prisma.veterinarians.findFirst({
+            where: {
+                vet_id: Number(values.vet_id),
+            },
+            select: {
+                users: {
+                    select: {
+                        first_name: true,
+                        last_name: true,
+                    },
+                },
+            },
+        });
+        const pet_info = await getPet(values.pet_uuid);
+        const clinic_info = await getClinic(Number(values.clinic_id));
+
+        await sendEmail(
+            AppointmentConfirmation,
+            {
+                appointmentType: toTitleCase(values.appointment_type),
+                appointmentDate: values.appointment_date,
+                clinicAddress: clinic_info.success
+                    ? `${clinic_info.data?.clinic.address} + ${clinic_info.data.clinic.city} + ${clinic_info.data.clinic.state} + ${clinic_info.data.clinic.postal_code}`
+                    : "",
+                clinicName: clinic_info.success ? clinic_info.data?.clinic.name : "",
+                petName: toTitleCase(pet_info.success ? pet_info.data?.pet.name : ""),
+                ownerName: toTitleCase(`${session.user.name}`),
+                vetName: `${vet_info?.users?.first_name} ${vet_info?.users?.last_name}`,
+                date: new Date().toLocaleDateString(),
+                time: values.appointment_time,
+            },
+            { to: session.user.email, subject: "Appointment Confirmation | Pawsitive Health" },
+        );
+        return {
+            success: true,
+            data: { appointment_uuid: appointment.appointment_uuid },
+        };
     } catch (error) {
         return {
             success: false,
