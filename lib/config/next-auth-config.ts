@@ -1,4 +1,4 @@
-import { nextAuthLogin } from "@/actions/auth";
+import { nextAuthLogin } from "@/actions";
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { role_type } from "@prisma/client";

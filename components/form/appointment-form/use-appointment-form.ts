@@ -171,7 +171,7 @@ export function useAppointmentForm(uuid: string) {
                 return;
             }
             await createUserAppointment(submissionData);
-        } catch (error) {
+        } catch {
             toast.error("An unexpected error occurred");
         }
     };

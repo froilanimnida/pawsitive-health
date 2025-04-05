@@ -1,13 +1,20 @@
 import React, { Suspense } from "react";
-import { getClinics } from "@/actions/clinic";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { SkeletonCard } from "@/components/ui/skeleton-card";
-import { Button } from "@/components/ui/button";
+import { getClinics } from "@/actions";
+import {
+    SkeletonCard,
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+    CardFooter,
+    Button,
+} from "@/components/ui";
 import Link from "next/link";
 
 const ClinicCardList = async () => {
     const clinics = await getClinics();
-    const clinicsData = clinics.success ? clinics.data?.clinics ?? [] : [];
+    const clinicsData = clinics.success ? (clinics.data?.clinics ?? []) : [];
     if (!clinicsData || clinicsData.length === 0) {
         return (
             <div className="text-center py-10">

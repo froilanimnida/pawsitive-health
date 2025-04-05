@@ -1,23 +1,27 @@
 import React, { Suspense } from "react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { SkeletonCard } from "@/components/ui/skeleton-card";
-import type { Metadata } from "next";
-import { getUserAppointments } from "@/actions/appointment";
-import Link from "next/link";
-import { toTitleCase } from "@/lib/functions/text/title-case";
-import { Badge } from "@/components/ui/badge";
 import {
+    Badge,
+    Button,
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
     Dialog,
-    DialogFooter,
-    DialogHeader,
     DialogClose,
     DialogContent,
     DialogDescription,
+    DialogFooter,
+    DialogHeader,
     DialogTitle,
     DialogTrigger,
-} from "@/components/ui/dialog";
-import { cn } from "@/lib/utils";
+    SkeletonCard,
+} from "@/components/ui";
+import type { Metadata } from "next";
+import { getUserAppointments } from "@/actions";
+import Link from "next/link";
+import { cn, toTitleCase } from "@/lib";
 import { statusColors } from "@/components/shared/appointment-card";
 
 export const metadata: Metadata = {

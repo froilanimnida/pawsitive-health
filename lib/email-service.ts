@@ -17,14 +17,10 @@ class EmailService {
         });
     }
 
-    /**
-     * Send an email with a React template
-     */
     async sendMail<T>(template: EmailTemplate<T>, data: T, options: EmailOptions): Promise<boolean> {
         try {
             const html = await render(template(data));
 
-            // Send the email
             await this.transporter.sendMail({
                 from: options.from || process.env.EMAIL_FROM,
                 to: options.to,
@@ -34,14 +30,11 @@ class EmailService {
             });
 
             return true;
-        } catch (error) {
+        } catch {
             return false;
         }
     }
 
-    /**
-     * Quick way to send a simple email without a template
-     */
     async sendSimpleEmail(options: EmailOptions): Promise<boolean> {
         try {
             await this.transporter.sendMail({
@@ -53,10 +46,10 @@ class EmailService {
             });
 
             return true;
-        } catch (error) {
+        } catch {
             return false;
         }
     }
 }
 
-export const emailService = new EmailService();
+export { EmailService };

@@ -19,7 +19,7 @@ export const getLocation = async () => {
                 longitude: position.coords.longitude,
             };
         },
-        (error) => {
+        () => {
             return {
                 latitude: 14.5995,
                 longitude: 120.9842,

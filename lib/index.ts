@@ -1,5 +1,3 @@
-export { config } from "./config/next-auth-config";
-export { emailService } from "./email-service";
 export { calculateAge } from "./functions/calculate-age";
 export { formatDecimal } from "./functions/format-decimal";
 export { getLocation } from "./functions/location";
@@ -8,3 +6,4 @@ export { generateOtp, generateSecret, verifyOTPToken } from "./functions/securit
 export { hashPassword, verifyPassword } from "./functions/security/password-check";
 export { prisma } from "./prisma";
 export { cn } from "./utils";
+export { toTitleCase } from "./functions/text/title-case";

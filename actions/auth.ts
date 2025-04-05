@@ -1,7 +1,8 @@
 "use server";
+import { sendEmail } from "@/actions";
 import { LoginType, SignUpSchema, NewClinicAccountSchema } from "@/schemas";
 import { OtpVerificationEmail, ClinicOnboardingEmail, UserOnboardingEmail } from "@/templates";
-import { hashPassword, verifyPassword, prisma, generateOtp, generateVerificationToken, emailService } from "@/lib";
+import { hashPassword, verifyPassword, prisma, generateOtp, generateVerificationToken } from "@/lib";
 import type { z } from "zod";
 import { role_type, type users } from "@prisma/client";
 import { signOut } from "next-auth/react";
@@ -37,7 +38,7 @@ const createAccount = async (values: z.infer<typeof SignUpSchema>): Promise<Acti
             },
         });
         if (result.user_id === null) return { success: false, error: "Failed to create account" };
-        await emailService.sendMail(
+        await sendEmail(
             UserOnboardingEmail,
             {
                 firstName: formData.data.first_name,
@@ -168,7 +169,7 @@ const createClinicAccount = async (
 
         if (clinicResult.clinic_id === null) return { success: false, error: "Failed to create clinic account" };
 
-        await emailService.sendMail(
+        await sendEmail(
             ClinicOnboardingEmail,
             {
                 firstName: formData.data.first_name,
@@ -216,7 +217,7 @@ const regenerateOTPToken = async (email: string): Promise<ActionResponse<{ user:
         });
 
         // Send OTP email
-        await emailService.sendMail(
+        await sendEmail(
             OtpVerificationEmail,
             {
                 firstName: user.first_name,
@@ -264,7 +265,7 @@ const loginAccount = async (values: LoginType): Promise<ActionResponse<{}>> => {
             },
         });
 
-        await emailService.sendMail(
+        await sendEmail(
             OtpVerificationEmail,
             {
                 firstName: user.first_name,

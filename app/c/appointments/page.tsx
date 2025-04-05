@@ -1,9 +1,16 @@
 import React, { Suspense } from "react";
 import { Metadata } from "next";
-import { SkeletonCard } from "@/components/ui/skeleton-card";
-import { getClinicAppointments } from "@/actions/appointment";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { getClinicAppointments } from "@/actions";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+    Button,
+    SkeletonCard,
+} from "@/components/ui";
 
 export const metadata: Metadata = {
     title: "PawsitiveHealth | Client Appointments",

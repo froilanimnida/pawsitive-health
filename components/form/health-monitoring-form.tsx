@@ -70,6 +70,7 @@ export const HealthMonitoringForm = () => {
     });
     const { handleSubmit, control } = healthMonitoringForm;
     const onSubmit = async (data: HealthMonitoringType) => {
+        console.log(data)
         setIsLoading(true);
         try {
             toast.success("Health monitoring data saved successfully");

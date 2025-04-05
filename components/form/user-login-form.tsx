@@ -1,17 +1,30 @@
 "use client";
 import { useState } from "react";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import {
+    Button,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    Form,
+    FormControl,
+    FormDescription,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+    Input,
+} from "@/components/ui";
 import { useForm } from "react-hook-form";
 import { getSession, signIn } from "next-auth/react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { LoginSchema, LoginType, OtpSchema } from "@/schemas/auth-definitions";
+import { LoginSchema, LoginType, OtpSchema } from "@/schemas";
 import toast from "react-hot-toast";
 import { TextFormField } from "@/types/forms/text-form-field";
 import { useRouter } from "next/navigation";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog";
-import { loginAccount, verifyOTPToken } from "@/actions/auth";
+import { loginAccount, verifyOTPToken } from "@/actions";
 
 const UserLoginForm = () => {
     const [isLoading, setIsLoading] = useState(false);
@@ -93,7 +106,7 @@ const UserLoginForm = () => {
 
             toast.success("OTP verified successfully!");
             setShowOtpDialog(false);
-        } catch (error) {
+        } catch {
             toast.error("Failed to verify OTP");
             setIsOtpLoading(false);
             return;
