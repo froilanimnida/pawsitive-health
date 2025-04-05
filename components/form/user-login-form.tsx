@@ -83,7 +83,6 @@ const UserLoginForm = () => {
         setIsOtpLoading(true);
 
         try {
-            // First verify the OTP
             const otpResult = await verifyOTPToken(email, values.otp);
 
             if (!otpResult.success || !otpResult.data?.correct) {
@@ -92,7 +91,6 @@ const UserLoginForm = () => {
                 return;
             }
 
-            // OTP is valid
             toast.success("OTP verified successfully!");
             setShowOtpDialog(false);
         } catch (error) {
@@ -119,10 +117,8 @@ const UserLoginForm = () => {
         if (session?.user?.role) {
             toast.success("Signed in successfully as " + session.user.role);
 
-            // Add a small delay to ensure the toast is visible
             await new Promise((resolve) => setTimeout(resolve, 500));
 
-            // Redirect based on role
             if (session.user.role === "client") router.push("/c");
             else if (session.user.role === "veterinarian") router.push("/v");
             else if (session.user.role === "admin") router.push("/a");

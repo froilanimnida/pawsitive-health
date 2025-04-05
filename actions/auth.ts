@@ -10,6 +10,8 @@ import type { ActionResponse } from "@/types/server-action-response";
 import jwt from "jsonwebtoken";
 import { generateVerificationToken } from "@/lib/functions/security/generate-verification-token";
 import { generateOtp } from "@/lib/functions/security/otp-generator";
+import emailService from "@/lib/email-service";
+import { OtpVerificationEmail, ClinicOnboardingEmail, UserOnboardingEmail } from "@/templates";
 
 const createAccount = async (values: z.infer<typeof SignUpSchema>): Promise<ActionResponse<{ user_uuid: string }>> => {
     try {
@@ -23,6 +25,9 @@ const createAccount = async (values: z.infer<typeof SignUpSchema>): Promise<Acti
             },
         });
         if (user) return { success: false, error: "email_or_phone_number_already_exists" };
+        const verification_token = generateVerificationToken(formData.data.email);
+        const verification_url = `${process.env.FRONTEND_URL}/auth/verify-email/${verification_token}`;
+        const expires_at = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
         const result = await prisma.users.create({
             data: {
                 email: formData.data.email,
@@ -32,11 +37,30 @@ const createAccount = async (values: z.infer<typeof SignUpSchema>): Promise<Acti
                 phone_number: formData.data.phone_number,
                 role: role_type.user,
                 email_verified: false,
-                email_verification_token: generateVerificationToken(formData.data.email),
-                email_verification_expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+                email_verification_token: verification_token,
+                email_verification_expires_at: expires_at,
             },
         });
         if (result.user_id === null) return { success: false, error: "Failed to create account" };
+        await emailService.sendMail(
+            UserOnboardingEmail,
+            {
+                firstName: formData.data.first_name,
+                lastName: formData.data.last_name,
+                verificationUrl: verification_url,
+                expiresIn: expires_at.toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                }),
+            },
+            {
+                to: formData.data.email,
+                subject: "Welcome to Pawsitive - Verify your email",
+            },
+        );
         return { success: true, data: { user_uuid: result.user_uuid } };
     } catch (error) {
         return {
@@ -106,12 +130,18 @@ const createClinicAccount = async (
     try {
         const formData = NewClinicAccountSchema.safeParse(values);
         if (!formData.success) return { success: false, error: "Invalid input" };
+
         const user = await prisma.users.findFirst({
             where: {
                 OR: [{ email: values.email }, { phone_number: values.phone_number }],
             },
         });
+
         if (user !== null) return { success: false, error: "email_or_phone_number_already_exists" };
+
+        const verification_token = generateVerificationToken(formData.data.email);
+        const verification_url = `${process.env.FRONTEND_URL}/auth/verify-email/${verification_token}`;
+
         const result = await prisma.users.create({
             data: {
                 email: formData.data.email,
@@ -121,10 +151,11 @@ const createClinicAccount = async (
                 phone_number: formData.data.phone_number,
                 role: role_type.client,
                 email_verified: false,
-                email_verification_token: generateVerificationToken(formData.data.email),
+                email_verification_token: verification_token,
                 email_verification_expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
             },
         });
+
         if (result.user_id === null) return { success: false, error: "Failed to create account" };
 
         const clinicResult = await prisma.clinics.create({
@@ -139,9 +170,24 @@ const createClinicAccount = async (
                 user_id: result.user_id,
             },
         });
-        if (clinicResult.clinic_id === null) {
-            return { success: false, error: "Failed to create clinic account" };
-        }
+
+        if (clinicResult.clinic_id === null) return { success: false, error: "Failed to create clinic account" };
+
+        await emailService.sendMail(
+            ClinicOnboardingEmail,
+            {
+                firstName: formData.data.first_name,
+                lastName: formData.data.last_name,
+                clinicName: formData.data.name,
+                verificationUrl: verification_url,
+                expiresIn: "7 days",
+            },
+            {
+                to: formData.data.email,
+                subject: "Welcome to PawsitiveHealth - Verify Your Clinic",
+            },
+        );
+
         return { success: true, data: { user_uuid: result.user_uuid } };
     } catch (error) {
         return {
@@ -161,13 +207,33 @@ const regenerateOTPToken = async (email: string): Promise<ActionResponse<{ user:
 
         if (!user) return { success: false, error: "User not found" };
 
+        // Generate new OTP token
+        const otpToken = generateOtp(user.email);
+        const expiryTime = new Date(Date.now() + 5 * 60 * 1000);
+
+        // Update the user with new OTP
         await prisma.users.update({
             where: { email: user.email },
             data: {
-                otp_expires_at: new Date(Date.now() + 5 * 60 * 1000),
-                otp_token: generateOtp(user.email),
+                otp_expires_at: expiryTime,
+                otp_token: otpToken,
             },
         });
+
+        // Send OTP email
+        await emailService.sendMail(
+            OtpVerificationEmail,
+            {
+                firstName: user.first_name,
+                lastName: user.last_name,
+                otpCode: otpToken,
+                expiresIn: "5 minutes",
+            },
+            {
+                to: user.email,
+                subject: "PawsitiveHealth - Your Login Verification Code",
+            },
+        );
 
         return { success: true, data: { user } };
     } catch (error) {
@@ -177,28 +243,11 @@ const regenerateOTPToken = async (email: string): Promise<ActionResponse<{ user:
         };
     }
 };
-
-const loginAccount = async (values: LoginType): Promise<ActionResponse<{ user: users }>> => {
+const loginAccount = async (values: LoginType): Promise<ActionResponse<{}>> => {
     try {
         const user = await prisma.users.findFirst({
             where: {
                 email: values.email,
-            },
-            select: {
-                user_id: true,
-                user_uuid: true,
-                email: true,
-                password_hash: true,
-                first_name: true,
-                last_name: true,
-                phone_number: true,
-                role: true,
-                disabled: true,
-                email_verified: true,
-                otp_token: true,
-                otp_expires_at: true,
-                created_at: true,
-                updated_at: true,
             },
         });
 
@@ -209,15 +258,32 @@ const loginAccount = async (values: LoginType): Promise<ActionResponse<{ user: u
         if (user.disabled) return { success: false, error: "User account is disabled" };
         if (user.email_verified === false) return { success: false, error: "Email not verified" };
 
+        const otp_token = generateOtp(user.email);
+        const expiryTime = new Date(Date.now() + 5 * 60 * 1000);
+
         await prisma.users.update({
             where: { email: user.email },
             data: {
-                otp_expires_at: new Date(Date.now() + 5 * 60 * 1000),
-                otp_token: generateOtp(user.email),
+                otp_expires_at: expiryTime,
+                otp_token: otp_token,
             },
         });
 
-        return { success: true, data: { user: user as users } };
+        await emailService.sendMail(
+            OtpVerificationEmail,
+            {
+                firstName: user.first_name,
+                lastName: user.last_name,
+                otpCode: otp_token,
+                expiresIn: "5 minutes",
+            },
+            {
+                to: user.email,
+                subject: "PawsitiveHealth - Your Login Verification Code",
+            },
+        );
+
+        return { success: true, data: {} };
     } catch (error) {
         return {
             success: false,
