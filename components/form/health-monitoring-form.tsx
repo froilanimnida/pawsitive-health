@@ -72,7 +72,6 @@ export const HealthMonitoringForm = () => {
     const onSubmit = async (data: HealthMonitoringType) => {
         setIsLoading(true);
         try {
-            console.log(data);
             toast.success("Health monitoring data saved successfully");
         } catch {
             toast.error("Failed to save health monitoring data");

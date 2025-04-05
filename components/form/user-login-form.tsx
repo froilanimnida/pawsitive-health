@@ -96,7 +96,6 @@ const UserLoginForm = () => {
             toast.success("OTP verified successfully!");
             setShowOtpDialog(false);
         } catch (error) {
-            console.error("OTP verification error:", error);
             toast.error("Failed to verify OTP");
             setIsOtpLoading(false);
             return;
@@ -104,28 +103,18 @@ const UserLoginForm = () => {
             setIsOtpLoading(false);
         }
 
-        // After the try/catch block, handle sign-in separately
-        console.log("Attempting sign in with credentials:", { email });
-
-        // Sign in with credentials - this might show the CredentialsSignIn "error"
-        // but it's part of NextAuth's normal flow
         const signInResult = await signIn("credentials", {
             email,
             password,
             redirect: false,
         });
 
-        console.log("Sign in result:", signInResult);
-
         if (signInResult?.error) {
-            console.error("SignIn error:", signInResult.error);
             toast.error("Authentication failed: " + signInResult.error);
             return;
         }
 
-        // Get session and handle redirect
         const session = await getSession();
-        console.log("Session after sign in:", session);
 
         if (session?.user?.role) {
             toast.success("Signed in successfully as " + session.user.role);

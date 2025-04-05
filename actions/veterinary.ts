@@ -107,7 +107,6 @@ const newVeterinarian = async (
             },
         };
     } catch (error) {
-        console.error("Error creating veterinarian:", error);
         return Promise.reject(error);
     }
 };
@@ -153,7 +152,6 @@ const getClinicVeterinarians = async (): Promise<
             },
         };
     } catch (error) {
-        console.error("Error getting clinic veterinarians:", error);
         return Promise.reject(error);
     }
 };

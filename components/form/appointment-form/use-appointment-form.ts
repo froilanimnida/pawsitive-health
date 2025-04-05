@@ -172,7 +172,6 @@ export function useAppointmentForm(uuid: string) {
             }
             await createUserAppointment(submissionData);
         } catch (error) {
-            console.error("Error submitting appointment:", error);
             toast.error("An unexpected error occurred");
         }
     };

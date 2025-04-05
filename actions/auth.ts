@@ -93,7 +93,6 @@ const verifyOTPToken = async (email: string, otpToken: string): Promise<ActionRe
             data: { correct: user.otp_token === otpToken && user.otp_expires_at > new Date() },
         };
     } catch (error) {
-        console.error("OTP verification error:", error);
         return {
             success: false,
             error: error instanceof Error ? error.message : "Invalid or expired OTP token",
@@ -152,6 +151,33 @@ const createClinicAccount = async (
     }
 };
 
+const regenerateOTPToken = async (email: string): Promise<ActionResponse<{ user: users }>> => {
+    try {
+        const user = await prisma.users.findFirst({
+            where: {
+                email: email,
+            },
+        });
+
+        if (!user) return { success: false, error: "User not found" };
+
+        await prisma.users.update({
+            where: { email: user.email },
+            data: {
+                otp_expires_at: new Date(Date.now() + 5 * 60 * 1000),
+                otp_token: generateOtp(user.email),
+            },
+        });
+
+        return { success: true, data: { user } };
+    } catch (error) {
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "An unexpected error occurred",
+        };
+    }
+};
+
 const loginAccount = async (values: LoginType): Promise<ActionResponse<{ user: users }>> => {
     try {
         const user = await prisma.users.findFirst({
@@ -193,7 +219,6 @@ const loginAccount = async (values: LoginType): Promise<ActionResponse<{ user: u
 
         return { success: true, data: { user: user as users } };
     } catch (error) {
-        console.error("Login error:", error);
         return {
             success: false,
             error: error instanceof Error ? error.message : "An unexpected error occurred",
@@ -217,7 +242,6 @@ const nextAuthLogin = async (email: string, password: string): Promise<ActionRes
 
         return { success: true, data: { user } };
     } catch (error) {
-        console.error("Login error:", error);
         return {
             success: false,
             error: error instanceof Error ? error.message : "An unexpected error occurred",
@@ -225,4 +249,13 @@ const nextAuthLogin = async (email: string, password: string): Promise<ActionRes
     }
 };
 
-export { loginAccount, createAccount, createClinicAccount, logout, verifyEmail, verifyOTPToken, nextAuthLogin };
+export {
+    loginAccount,
+    createAccount,
+    createClinicAccount,
+    logout,
+    verifyEmail,
+    verifyOTPToken,
+    nextAuthLogin,
+    regenerateOTPToken,
+};

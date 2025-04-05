@@ -22,7 +22,6 @@ const authOptions: AuthOptions = {
             return token;
         },
         async session({ session, token }) {
-            console.log("Session callback:", session, token);
             if (token && session.user) {
                 session.user.email = token.email;
                 session.user.role = token.role;
