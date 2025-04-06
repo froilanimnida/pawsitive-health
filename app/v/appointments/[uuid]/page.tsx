@@ -1,4 +1,3 @@
-import React from "react";
 import { AppointmentCard } from "@/components/shared/appointment-card";
 import { notFound } from "next/navigation";
 import { getAppointment } from "@/actions";

@@ -126,17 +126,15 @@ const createUserAppointment = async (
 ): Promise<ActionResponse<{ appointment_uuid: string }>> => {
     try {
         const session = await auth();
-        if (!session || !session.user || !session.user.email) {
-            return { success: false, error: "User not found" };
-        }
+        if (!session || !session.user || !session.user.email) return { success: false, error: "User not found" };
+
         const petResponse = await getPet(values.pet_uuid);
-        if (!petResponse.success || !petResponse.data || !petResponse.data.pet) {
+        if (!petResponse.success || !petResponse.data || !petResponse.data.pet)
             return { success: false, error: "Pet not found" };
-        }
+
         const { pet } = petResponse.data;
-        if (!pet.pet_id) {
-            return { success: false, error: "Invalid pet data" };
-        }
+        if (!pet.pet_id) return { success: false, error: "Invalid pet data" };
+
         const appointment = await prisma.appointments.create({
             data: {
                 appointment_date: values.appointment_date,
@@ -196,9 +194,8 @@ const createUserAppointment = async (
 const getClinicAppointments = async (): Promise<ActionResponse<{ appointments: AppointmentWithRelations[] }>> => {
     try {
         const session = await auth();
-        if (!session || !session.user || !session.user.email) {
-            throw new Error("User not found");
-        }
+        if (!session || !session.user || !session.user.email) return { success: false, error: "User not found" };
+
         const user_id = await getUserId(session?.user?.email);
         const clinic = await prisma.clinics.findFirst({
             where: {
@@ -226,14 +223,11 @@ const getClinicAppointments = async (): Promise<ActionResponse<{ appointments: A
         });
         return { success: true, data: { appointments } };
     } catch (error) {
-        return {
-            success: false,
-            error: error instanceof Error ? error.message : "An unexpected error occurred",
-        };
+        return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
     }
 };
 
-type VetAppointmentWithRelations = Prisma.appointmentsGetPayload<{
+export type VetAppointmentWithRelations = Prisma.appointmentsGetPayload<{
     include: {
         pets: {
             include: {
@@ -283,10 +277,7 @@ const getVeterinarianAppointments = async (): Promise<
         });
         return { success: true, data: { appointments } };
     } catch (error) {
-        return {
-            success: false,
-            error: error instanceof Error ? error.message : "An unexpected error occurred",
-        };
+        return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
     }
 };
 const getAppointment = async (
@@ -348,9 +339,7 @@ const getAppointment = async (
             },
         });
 
-        if (!appointment) {
-            return { success: false, error: "Appointment not found" };
-        }
+        if (!appointment) return { success: false, error: "Appointment not found" };
 
         return {
             success: true,
@@ -359,54 +348,29 @@ const getAppointment = async (
             },
         };
     } catch (error) {
-        return {
-            success: false,
-            error: error instanceof Error ? error.message : "An unexpected error occurred",
-        };
+        return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
     }
 };
 
 const cancelAppointment = async (appointment_uuid: string): Promise<ActionResponse<{ appointment_uuid: string }>> => {
     try {
         const session = await auth();
-        if (!session || !session.user || !session.user.email) {
-            return {
-                success: false,
-                error: "User not found",
-            };
-        }
+        if (!session || !session.user || !session.user.email) return { success: false, error: "User not found" };
         const appointment = await prisma.appointments.update({
-            where: {
-                appointment_uuid: appointment_uuid,
-            },
-            data: {
-                status: "cancelled",
-            },
+            where: { appointment_uuid: appointment_uuid },
+            data: { status: "cancelled" },
         });
-        if (!appointment) {
-            return { success: false, error: "Appointment not found" };
-        }
-        return {
-            success: true,
-            data: { appointment_uuid: appointment.appointment_uuid },
-        };
+        if (!appointment) return { success: false, error: "Appointment not found" };
+        return { success: true, data: { appointment_uuid: appointment.appointment_uuid } };
     } catch (error) {
-        return {
-            success: false,
-            error: error instanceof Error ? error.message : "An unexpected error occurred",
-        };
+        return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
     }
 };
 
 const confirmAppointment = async (appointment_uuid: string): Promise<ActionResponse<{ appointment_uuid: string }>> => {
     try {
         const session = await auth();
-        if (!session || !session.user || !session.user.email) {
-            return {
-                success: false,
-                error: "User not found",
-            };
-        }
+        if (!session || !session.user || !session.user.email) return { success: false, error: "User not found" };
 
         const appointment = await prisma.appointments.update({
             where: {
@@ -458,6 +422,7 @@ const confirmAppointment = async (appointment_uuid: string): Promise<ActionRespo
                 petName: appointment.pets.name,
                 ownerName: `${appointment.pets.users.first_name} ${appointment.pets.users.last_name}`,
                 vetName: `${appointment.veterinarians.users.first_name} ${appointment.veterinarians.users.last_name}`,
+
                 date: appointmentDate,
                 time: appointmentTime,
                 clinicName: appointment.clinics.name,
@@ -481,10 +446,7 @@ const confirmAppointment = async (appointment_uuid: string): Promise<ActionRespo
         };
     } catch (error) {
         console.error("Error confirming appointment:", error);
-        return {
-            success: false,
-            error: error instanceof Error ? error.message : "An unexpected error occurred",
-        };
+        return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
     }
 };
 

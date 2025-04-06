@@ -1,5 +1,4 @@
 import { getPets, getClinics } from "@/actions";
-import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui";
 import type { Metadata } from "next";
 import AppointmentForm from "@/components/form/appointment-form/index";

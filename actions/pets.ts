@@ -1,5 +1,5 @@
 "use server";
-import { formatDecimal, prisma } from "@/lib";
+import { formatDecimal, prisma, toTitleCase } from "@/lib";
 import { PetOnboardingSchema, type PetType } from "@/schemas";
 import { procedure_type, type breed_type, type pet_sex_type, type species_type } from "@prisma/client";
 import { getUserId } from "@/actions";
@@ -10,13 +10,11 @@ import type { Pets } from "@/types/pets";
 const addPet = async (values: PetOnboardingSchema): Promise<ActionResponse<{ pet_uuid: string }>> => {
     try {
         const session = await auth();
-        if (!session || !session.user || !session.user.email) {
-            throw Promise.reject("User not found");
-        }
+        if (!session || !session.user || !session.user.email) return { success: false, error: "User not found" };
         const user_id = await getUserId(session?.user?.email);
         const pet = await prisma.pets.create({
             data: {
-                name: values.name,
+                name: toTitleCase(values.name),
                 breed: values.breed as breed_type,
                 sex: values.sex as pet_sex_type,
                 species: values.species as species_type,
@@ -33,7 +31,7 @@ const addPet = async (values: PetOnboardingSchema): Promise<ActionResponse<{ pet
                 await prisma.vaccinations.createMany({
                     data: values.healthcare.vaccinations.map((vac) => ({
                         pet_id: pet.pet_id,
-                        vaccine_name: vac.vaccine_name,
+                        vaccine_name: toTitleCase(vac.vaccine_name),
                         administered_date: vac.administered_date,
                         next_due_date: vac.next_due_date,
                         batch_number: vac.batch_number || undefined,
@@ -57,10 +55,7 @@ const addPet = async (values: PetOnboardingSchema): Promise<ActionResponse<{ pet
         }
         return { success: true, data: { pet_uuid: pet.pet_uuid } };
     } catch (error) {
-        return {
-            success: false,
-            error: error instanceof Error ? error.message : "An unexpected error occurred",
-        };
+        return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
     }
 };
 
@@ -102,11 +97,9 @@ async function getPet(identifier: string | number): Promise<ActionResponse<{ pet
 const updatePet = async (values: PetType, pet_id: number): Promise<ActionResponse<{ pet_uuid: string }>> => {
     try {
         const pet = await prisma.pets.update({
-            where: {
-                pet_id: pet_id,
-            },
+            where: { pet_id: pet_id },
             data: {
-                name: values.name,
+                name: toTitleCase(values.name),
                 breed: values.breed as breed_type,
                 sex: values.sex as pet_sex_type,
                 species: values.species as species_type,

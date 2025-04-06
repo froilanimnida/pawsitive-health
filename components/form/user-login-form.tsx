@@ -74,45 +74,43 @@ const UserLoginForm = () => {
 
     const handleLogin = async (values: LoginType) => {
         setIsLoading(true);
-        try {
-            const result = await loginAccount(values);
-
-            if (result.success) {
-                setEmail(values.email);
-                setPassword(values.password);
-                setShowOtpDialog(true);
-                toast.success("Please verify your one-time password");
-            } else {
-                toast.error(result.error || "Failed to sign in");
-            }
-        } catch {
-            toast.error("An unexpected error occurred");
-        } finally {
-            setIsLoading(false);
-        }
+        toast.promise(loginAccount(values), {
+            loading: "Logging in...",
+            success: (data) => {
+                setIsLoading(false);
+                if (data.success) {
+                    setEmail(values.email);
+                    setPassword(values.password);
+                    setShowOtpDialog(true);
+                    return "OTP has been sent to your email address";
+                } else {
+                    throw new Error(data.error || "Failed to log in");
+                }
+            },
+            error: (error) => {
+                setIsLoading(false);
+                return error.message || "An unexpected error occurred";
+            },
+        });
     };
 
     const handleOtp = async (values: { otp: string }) => {
         setIsOtpLoading(true);
-
-        try {
-            const otpResult = await verifyOTPToken(email, values.otp);
-
-            if (!otpResult.success || !otpResult.data?.correct) {
-                toast.error("Invalid OTP code");
+        toast.promise(verifyOTPToken(email, values.otp), {
+            loading: "Verifying OTP...",
+            success: (data) => {
+                if (data.success && data.data?.correct) {
+                    setShowOtpDialog(false);
+                    return "OTP verified successfully!";
+                } else {
+                    throw new Error("Invalid OTP code");
+                }
+            },
+            error: (error) => {
                 setIsOtpLoading(false);
-                return;
-            }
-
-            toast.success("OTP verified successfully!");
-            setShowOtpDialog(false);
-        } catch {
-            toast.error("Failed to verify OTP");
-            setIsOtpLoading(false);
-            return;
-        } finally {
-            setIsOtpLoading(false);
-        }
+                return error.message || "Failed to verify OTP";
+            },
+        });
 
         const signInResult = await signIn("credentials", {
             email,
@@ -128,18 +126,13 @@ const UserLoginForm = () => {
         const session = await getSession();
 
         if (session?.user?.role) {
-            toast.success("Signed in successfully as " + session.user.role);
-
-            await new Promise((resolve) => setTimeout(resolve, 500));
-
+            toast.success("Signed in successfully");
             if (session.user.role === "client") router.push("/c");
             else if (session.user.role === "veterinarian") router.push("/v");
             else if (session.user.role === "admin") router.push("/a");
             else if (session.user.role === "user") router.push("/u");
             else router.push("/");
-        } else {
-            toast.error("Failed to retrieve user role");
-        }
+        } else toast.error("Failed to retrieve user role");
     };
 
     return (

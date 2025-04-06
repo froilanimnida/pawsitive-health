@@ -1,4 +1,3 @@
-import React from "react";
 import { Html, Head, Body, Container, Section, Heading, Text, Button, Hr, Link } from "@react-email/components";
 
 function generateGoogleCalendarUrl({

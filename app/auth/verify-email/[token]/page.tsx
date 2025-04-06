@@ -1,4 +1,3 @@
-import React from "react";
 import { verifyEmail } from "@/actions";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui";
 import type { Metadata } from "next";

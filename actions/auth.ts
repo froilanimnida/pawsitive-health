@@ -2,7 +2,7 @@
 import { sendEmail } from "@/actions";
 import { LoginType, SignUpSchema, NewClinicAccountSchema } from "@/schemas";
 import { OtpVerificationEmail, ClinicOnboardingEmail, UserOnboardingEmail } from "@/templates";
-import { hashPassword, verifyPassword, prisma, generateOtp, generateVerificationToken } from "@/lib";
+import { hashPassword, verifyPassword, prisma, generateOtp, generateVerificationToken, toTitleCase } from "@/lib";
 import type { z } from "zod";
 import { role_type, type users } from "@prisma/client";
 import { signOut } from "next-auth/react";
@@ -21,15 +21,16 @@ const createAccount = async (values: z.infer<typeof SignUpSchema>): Promise<Acti
             },
         });
         if (user) return { success: false, error: "email_or_phone_number_already_exists" };
-        const verification_token = generateVerificationToken(formData.data.email);
+        const userEmail = formData.data.email.toLowerCase();
+        const verification_token = generateVerificationToken(userEmail);
         const verification_url = `${process.env.FRONTEND_URL}/auth/verify-email/${verification_token}`;
         const expires_at = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
         const result = await prisma.users.create({
             data: {
-                email: formData.data.email,
+                email: userEmail,
                 password_hash: await hashPassword(formData.data.password),
-                first_name: formData.data.first_name,
-                last_name: formData.data.last_name,
+                first_name: toTitleCase(formData.data.first_name),
+                last_name: toTitleCase(formData.data.last_name),
                 phone_number: formData.data.phone_number,
                 role: role_type.user,
                 email_verified: false,
@@ -41,8 +42,8 @@ const createAccount = async (values: z.infer<typeof SignUpSchema>): Promise<Acti
         await sendEmail(
             UserOnboardingEmail,
             {
-                firstName: formData.data.first_name,
-                lastName: formData.data.last_name,
+                firstName: toTitleCase(formData.data.first_name),
+                lastName: toTitleCase(formData.data.last_name),
                 verificationUrl: verification_url,
                 expiresIn: expires_at.toLocaleDateString("en-US", {
                     year: "numeric",
@@ -53,7 +54,7 @@ const createAccount = async (values: z.infer<typeof SignUpSchema>): Promise<Acti
                 }),
             },
             {
-                to: formData.data.email,
+                to: userEmail,
                 subject: "Welcome to Pawsitive - Verify your email",
             },
         );
@@ -144,13 +145,15 @@ const createClinicAccount = async (
 
         const verification_token = generateVerificationToken(formData.data.email);
         const verification_url = `${process.env.FRONTEND_URL}/auth/verify-email/${verification_token}`;
+        const firstName = toTitleCase(formData.data.first_name);
+        const lastName = toTitleCase(formData.data.last_name);
 
         const result = await prisma.users.create({
             data: {
                 email: formData.data.email,
                 password_hash: await hashPassword(values.password),
-                first_name: formData.data.first_name,
-                last_name: formData.data.last_name,
+                first_name: firstName,
+                last_name: lastName,
                 phone_number: formData.data.phone_number,
                 role: role_type.client,
                 email_verified: false,
@@ -160,10 +163,10 @@ const createClinicAccount = async (
         });
 
         if (result.user_id === null) return { success: false, error: "Failed to create account" };
-
+        const clinicName = toTitleCase(formData.data.name);
         const clinicResult = await prisma.clinics.create({
             data: {
-                name: formData.data.name,
+                name: clinicName,
                 address: formData.data.address,
                 city: formData.data.city,
                 state: formData.data.state,
@@ -179,9 +182,9 @@ const createClinicAccount = async (
         await sendEmail(
             ClinicOnboardingEmail,
             {
-                firstName: formData.data.first_name,
-                lastName: formData.data.last_name,
-                clinicName: formData.data.name,
+                firstName: firstName,
+                lastName: lastName,
+                clinicName: clinicName,
                 verificationUrl: verification_url,
                 expiresIn: "7 days",
             },
@@ -210,11 +213,9 @@ const regenerateOTPToken = async (email: string): Promise<ActionResponse<{ user:
 
         if (!user) return { success: false, error: "User not found" };
 
-        // Generate new OTP token
         const otpToken = generateOtp(user.email);
         const expiryTime = new Date(Date.now() + 5 * 60 * 1000);
 
-        // Update the user with new OTP
         await prisma.users.update({
             where: { email: user.email },
             data: {
@@ -223,7 +224,6 @@ const regenerateOTPToken = async (email: string): Promise<ActionResponse<{ user:
             },
         });
 
-        // Send OTP email
         await sendEmail(
             OtpVerificationEmail,
             {

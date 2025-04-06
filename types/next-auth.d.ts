@@ -1,6 +1,6 @@
 // nextauth.d.ts
 import { DefaultSession, DefaultUser } from "next-auth";
-import { role_type } from "@prisma/client";
+import { type role_type } from "@prisma/client";
 
 interface IUser extends DefaultUser {
     /**

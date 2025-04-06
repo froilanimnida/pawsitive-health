@@ -1,4 +1,4 @@
-import React, { ReactNode } from "react";
+import { ReactNode } from "react";
 import { AppSidebar } from "@/components/shared/layout/app-sidebar";
 
 async function AdminLayout({
