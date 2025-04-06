@@ -76,6 +76,100 @@ async function getPet(identifier: string | number): Promise<ActionResponse<{ pet
 
         const pet = await prisma.pets.findUnique({
             where,
+            include: {
+                vaccinations: {
+                    orderBy: {
+                        administered_date: 'desc'
+                    },
+                    include: {
+                        veterinarians: {
+                            include: {
+                                users: {
+                                    select: {
+                                        first_name: true,
+                                        last_name: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                medical_records: {
+                    orderBy: {
+                        visit_date: 'desc'
+                    },
+                    include: {
+                        veterinarians: {
+                            include: {
+                                users: {
+                                    select: {
+                                        first_name: true,
+                                        last_name: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                healthcare_procedures: {
+                    orderBy: {
+                        procedure_date: 'desc'
+                    },
+                    include: {
+                        veterinarians: {
+                            include: {
+                                users: {
+                                    select: {
+                                        first_name: true,
+                                        last_name: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                appointments: {
+                    orderBy: {
+                        appointment_date: 'desc'
+                    },
+                    include: {
+                        veterinarians: {
+                            include: {
+                                users: {
+                                    select: {
+                                        first_name: true,
+                                        last_name: true
+                                    }
+                                }
+                            }
+                        },
+                        clinics: true
+                    }
+                },
+                prescriptions: {
+                    orderBy: {
+                        created_at: 'desc'
+                    },
+                    include: {
+                        medications: true,
+                        veterinarians: {
+                            include: {
+                                users: {
+                                    select: {
+                                        first_name: true,
+                                        last_name: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                health_monitoring: {
+                    orderBy: {
+                        recorded_at: 'desc'
+                    }
+                }
+            }
         });
 
         if (!pet) return { success: false, error: "Pet not found" };
@@ -83,6 +177,12 @@ async function getPet(identifier: string | number): Promise<ActionResponse<{ pet
         const petInfo = {
             ...pet,
             weight_kg: formatDecimal(pet.weight_kg),
+            // Format decimal values in health monitoring records
+            health_monitoring: pet.health_monitoring.map(record => ({
+                ...record,
+                weight_kg: formatDecimal(record.weight_kg),
+                temperature_celsius: formatDecimal(record.temperature_celsius)
+            }))
         };
 
         return { success: true, data: { pet: petInfo } };
