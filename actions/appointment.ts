@@ -9,7 +9,7 @@ import { endOfDay, startOfDay } from "date-fns";
 import { AppointmentDetailsResponse, GetUserAppointmentsResponse } from "@/types/actions/appointments";
 import { AppointmentConfirmation, AppointmentConfirmed } from "@/templates";
 
-type AppointmentWithRelations = Prisma.appointmentsGetPayload<{
+export type AppointmentWithRelations = Prisma.appointmentsGetPayload<{
     include: {
         pets: {
             include: {
@@ -398,7 +398,7 @@ const cancelAppointment = async (appointment_uuid: string): Promise<ActionRespon
     }
 };
 
-const acceptAppointment = async (appointment_uuid: string): Promise<ActionResponse<{ appointment_uuid: string }>> => {
+const confirmAppointment = async (appointment_uuid: string): Promise<ActionResponse<{ appointment_uuid: string }>> => {
     try {
         const session = await auth();
         if (!session || !session.user || !session.user.email) {
@@ -496,5 +496,5 @@ export {
     getVeterinarianAppointments,
     getAppointment,
     cancelAppointment,
-    acceptAppointment,
+    confirmAppointment,
 };

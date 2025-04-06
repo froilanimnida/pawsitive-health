@@ -21,7 +21,7 @@ import { useForm } from "react-hook-form";
 import { getSession, signIn } from "next-auth/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoginSchema, LoginType, OtpSchema } from "@/schemas";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { TextFormField } from "@/types/forms/text-form-field";
 import { useRouter } from "next/navigation";
 import { loginAccount, verifyOTPToken } from "@/actions";

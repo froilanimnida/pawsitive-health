@@ -15,7 +15,7 @@ export {
     getExistingAppointments,
     getUserAppointments,
     createUserAppointment,
-    acceptAppointment,
+    confirmAppointment,
     cancelAppointment,
     getAppointment,
     getClinicAppointments,

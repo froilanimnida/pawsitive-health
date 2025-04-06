@@ -108,6 +108,13 @@ const verifyOTPToken = async (email: string, otpToken: string): Promise<ActionRe
         if (!user) return { success: false, error: "User not found" };
         if (user.otp_token === null || user.otp_expires_at === null)
             return { success: false, error: "OTP token not found or expired" };
+        await prisma.users.update({
+            where: { user_id: user.user_id },
+            data: {
+                otp_token: null,
+                otp_expires_at: null,
+            },
+        });
         return {
             success: true,
             data: { correct: user.otp_token === otpToken && user.otp_expires_at > new Date() },

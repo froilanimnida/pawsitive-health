@@ -22,7 +22,7 @@ import {
 import { veterinary_specialization } from "@prisma/client";
 import type { TextFormField } from "@/types/forms/text-form-field";
 import { toTitleCase } from "@/lib";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { newVeterinarian } from "@/actions";
 import { Button } from "react-day-picker";
 
@@ -109,15 +109,17 @@ const NewVeterinaryForm = () => {
     });
 
     const onSubmit = async (values: VeterinarianType) => {
-        await toast
-            .promise(newVeterinarian(values), {
-                loading: "Creating a new veterinarian...",
-                success: "Successfully created a new veterinarian",
-                error: "Failed to create a new veterinarian",
-            })
-            .finally(() => {
+        toast.promise(newVeterinarian(values), {
+            loading: "Creating a new veterinarian...",
+            success: () => {
                 setIsLoading(false);
-            });
+                return "Successfully created a new veterinarian";
+            },
+            error: () => {
+                setIsLoading(false);
+                return "Failed to create a new veterinarian";
+            },
+        });
     };
     return (
         <Form {...newVeterinaryForm}>

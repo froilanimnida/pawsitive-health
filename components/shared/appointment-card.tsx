@@ -19,6 +19,7 @@ import {
 } from "../ui/dialog";
 import { CancelAppointmentButton } from "./cancel-appointment-button";
 import { AppointmentDetailsResponse } from "@/types/actions/appointments";
+import { AcceptAppointmentButton } from "./accept=appointment-button";
 
 export const statusColors: Record<string, string> = {
     confirmed: "bg-green-100 text-green-800 border-green-200",
@@ -208,31 +209,32 @@ export function AppointmentCard({
                                 </DialogContent>
                             </Dialog>
                         )}
-                        {appointment.status !== "cancelled" && viewerType === "vet" && (
-                            <Dialog>
-                                <DialogTrigger asChild>
-                                    <Button>
-                                        <CheckCircle className="mr-2 h-4 w-4" />
-                                        Accept Appointment
-                                    </Button>
-                                </DialogTrigger>
-                                <DialogContent>
-                                    <DialogHeader>
-                                        <DialogTitle>Are you absolutely sure?</DialogTitle>
-                                        <DialogDescription>
-                                            This action cannot be undone. This will permanently mark this appointment as
-                                            accepted. We&apos;ll send a confirmation to the user.
-                                        </DialogDescription>
-                                    </DialogHeader>
-                                    <DialogFooter>
-                                        <Button type="button">Accept Appointment</Button>
-                                        <DialogClose asChild>
-                                            <Button variant="outline">Cancel</Button>
-                                        </DialogClose>
-                                    </DialogFooter>
-                                </DialogContent>
-                            </Dialog>
-                        )}
+                        {(appointment.status !== "cancelled" && viewerType === "vet") ||
+                            (viewerType === "clinic" && (
+                                <Dialog>
+                                    <DialogTrigger asChild>
+                                        <Button>
+                                            <CheckCircle className="mr-2 h-4 w-4" />
+                                            Accept Appointment
+                                        </Button>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                        <DialogHeader>
+                                            <DialogTitle>Are you absolutely sure?</DialogTitle>
+                                            <DialogDescription>
+                                                This action cannot be undone. This will permanently mark this
+                                                appointment as accepted. We&apos;ll send a confirmation to the user.
+                                            </DialogDescription>
+                                        </DialogHeader>
+                                        <DialogFooter>
+                                            <AcceptAppointmentButton appointmentUuid={appointment.appointment_uuid} />
+                                            <DialogClose asChild>
+                                                <Button variant="outline">Cancel</Button>
+                                            </DialogClose>
+                                        </DialogFooter>
+                                    </DialogContent>
+                                </Dialog>
+                            ))}
 
                         {/* {appointment.status !== "cancelled" && onReschedule && (
                             <Button variant="outline" onClick={() => onReschedule(appointment.appointment_uuid)}>

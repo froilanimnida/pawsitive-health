@@ -15,7 +15,7 @@ import {
     FormMessage,
     Input,
 } from "@/components/ui";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 export const HealthMonitoringForm = () => {
     const [isLoading, setIsLoading] = useState(false);

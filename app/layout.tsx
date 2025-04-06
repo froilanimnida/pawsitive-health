@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
-import { Toaster } from "react-hot-toast";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import SessionProviderWrapper from "@/context/session-provider-context";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { Toaster } from "@/components/ui";
 
 const poppins = Poppins({
     variable: "--poppins-font",
@@ -33,7 +33,15 @@ export default function RootLayout({
                     <TooltipProvider>
                         <SessionProviderWrapper>
                             {children}
-                            <Toaster />
+                            <Toaster
+                                toastOptions={{
+                                    className: "max-w-sm",
+                                    style: {
+                                        background: "#fff",
+                                        color: "#000",
+                                    },
+                                }}
+                            />
                         </SessionProviderWrapper>
                     </TooltipProvider>
                 </SidebarProvider>

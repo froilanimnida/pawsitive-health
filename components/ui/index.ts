@@ -114,3 +114,4 @@ export {
     BreadcrumbSeparator,
 } from "./breadcrumb";
 export { Badge } from "./badge";
+export { Toaster } from "./sonner";

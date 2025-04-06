@@ -14,7 +14,7 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { NewClinicAccountSchema, NewClinicAccountType } from "@/schemas";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { createClinicAccount } from "@/actions";
 import { OperatingHoursField } from "./operating-hours-field";
 import type { TextFormField } from "@/types/forms/text-form-field";

@@ -8,7 +8,7 @@ import { getVeterinariansByClinic } from "@/actions/veterinary";
 import { getVeterinaryAvailability } from "@/actions/veterinarian-availability";
 import { createUserAppointment, getExistingAppointments } from "@/actions";
 import { toTitleCase } from "@/lib/functions/text/title-case";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 export interface TimeSlot {
     time: string;

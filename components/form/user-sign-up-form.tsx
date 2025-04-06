@@ -15,8 +15,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SignUpSchema, SignUpType } from "@/schemas";
 import { createAccount } from "@/actions";
-import toast from "react-hot-toast";
-import { redirect } from "next/navigation";
+import { toast } from "sonner";
 import type { TextFormField } from "@/types/forms/text-form-field";
 
 function UserSignUpForm() {
@@ -92,8 +91,11 @@ function UserSignUpForm() {
     });
 
     const onSubmit = async (values: SignUpType) => {
-        const result = toast.promise(createAccount(values), {
-            success: "Account created successfully!",
+        toast.promise(createAccount(values), {
+            success: () => {
+                signUpForm.reset();
+                return "Account created successfully!";
+            },
             loading: "Creating account...",
             error: (error) => {
                 if (error === "failed_to_create_user") {
@@ -104,9 +106,6 @@ function UserSignUpForm() {
                 }
                 return "Failed to create user";
             },
-        });
-        result.then(() => {
-            redirect("/auth/login");
         });
     };
     return (
