@@ -1,5 +1,5 @@
 "use server";
-import { formatDecimal, prisma } from "@/lib";
+import { formatDecimal, prisma, toTitleCase } from "@/lib";
 import { PetOnboardingSchema, type PetType } from "@/schemas";
 import { procedure_type, type breed_type, type pet_sex_type, type species_type } from "@prisma/client";
 import { getUserId } from "@/actions";
@@ -10,13 +10,11 @@ import type { Pets } from "@/types/pets";
 const addPet = async (values: PetOnboardingSchema): Promise<ActionResponse<{ pet_uuid: string }>> => {
     try {
         const session = await auth();
-        if (!session || !session.user || !session.user.email) {
-            throw Promise.reject("User not found");
-        }
+        if (!session || !session.user || !session.user.email) return { success: false, error: "User not found" };
         const user_id = await getUserId(session?.user?.email);
         const pet = await prisma.pets.create({
             data: {
-                name: values.name,
+                name: toTitleCase(values.name),
                 breed: values.breed as breed_type,
                 sex: values.sex as pet_sex_type,
                 species: values.species as species_type,
@@ -33,7 +31,7 @@ const addPet = async (values: PetOnboardingSchema): Promise<ActionResponse<{ pet
                 await prisma.vaccinations.createMany({
                     data: values.healthcare.vaccinations.map((vac) => ({
                         pet_id: pet.pet_id,
-                        vaccine_name: vac.vaccine_name,
+                        vaccine_name: toTitleCase(vac.vaccine_name),
                         administered_date: vac.administered_date,
                         next_due_date: vac.next_due_date,
                         batch_number: vac.batch_number || undefined,
@@ -57,25 +55,136 @@ const addPet = async (values: PetOnboardingSchema): Promise<ActionResponse<{ pet
         }
         return { success: true, data: { pet_uuid: pet.pet_uuid } };
     } catch (error) {
-        return {
-            success: false,
-            error: error instanceof Error ? error.message : "An unexpected error occurred",
-        };
+        return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
     }
 };
 
-const getPet = async (pet_uuid: string): Promise<ActionResponse<{ pet: Pets }>> => {
+/**
+ * Get a pet by its UUID
+ */
+function getPet(pet_uuid: string): Promise<ActionResponse<{ pet: Pets }>>;
+/**
+ * Get a pet by its ID
+ */
+function getPet(pet_id: number): Promise<ActionResponse<{ pet: Pets }>>;
+/**
+ * Implementation that handles both overloads
+ */
+async function getPet(identifier: string | number): Promise<ActionResponse<{ pet: Pets }>> {
     try {
+        const where = typeof identifier === "string" ? { pet_uuid: identifier } : { pet_id: identifier };
+
         const pet = await prisma.pets.findUnique({
-            where: {
-                pet_uuid: pet_uuid,
-            },
+            where,
+            include: {
+                vaccinations: {
+                    orderBy: {
+                        administered_date: 'desc'
+                    },
+                    include: {
+                        veterinarians: {
+                            include: {
+                                users: {
+                                    select: {
+                                        first_name: true,
+                                        last_name: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                medical_records: {
+                    orderBy: {
+                        visit_date: 'desc'
+                    },
+                    include: {
+                        veterinarians: {
+                            include: {
+                                users: {
+                                    select: {
+                                        first_name: true,
+                                        last_name: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                healthcare_procedures: {
+                    orderBy: {
+                        procedure_date: 'desc'
+                    },
+                    include: {
+                        veterinarians: {
+                            include: {
+                                users: {
+                                    select: {
+                                        first_name: true,
+                                        last_name: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                appointments: {
+                    orderBy: {
+                        appointment_date: 'desc'
+                    },
+                    include: {
+                        veterinarians: {
+                            include: {
+                                users: {
+                                    select: {
+                                        first_name: true,
+                                        last_name: true
+                                    }
+                                }
+                            }
+                        },
+                        clinics: true
+                    }
+                },
+                prescriptions: {
+                    orderBy: {
+                        created_at: 'desc'
+                    },
+                    include: {
+                        medications: true,
+                        veterinarians: {
+                            include: {
+                                users: {
+                                    select: {
+                                        first_name: true,
+                                        last_name: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                health_monitoring: {
+                    orderBy: {
+                        recorded_at: 'desc'
+                    }
+                }
+            }
         });
+
         if (!pet) return { success: false, error: "Pet not found" };
+
         const petInfo = {
             ...pet,
             weight_kg: formatDecimal(pet.weight_kg),
+            // Format decimal values in health monitoring records
+            health_monitoring: pet.health_monitoring.map(record => ({
+                ...record,
+                weight_kg: formatDecimal(record.weight_kg),
+                temperature_celsius: formatDecimal(record.temperature_celsius)
+            }))
         };
+
         return { success: true, data: { pet: petInfo } };
     } catch (error) {
         return {
@@ -83,16 +192,14 @@ const getPet = async (pet_uuid: string): Promise<ActionResponse<{ pet: Pets }>> 
             error: error instanceof Error ? error.message : "An unexpected error occurred",
         };
     }
-};
+}
 
 const updatePet = async (values: PetType, pet_id: number): Promise<ActionResponse<{ pet_uuid: string }>> => {
     try {
         const pet = await prisma.pets.update({
-            where: {
-                pet_id: pet_id,
-            },
+            where: { pet_id: pet_id },
             data: {
-                name: values.name,
+                name: toTitleCase(values.name),
                 breed: values.breed as breed_type,
                 sex: values.sex as pet_sex_type,
                 species: values.species as species_type,

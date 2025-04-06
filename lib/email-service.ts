@@ -1,12 +1,13 @@
 import nodemailer from "nodemailer";
 import { render } from "@react-email/render";
 import type { EmailTemplate, EmailOptions } from "@/types/email-types";
+import SMTPTransport from "nodemailer/lib/smtp-transport";
 
 class EmailService {
     private transporter: nodemailer.Transporter;
 
     constructor() {
-        this.transporter = nodemailer.createTransport({
+        const transportOptions: SMTPTransport.Options = {
             host: process.env.EMAIL_HOST,
             port: parseInt(process.env.EMAIL_PORT || "587"),
             secure: process.env.EMAIL_SECURE === "true",
@@ -14,7 +15,13 @@ class EmailService {
                 user: process.env.EMAIL_USER,
                 pass: process.env.EMAIL_PASSWORD,
             },
-        });
+            tls: {
+                ciphers: "SSLv3",
+                rejectUnauthorized: false,
+            },
+        };
+
+        this.transporter = nodemailer.createTransport(transportOptions);
     }
 
     async sendMail<T>(template: EmailTemplate<T>, data: T, options: EmailOptions): Promise<boolean> {

@@ -15,6 +15,24 @@ const getClinics = async (): Promise<ActionResponse<{ clinics: clinics[] }>> => 
     }
 };
 
+function getClinic(clinic_id: number): Promise<ActionResponse<{ clinic: clinics }>>;
+function getClinic(clinic_uuid: string): Promise<ActionResponse<{ clinic: clinics }>>;
+async function getClinic(identifier: string | number): Promise<ActionResponse<{ clinic: clinics }>> {
+    try {
+        const where = typeof identifier === "string" ? { clinic_uuid: identifier } : { clinic_id: identifier };
+        const clinic = await prisma.clinics.findUnique({
+            where,
+        });
+        if (!clinic) return { success: false, error: "Clinic not found" };
+        return { success: true, data: { clinic } };
+    } catch (error) {
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "An unexpected error occurred",
+        };
+    }
+}
+
 const getNearbyClinics = async (
     latitude: number,
     longitude: number,
@@ -41,4 +59,4 @@ const getNearbyClinics = async (
     }
 };
 
-export { getClinics, getNearbyClinics };
+export { getClinics, getNearbyClinics, getClinic };

@@ -1,5 +1,5 @@
 export { addPet, getPet, updatePet, getPets } from "./pets";
-export { getClinics, getNearbyClinics } from "./clinic";
+export { getClinics, getNearbyClinics, getClinic } from "./clinic";
 export {
     createAccount,
     createClinicAccount,
@@ -15,7 +15,7 @@ export {
     getExistingAppointments,
     getUserAppointments,
     createUserAppointment,
-    acceptAppointment,
+    confirmAppointment,
     cancelAppointment,
     getAppointment,
     getClinicAppointments,

@@ -1,5 +1,3 @@
-import React from "react";
-
 function VeterinaryInfo() {
     return <div>VeterinaryInfo</div>;
 }

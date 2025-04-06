@@ -1,14 +1,15 @@
 "use server";
-import { prisma } from "@/lib";
-import { getPet, getUserId } from "@/actions";
+import { prisma, toTitleCase } from "@/lib";
+import { getClinic, getPet, getUserId, sendEmail } from "@/actions";
 import { AppointmentType } from "@/schemas";
 import { auth } from "@/auth";
 import { type appointment_type, type Prisma } from "@prisma/client";
 import type { ActionResponse } from "@/types/server-action-response";
 import { endOfDay, startOfDay } from "date-fns";
-import { redirect } from "next/navigation";
 import { AppointmentDetailsResponse, GetUserAppointmentsResponse } from "@/types/actions/appointments";
-type AppointmentWithRelations = Prisma.appointmentsGetPayload<{
+import { AppointmentConfirmation, AppointmentConfirmed } from "@/templates";
+
+export type AppointmentWithRelations = Prisma.appointmentsGetPayload<{
     include: {
         pets: {
             include: {
@@ -48,8 +49,7 @@ async function getExistingAppointments(
                     gte: startDate,
                     lte: endDate,
                 },
-                // Optionally exclude cancelled appointments
-                // status: { not: "cancelled" }
+                status: { not: "cancelled" },
             },
             select: {
                 appointment_date: true,
@@ -126,17 +126,15 @@ const createUserAppointment = async (
 ): Promise<ActionResponse<{ appointment_uuid: string }>> => {
     try {
         const session = await auth();
-        if (!session || !session.user || !session.user.email) {
-            return { success: false, error: "User not found" };
-        }
+        if (!session || !session.user || !session.user.email) return { success: false, error: "User not found" };
+
         const petResponse = await getPet(values.pet_uuid);
-        if (!petResponse.success || !petResponse.data || !petResponse.data.pet) {
+        if (!petResponse.success || !petResponse.data || !petResponse.data.pet)
             return { success: false, error: "Pet not found" };
-        }
+
         const { pet } = petResponse.data;
-        if (!pet.pet_id) {
-            return { success: false, error: "Invalid pet data" };
-        }
+        if (!pet.pet_id) return { success: false, error: "Invalid pet data" };
+
         const appointment = await prisma.appointments.create({
             data: {
                 appointment_date: values.appointment_date,
@@ -148,7 +146,43 @@ const createUserAppointment = async (
                 clinic_id: Number(values.clinic_id),
             },
         });
-        redirect(`/u/appointments/view?appointment_uuid=${appointment.appointment_uuid}`);
+        const vet_info = await prisma.veterinarians.findFirst({
+            where: {
+                vet_id: Number(values.vet_id),
+            },
+            select: {
+                users: {
+                    select: {
+                        first_name: true,
+                        last_name: true,
+                    },
+                },
+            },
+        });
+        const pet_info = await getPet(values.pet_uuid);
+        const clinic_info = await getClinic(Number(values.clinic_id));
+
+        await sendEmail(
+            AppointmentConfirmation,
+            {
+                appointmentType: toTitleCase(values.appointment_type),
+                appointmentDate: values.appointment_date,
+                clinicAddress: clinic_info.success
+                    ? `${clinic_info.data?.clinic.address} + ${clinic_info.data.clinic.city} + ${clinic_info.data.clinic.state} + ${clinic_info.data.clinic.postal_code}`
+                    : "",
+                clinicName: clinic_info.success ? clinic_info.data?.clinic.name : "",
+                petName: toTitleCase(pet_info.success ? pet_info.data?.pet.name : ""),
+                ownerName: toTitleCase(`${session.user.name}`),
+                vetName: `${vet_info?.users?.first_name} ${vet_info?.users?.last_name}`,
+                date: new Date().toLocaleDateString(),
+                time: values.appointment_time,
+            },
+            { to: session.user.email, subject: "Appointment Confirmation | Pawsitive Health" },
+        );
+        return {
+            success: true,
+            data: { appointment_uuid: appointment.appointment_uuid },
+        };
     } catch (error) {
         return {
             success: false,
@@ -160,9 +194,8 @@ const createUserAppointment = async (
 const getClinicAppointments = async (): Promise<ActionResponse<{ appointments: AppointmentWithRelations[] }>> => {
     try {
         const session = await auth();
-        if (!session || !session.user || !session.user.email) {
-            throw new Error("User not found");
-        }
+        if (!session || !session.user || !session.user.email) return { success: false, error: "User not found" };
+
         const user_id = await getUserId(session?.user?.email);
         const clinic = await prisma.clinics.findFirst({
             where: {
@@ -190,14 +223,11 @@ const getClinicAppointments = async (): Promise<ActionResponse<{ appointments: A
         });
         return { success: true, data: { appointments } };
     } catch (error) {
-        return {
-            success: false,
-            error: error instanceof Error ? error.message : "An unexpected error occurred",
-        };
+        return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
     }
 };
 
-type VetAppointmentWithRelations = Prisma.appointmentsGetPayload<{
+export type VetAppointmentWithRelations = Prisma.appointmentsGetPayload<{
     include: {
         pets: {
             include: {
@@ -247,10 +277,7 @@ const getVeterinarianAppointments = async (): Promise<
         });
         return { success: true, data: { appointments } };
     } catch (error) {
-        return {
-            success: false,
-            error: error instanceof Error ? error.message : "An unexpected error occurred",
-        };
+        return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
     }
 };
 const getAppointment = async (
@@ -312,9 +339,7 @@ const getAppointment = async (
             },
         });
 
-        if (!appointment) {
-            return { success: false, error: "Appointment not found" };
-        }
+        if (!appointment) return { success: false, error: "Appointment not found" };
 
         return {
             success: true,
@@ -323,54 +348,30 @@ const getAppointment = async (
             },
         };
     } catch (error) {
-        return {
-            success: false,
-            error: error instanceof Error ? error.message : "An unexpected error occurred",
-        };
+        return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
     }
 };
 
 const cancelAppointment = async (appointment_uuid: string): Promise<ActionResponse<{ appointment_uuid: string }>> => {
     try {
         const session = await auth();
-        if (!session || !session.user || !session.user.email) {
-            return {
-                success: false,
-                error: "User not found",
-            };
-        }
+        if (!session || !session.user || !session.user.email) return { success: false, error: "User not found" };
         const appointment = await prisma.appointments.update({
-            where: {
-                appointment_uuid: appointment_uuid,
-            },
-            data: {
-                status: "cancelled",
-            },
+            where: { appointment_uuid: appointment_uuid },
+            data: { status: "cancelled" },
         });
-        if (!appointment) {
-            return { success: false, error: "Appointment not found" };
-        }
-        return {
-            success: true,
-            data: { appointment_uuid: appointment.appointment_uuid },
-        };
+        if (!appointment) return { success: false, error: "Appointment not found" };
+        return { success: true, data: { appointment_uuid: appointment.appointment_uuid } };
     } catch (error) {
-        return {
-            success: false,
-            error: error instanceof Error ? error.message : "An unexpected error occurred",
-        };
+        return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
     }
 };
 
-const acceptAppointment = async (appointment_uuid: string): Promise<ActionResponse<{ appointment_uuid: string }>> => {
+const confirmAppointment = async (appointment_uuid: string): Promise<ActionResponse<{ appointment_uuid: string }>> => {
     try {
         const session = await auth();
-        if (!session || !session.user || !session.user.email) {
-            return {
-                success: false,
-                error: "User not found",
-            };
-        }
+        if (!session || !session.user || !session.user.email) return { success: false, error: "User not found" };
+
         const appointment = await prisma.appointments.update({
             where: {
                 appointment_uuid: appointment_uuid,
@@ -378,19 +379,74 @@ const acceptAppointment = async (appointment_uuid: string): Promise<ActionRespon
             data: {
                 status: "confirmed",
             },
+            include: {
+                pets: {
+                    include: {
+                        users: true,
+                    },
+                },
+                veterinarians: {
+                    include: {
+                        users: true,
+                    },
+                },
+                clinics: true,
+            },
         });
-        if (!appointment) {
-            return { success: false, error: "Appointment not found" };
-        }
+
+        if (!appointment.pets) return { success: false, error: "Pet not found" };
+        if (!appointment.veterinarians) return { success: false, error: "Veterinarian not found" };
+        if (!appointment.clinics) return { success: false, error: "Clinic not found" };
+        if (!appointment.veterinarians.users) return { success: false, error: "Veterinarian not found" };
+        if (!appointment.pets.users) return { success: false, error: "User not found." };
+        const ownerEmail = appointment.pets.users.email;
+
+        const appointmentTime = new Intl.DateTimeFormat("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+        }).format(appointment.appointment_date);
+
+        const appointmentDate = new Intl.DateTimeFormat("en-US", {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+        }).format(appointment.appointment_date);
+        const endDateTime = new Date(appointment.appointment_date);
+        endDateTime.setMinutes(endDateTime.getMinutes() + 30);
+
+        await sendEmail(
+            AppointmentConfirmed,
+            {
+                petName: appointment.pets.name,
+                ownerName: `${appointment.pets.users.first_name} ${appointment.pets.users.last_name}`,
+                vetName: `${appointment.veterinarians.users.first_name} ${appointment.veterinarians.users.last_name}`,
+
+                date: appointmentDate,
+                time: appointmentTime,
+                clinicName: appointment.clinics.name,
+                clinicAddress: `${appointment.clinics.address}, ${appointment.clinics.city}, ${appointment.clinics.state} ${appointment.clinics.postal_code}`,
+                clinicPhone: appointment.clinics.phone_number,
+                appointmentType: toTitleCase(appointment.appointment_type),
+                appointmentId: appointment.appointment_uuid,
+                instructions: appointment.notes || undefined,
+                appointmentDateTime: appointment.appointment_date,
+                appointmentEndDateTime: endDateTime,
+            },
+            {
+                to: ownerEmail,
+                subject: `Your Appointment for ${appointment.pets.name} has been Confirmed`,
+            },
+        );
+
         return {
             success: true,
             data: { appointment_uuid: appointment.appointment_uuid },
         };
     } catch (error) {
-        return {
-            success: false,
-            error: error instanceof Error ? error.message : "An unexpected error occurred",
-        };
+        console.error("Error confirming appointment:", error);
+        return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
     }
 };
 
@@ -402,5 +458,5 @@ export {
     getVeterinarianAppointments,
     getAppointment,
     cancelAppointment,
-    acceptAppointment,
+    confirmAppointment,
 };

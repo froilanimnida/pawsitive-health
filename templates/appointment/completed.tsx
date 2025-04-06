@@ -1,6 +1,6 @@
 import { Html, Head, Body, Container, Section, Heading, Text, Button, Hr } from "@react-email/components";
 
-export interface AppointmentCancelledEmailProps {
+export interface AppointmentCompletedEmailProps {
     petName: string;
     ownerName: string;
     vetName: string;
@@ -10,10 +10,13 @@ export interface AppointmentCancelledEmailProps {
     clinicPhone: string;
     appointmentType: string;
     appointmentId: string;
-    cancellationReason?: string;
+    diagnosis?: string;
+    followUpDate?: string;
+    prescriptions?: { name: string; dosage: string; instructions: string }[];
+    recommendations?: string;
 }
 
-export default function AppointmentCancelled({
+export default function AppointmentCompleted({
     petName,
     ownerName,
     vetName,
@@ -23,8 +26,11 @@ export default function AppointmentCancelled({
     clinicPhone,
     appointmentType,
     appointmentId,
-    cancellationReason,
-}: AppointmentCancelledEmailProps) {
+    diagnosis,
+    followUpDate,
+    prescriptions,
+    recommendations,
+}: AppointmentCompletedEmailProps) {
     return (
         <Html>
             <Head />
@@ -34,14 +40,14 @@ export default function AppointmentCancelled({
 
                     <Section style={styles.section}>
                         <Heading as="h2" style={styles.title}>
-                            Appointment Cancelled
+                            Appointment Completed
                         </Heading>
 
                         <Text style={styles.greeting}>Hello {ownerName},</Text>
 
                         <Text>
-                            This email confirms that your appointment for {petName} with Dr. {vetName}
-                            has been <span style={styles.cancelled}>cancelled</span>.
+                            Thank you for bringing {petName} to see Dr. {vetName} at {clinicName}. This email provides a
+                            summary of your completed appointment.
                         </Text>
 
                         <Section style={styles.details}>
@@ -60,34 +66,68 @@ export default function AppointmentCancelled({
                             <Text style={styles.detailRow}>
                                 <span style={styles.detailLabel}>Veterinarian:</span> Dr. {vetName}
                             </Text>
-                            <Hr style={styles.detailDivider} />
-                            <Text style={styles.detailRow}>
-                                <span style={styles.detailLabel}>Clinic:</span> {clinicName}
-                            </Text>
-                            <Text style={styles.detailRow}>
-                                <span style={styles.detailLabel}>Phone:</span> {clinicPhone}
-                            </Text>
                         </Section>
 
-                        {cancellationReason && (
-                            <Section style={styles.cancellationSection}>
-                                <Heading as="h3" style={styles.cancellationTitle}>
-                                    Cancellation Reason
+                        {diagnosis && (
+                            <Section style={styles.diagnosisSection}>
+                                <Heading as="h3" style={styles.sectionTitle}>
+                                    Diagnosis
                                 </Heading>
-                                <Text>{cancellationReason}</Text>
+                                <Text>{diagnosis}</Text>
                             </Section>
                         )}
 
-                        <Text style={styles.reschedulingText}>
-                            If you'd like to reschedule this appointment, please visit our website or call the clinic
-                            directly at {clinicPhone}.
+                        {prescriptions && prescriptions.length > 0 && (
+                            <Section style={styles.prescriptionsSection}>
+                                <Heading as="h3" style={styles.sectionTitle}>
+                                    Prescriptions
+                                </Heading>
+                                {prescriptions.map((prescription, index) => (
+                                    <div key={index} style={styles.prescriptionItem}>
+                                        <Text style={styles.prescriptionName}>{prescription.name}</Text>
+                                        <Text>
+                                            <span style={styles.prescriptionLabel}>Dosage:</span> {prescription.dosage}
+                                        </Text>
+                                        <Text>
+                                            <span style={styles.prescriptionLabel}>Instructions:</span>{" "}
+                                            {prescription.instructions}
+                                        </Text>
+                                    </div>
+                                ))}
+                            </Section>
+                        )}
+
+                        {recommendations && (
+                            <Section style={styles.recommendationsSection}>
+                                <Heading as="h3" style={styles.sectionTitle}>
+                                    Recommendations
+                                </Heading>
+                                <Text>{recommendations}</Text>
+                            </Section>
+                        )}
+
+                        {followUpDate && (
+                            <Section style={styles.followUpSection}>
+                                <Heading as="h3" style={styles.followUpTitle}>
+                                    Follow-Up Appointment
+                                </Heading>
+                                <Text>
+                                    A follow-up appointment has been recommended for <strong>{followUpDate}</strong>.
+                                    Please contact the clinic to schedule this appointment.
+                                </Text>
+                            </Section>
+                        )}
+
+                        <Text style={styles.questionsText}>
+                            If you have any questions about today's appointment or your pet's care plan, please contact
+                            us at {clinicPhone}.
                         </Text>
 
                         <Hr style={styles.divider} />
 
                         <Section style={styles.buttonContainer}>
                             <Button style={styles.button} href={`${process.env.FRONTEND_URL}/u/appointments`}>
-                                Book New Appointment
+                                View Appointment History
                             </Button>
                         </Section>
                     </Section>
@@ -137,11 +177,11 @@ const styles = {
         margin: "16px 0",
     },
     details: {
-        backgroundColor: "#fef2f2",
+        backgroundColor: "#f0f9ff",
         borderRadius: "8px",
         margin: "20px 0",
         padding: "16px",
-        border: "1px solid #fee2e2",
+        border: "1px solid #e0f2fe",
     },
     detailRow: {
         margin: "8px 0",
@@ -149,30 +189,65 @@ const styles = {
     },
     detailLabel: {
         fontWeight: "bold",
-        color: "#b91c1c",
+        color: "#0369a1",
     },
-    detailDivider: {
-        borderColor: "#fee2e2",
-        margin: "12px 0",
-    },
-    cancelled: {
+    sectionTitle: {
+        fontSize: "18px",
         fontWeight: "bold",
-        color: "#b91c1c",
+        margin: "0 0 12px",
+        color: "#1f2937",
     },
-    cancellationSection: {
+    diagnosisSection: {
         backgroundColor: "#f9fafb",
         borderRadius: "8px",
         margin: "20px 0",
         padding: "16px",
         border: "1px solid #e5e7eb",
     },
-    cancellationTitle: {
+    prescriptionsSection: {
+        backgroundColor: "#f0fdf4",
+        borderRadius: "8px",
+        margin: "20px 0",
+        padding: "16px",
+        border: "1px solid #dcfce7",
+    },
+    prescriptionItem: {
+        marginBottom: "12px",
+        paddingBottom: "12px",
+        borderBottom: "1px dashed #d1d5db",
+    },
+    prescriptionName: {
+        fontWeight: "bold",
+        fontSize: "16px",
+        color: "#15803d",
+        marginBottom: "4px",
+    },
+    prescriptionLabel: {
+        fontWeight: "bold",
+        color: "#4b5563",
+    },
+    recommendationsSection: {
+        backgroundColor: "#fffbeb",
+        borderRadius: "8px",
+        margin: "20px 0",
+        padding: "16px",
+        border: "1px solid #fef3c7",
+    },
+    followUpSection: {
+        backgroundColor: "#f3f4f6",
+        borderRadius: "8px",
+        margin: "20px 0",
+        padding: "16px",
+        border: "1px solid #e5e7eb",
+        borderLeft: "4px solid #3b82f6",
+    },
+    followUpTitle: {
         fontSize: "16px",
         fontWeight: "bold",
         margin: "0 0 8px",
-        color: "#4b5563",
+        color: "#1f2937",
     },
-    reschedulingText: {
+    questionsText: {
         fontSize: "15px",
         color: "#4b5563",
         margin: "16px 0",

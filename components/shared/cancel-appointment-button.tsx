@@ -1,7 +1,7 @@
 "use client";
-import { cancelAppointment } from "@/actions/appointment";
-import { Button } from "../ui/button";
-import toast from "react-hot-toast";
+import { cancelAppointment } from "@/actions";
+import { Button } from "@/components/ui";
+import { toast } from "sonner";
 
 export const CancelAppointmentButton = ({ appointmentUuid }: { appointmentUuid: string }) => {
     const handleCancel = () => {
@@ -16,5 +16,9 @@ export const CancelAppointmentButton = ({ appointmentUuid }: { appointmentUuid: 
         });
         cancelAppointment(appointmentUuid);
     };
-    return <Button onClick={handleCancel}>Cancel Appointment</Button>;
+    return (
+        <Button variant={"destructive"} onClick={handleCancel}>
+            Cancel Appointment
+        </Button>
+    );
 };

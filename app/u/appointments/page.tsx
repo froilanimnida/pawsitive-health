@@ -1,4 +1,4 @@
-import React, { Suspense } from "react";
+import { Suspense } from "react";
 import {
     Badge,
     Button,
@@ -66,6 +66,7 @@ const AppointmentsHistory = async () => {
                                 {appointment.appointment_date.toLocaleTimeString([], {
                                     hour: "2-digit",
                                     minute: "2-digit",
+                                    dateStyle: "short",
                                 })}
                             </div>
                             <div>

@@ -16,7 +16,7 @@ import {
     FormMessage,
     Input,
 } from "@/components/ui";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 const MedicineForm = () => {
     const [isLoading, setIsLoading] = useState(false);
@@ -73,16 +73,17 @@ const MedicineForm = () => {
     });
     const onSubmit = async (values: MedicineType) => {
         setIsLoading(true);
-        await toast
-            .promise(createMedication(values), {
-                success: "Successfully added new medicine",
-                error: "Failed to add new medicine",
-                loading: "Adding new medicine...",
-            })
-            .finally(() => {
+        toast.promise(createMedication(values), {
+            success: () => {
                 setIsLoading(false);
-                medicineForm.reset();
-            });
+                return "Successfully added new medicine";
+            },
+            error: () => {
+                setIsLoading(false);
+                return "Failed to add new medicine";
+            },
+            loading: "Adding new medicine...",
+        });
     };
     return (
         <Form {...medicineForm}>

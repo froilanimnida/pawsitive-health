@@ -6,9 +6,9 @@ import { AppointmentSchema, AppointmentType } from "@/schemas/appointment-defini
 import { addMinutes, format } from "date-fns";
 import { getVeterinariansByClinic } from "@/actions/veterinary";
 import { getVeterinaryAvailability } from "@/actions/veterinarian-availability";
-import { createUserAppointment, getExistingAppointments } from "@/actions/appointment";
+import { createUserAppointment, getExistingAppointments } from "@/actions";
 import { toTitleCase } from "@/lib/functions/text/title-case";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 export interface TimeSlot {
     time: string;
@@ -26,6 +26,7 @@ export function useAppointmentForm(uuid: string) {
     const [vetAvailability, setVetAvailability] = useState<vet_availability[]>([]);
     const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
     const [isLoadingTimeSlots, setIsLoadingTimeSlots] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     const form = useForm({
         defaultValues: {
@@ -150,6 +151,11 @@ export function useAppointmentForm(uuid: string) {
 
     const onSubmit = async (values: AppointmentType) => {
         try {
+            setLoading(true);
+            if (!selectedDate) {
+                toast.error("Please select a date");
+                return;
+            }
             const submissionData = { ...values };
 
             if (selectedDate && values.appointment_time) {
@@ -170,9 +176,23 @@ export function useAppointmentForm(uuid: string) {
             } else {
                 return;
             }
-            await createUserAppointment(submissionData);
+            await toast.promise(createUserAppointment(submissionData), {
+                loading: "Creating appointment...",
+                success: (data) => {
+                    if (data.success) return "Appointment created successfully!";
+                    return data.error || "Failed to create appointment";
+                },
+                error: (err) => {
+                    if (err instanceof Error) {
+                        return err.message;
+                    }
+                    return "An unexpected error occurred";
+                },
+            });
         } catch {
             toast.error("An unexpected error occurred");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -207,5 +227,7 @@ export function useAppointmentForm(uuid: string) {
         handleVetChange,
         setSelectedVetId,
         vetAvailability,
+        setLoading,
+        loading,
     };
 }

@@ -1,9 +1,10 @@
 "use client";
-import { Form, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { VeterinarianSchema, VeterinarianType } from "@/schemas";
 import { useState } from "react";
 import {
+    Form,
     Select,
     SelectContent,
     SelectGroup,
@@ -18,13 +19,13 @@ import {
     Input,
     FormDescription,
     FormMessage,
+    Button,
 } from "@/components/ui";
 import { veterinary_specialization } from "@prisma/client";
 import type { TextFormField } from "@/types/forms/text-form-field";
 import { toTitleCase } from "@/lib";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { newVeterinarian } from "@/actions";
-import { Button } from "react-day-picker";
 
 const NewVeterinaryForm = () => {
     const [isLoading, setIsLoading] = useState(false);
@@ -109,15 +110,17 @@ const NewVeterinaryForm = () => {
     });
 
     const onSubmit = async (values: VeterinarianType) => {
-        await toast
-            .promise(newVeterinarian(values), {
-                loading: "Creating a new veterinarian...",
-                success: "Successfully created a new veterinarian",
-                error: "Failed to create a new veterinarian",
-            })
-            .finally(() => {
+        toast.promise(newVeterinarian(values), {
+            loading: "Creating a new veterinarian...",
+            success: () => {
                 setIsLoading(false);
-            });
+                return "Successfully created a new veterinarian";
+            },
+            error: () => {
+                setIsLoading(false);
+                return "Failed to create a new veterinarian";
+            },
+        });
     };
     return (
         <Form {...newVeterinaryForm}>
@@ -173,9 +176,7 @@ const NewVeterinaryForm = () => {
                                         }}
                                     >
                                         <SelectTrigger>
-                                            <SelectValue>
-                                                {toTitleCase(field.value) || "Select a specialization"}
-                                            </SelectValue>
+                                            <SelectValue>{field.value || "Select a specialization"}</SelectValue>
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectGroup>

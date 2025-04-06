@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import {
     FormItem,
@@ -32,7 +32,7 @@ import { Calendar as CalendarIcon, Plus, X } from "lucide-react";
 import { format } from "date-fns";
 import { PetOnboardingSchema, PetSchema } from "@/schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { addPet } from "@/actions/pets";
 import { toTitleCase } from "@/lib";
 import { breed_type, pet_sex_type, procedure_type, species_type } from "@prisma/client";
@@ -175,7 +175,7 @@ const AddPetForm = () => {
         ]);
     };
     const onSubmit = async (values: PetOnboardingSchema) => {
-        await toast.promise(addPet(values), {
+        toast.promise(addPet(values), {
             loading: "Adding pet...",
             success: "Pet added successfully",
             error: "Failed to add pet",

@@ -1,13 +1,12 @@
-import type { Metadata } from 'next';
-import React from 'react';
+import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-	title: 'Pawsitive | User Settings',
-	description: 'User settings page',
+    title: "Pawsitive | User Settings",
+    description: "User settings page",
 };
 
 function Settings() {
-	return <div>Settings</div>;
+    return <div>Settings</div>;
 }
 
 export default Settings;
