@@ -31,4 +31,19 @@ export const PetSchema = z.object({
     }),
 });
 
+export const UpdatePetSchema = z.object({
+    name: z
+        .string()
+        .min(1)
+        .max(50)
+        .transform((name) => toTitleCase(name.trim())),
+    weight_kg: z.number().refine((value) => value > 0, {
+        message: "Weight must be a positive number",
+    }),
+    pet_uuid: z.string().uuid({
+        message: "Invalid pet UUID",
+    }),
+});
+
 export type PetType = z.infer<typeof PetSchema>;
+export type UpdatePetType = z.infer<typeof UpdatePetSchema>;

@@ -66,7 +66,6 @@ const AppointmentsHistory = async () => {
                                 {appointment.appointment_date.toLocaleTimeString("en-US", {
                                     hour: "2-digit",
                                     minute: "2-digit",
-                                    dateStyle: "short",
                                 })}
                             </div>
                             <div>

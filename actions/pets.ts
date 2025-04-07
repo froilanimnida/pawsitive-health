@@ -1,35 +1,40 @@
 "use server";
 import { formatDecimal, prisma, toTitleCase } from "@/lib";
-import { PetOnboardingSchema, type PetType } from "@/schemas";
+import { PetOnboardingSchema, UpdatePetSchema, type UpdatePetType, OnboardingPetSchema } from "@/schemas";
 import { procedure_type, type breed_type, type pet_sex_type, type species_type } from "@prisma/client";
 import { getUserId } from "@/actions";
 import { auth } from "@/auth";
 import { type ActionResponse } from "@/types/server-action-response";
 import type { Pets } from "@/types/pets";
+import { revalidatePath } from "next/cache";
 
-const addPet = async (values: PetOnboardingSchema): Promise<ActionResponse<{ pet_uuid: string }>> => {
+const addPet = async (values: PetOnboardingSchema): Promise<ActionResponse> => {
     try {
         const session = await auth();
+        const newPetData = OnboardingPetSchema.safeParse(values);
+        if (!newPetData.success) {
+            return { success: false, error: "Please check the form inputs" };
+        }
         if (!session || !session.user || !session.user.email) return { success: false, error: "User not found" };
         const user_id = await getUserId(session?.user?.email);
         const pet = await prisma.pets.create({
             data: {
-                name: values.name,
-                breed: values.breed as breed_type,
-                sex: values.sex as pet_sex_type,
-                species: values.species as species_type,
-                date_of_birth: values.date_of_birth,
-                weight_kg: values.weight_kg,
+                name: newPetData.data.name,
+                breed: newPetData.data.breed as breed_type,
+                sex: newPetData.data.sex as pet_sex_type,
+                species: newPetData.data.species as species_type,
+                date_of_birth: newPetData.data.date_of_birth,
+                weight_kg: newPetData.data.weight_kg,
                 user_id: user_id,
             },
         });
 
         if (!pet) throw await Promise.reject("Failed to add pet");
 
-        if (values.healthcare) {
-            if (values.healthcare.vaccinations?.length) {
+        if (newPetData.data.healthcare) {
+            if (newPetData.data.healthcare.vaccinations?.length) {
                 await prisma.vaccinations.createMany({
-                    data: values.healthcare.vaccinations.map((vac) => ({
+                    data: newPetData.data.healthcare.vaccinations.map((vac) => ({
                         pet_id: pet.pet_id,
                         vaccine_name: toTitleCase(vac.vaccine_name),
                         administered_date: vac.administered_date,
@@ -39,9 +44,9 @@ const addPet = async (values: PetOnboardingSchema): Promise<ActionResponse<{ pet
                 });
             }
 
-            if (values.healthcare.procedures?.length) {
+            if (newPetData.data.healthcare.procedures?.length) {
                 await prisma.healthcare_procedures.createMany({
-                    data: values.healthcare.procedures.map((proc) => ({
+                    data: newPetData.data.healthcare.procedures.map((proc) => ({
                         pet_id: pet.pet_id,
                         procedure_type: proc.procedure_type as procedure_type,
                         procedure_date: proc.procedure_date,
@@ -53,7 +58,7 @@ const addPet = async (values: PetOnboardingSchema): Promise<ActionResponse<{ pet
                 });
             }
         }
-        return { success: true, data: { pet_uuid: pet.pet_uuid } };
+        revalidatePath("/u/pets");
     } catch (error) {
         return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
     }
@@ -194,20 +199,20 @@ async function getPet(identifier: string | number): Promise<ActionResponse<{ pet
     }
 }
 
-const updatePet = async (values: PetType, pet_id: number): Promise<ActionResponse<{ pet_uuid: string }>> => {
+const updatePet = async (values: UpdatePetType): Promise<ActionResponse> => {
     try {
+        const petData = UpdatePetSchema.safeParse(values);
+        if (!petData.success) return { success: false, error: "Please check the form inputs" };
+
         const pet = await prisma.pets.update({
-            where: { pet_id: pet_id },
+            where: { pet_uuid: petData.data.pet_uuid },
             data: {
-                name: toTitleCase(values.name),
-                breed: values.breed as breed_type,
-                sex: values.sex as pet_sex_type,
-                species: values.species as species_type,
-                weight_kg: values.weight_kg,
+                name: petData.data.name,
+                weight_kg: petData.data.weight_kg,
             },
         });
         if (!pet) return { success: false, error: "Failed to update pet" };
-        return { success: true, data: { pet_uuid: pet.pet_uuid } };
+        revalidatePath(`/u/pets/${pet.pet_uuid}`);
     } catch (error) {
         return {
             success: false,
