@@ -1,3 +1,4 @@
+import { toTitleCase } from "@/lib";
 import { z } from "zod";
 
 export const SignUpSchema = z.object({
@@ -6,19 +7,22 @@ export const SignUpSchema = z.object({
         .nonempty({
             message: "First name is required",
         })
-        .max(255),
+        .max(255)
+        .transform((name) => toTitleCase(name)),
     last_name: z
         .string()
         .nonempty({
             message: "Last name is required",
         })
-        .max(255),
+        .max(255)
+        .transform((name) => toTitleCase(name)),
     email: z
         .string()
         .email({
             message: "Please enter a valid email",
         })
-        .max(255),
+        .max(255)
+        .transform((email) => email.toLowerCase()),
     password: z
         .string()
         .nonempty({

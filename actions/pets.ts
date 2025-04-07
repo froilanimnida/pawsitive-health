@@ -14,7 +14,7 @@ const addPet = async (values: PetOnboardingSchema): Promise<ActionResponse<{ pet
         const user_id = await getUserId(session?.user?.email);
         const pet = await prisma.pets.create({
             data: {
-                name: toTitleCase(values.name),
+                name: values.name,
                 breed: values.breed as breed_type,
                 sex: values.sex as pet_sex_type,
                 species: values.species as species_type,
@@ -79,7 +79,7 @@ async function getPet(identifier: string | number): Promise<ActionResponse<{ pet
             include: {
                 vaccinations: {
                     orderBy: {
-                        administered_date: 'desc'
+                        administered_date: "desc",
                     },
                     include: {
                         veterinarians: {
@@ -87,16 +87,16 @@ async function getPet(identifier: string | number): Promise<ActionResponse<{ pet
                                 users: {
                                     select: {
                                         first_name: true,
-                                        last_name: true
-                                    }
-                                }
-                            }
-                        }
-                    }
+                                        last_name: true,
+                                    },
+                                },
+                            },
+                        },
+                    },
                 },
                 medical_records: {
                     orderBy: {
-                        visit_date: 'desc'
+                        visit_date: "desc",
                     },
                     include: {
                         veterinarians: {
@@ -104,16 +104,16 @@ async function getPet(identifier: string | number): Promise<ActionResponse<{ pet
                                 users: {
                                     select: {
                                         first_name: true,
-                                        last_name: true
-                                    }
-                                }
-                            }
-                        }
-                    }
+                                        last_name: true,
+                                    },
+                                },
+                            },
+                        },
+                    },
                 },
                 healthcare_procedures: {
                     orderBy: {
-                        procedure_date: 'desc'
+                        procedure_date: "desc",
                     },
                     include: {
                         veterinarians: {
@@ -121,16 +121,16 @@ async function getPet(identifier: string | number): Promise<ActionResponse<{ pet
                                 users: {
                                     select: {
                                         first_name: true,
-                                        last_name: true
-                                    }
-                                }
-                            }
-                        }
-                    }
+                                        last_name: true,
+                                    },
+                                },
+                            },
+                        },
+                    },
                 },
                 appointments: {
                     orderBy: {
-                        appointment_date: 'desc'
+                        appointment_date: "desc",
                     },
                     include: {
                         veterinarians: {
@@ -138,17 +138,17 @@ async function getPet(identifier: string | number): Promise<ActionResponse<{ pet
                                 users: {
                                     select: {
                                         first_name: true,
-                                        last_name: true
-                                    }
-                                }
-                            }
+                                        last_name: true,
+                                    },
+                                },
+                            },
                         },
-                        clinics: true
-                    }
+                        clinics: true,
+                    },
                 },
                 prescriptions: {
                     orderBy: {
-                        created_at: 'desc'
+                        created_at: "desc",
                     },
                     include: {
                         medications: true,
@@ -157,19 +157,19 @@ async function getPet(identifier: string | number): Promise<ActionResponse<{ pet
                                 users: {
                                     select: {
                                         first_name: true,
-                                        last_name: true
-                                    }
-                                }
-                            }
-                        }
-                    }
+                                        last_name: true,
+                                    },
+                                },
+                            },
+                        },
+                    },
                 },
                 health_monitoring: {
                     orderBy: {
-                        recorded_at: 'desc'
-                    }
-                }
-            }
+                        recorded_at: "desc",
+                    },
+                },
+            },
         });
 
         if (!pet) return { success: false, error: "Pet not found" };
@@ -178,11 +178,11 @@ async function getPet(identifier: string | number): Promise<ActionResponse<{ pet
             ...pet,
             weight_kg: formatDecimal(pet.weight_kg),
             // Format decimal values in health monitoring records
-            health_monitoring: pet.health_monitoring.map(record => ({
+            health_monitoring: pet.health_monitoring.map((record) => ({
                 ...record,
                 weight_kg: formatDecimal(record.weight_kg),
-                temperature_celsius: formatDecimal(record.temperature_celsius)
-            }))
+                temperature_celsius: formatDecimal(record.temperature_celsius),
+            })),
         };
 
         return { success: true, data: { pet: petInfo } };

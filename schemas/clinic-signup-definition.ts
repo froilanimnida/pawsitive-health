@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { SignUpSchema } from "./auth-definitions";
+import { toTitleCase } from "@/lib";
 
 const OperatingHoursSchema = z
     .object({
@@ -20,13 +21,14 @@ const OperatingHoursSchema = z
         {
             message: "Opening time must be before closing time",
             path: ["closes_at"],
-        }
+        },
     );
 
 export const BaseClinicSchema = z.object({
     name: z
         .string({ message: "Name of the clinic is required" })
-        .nonempty({ message: "Name of the clinic is required" }),
+        .nonempty({ message: "Name of the clinic is required" })
+        .transform((name) => toTitleCase(name)),
     address: z.string({ message: "Address is required" }).nonempty({ message: "Address is required" }),
     city: z.string({ required_error: "City is required" }).nonempty({ message: "City is required" }),
     state: z.string({ required_error: "State is required" }).nonempty({ message: "State is required" }),

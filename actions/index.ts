@@ -9,6 +9,7 @@ export {
     nextAuthLogin,
     verifyEmail,
     verifyOTPToken,
+    isEmailTaken,
 } from "./auth";
 export { newVeterinarian, getClinicVeterinarians, getVeterinariansByClinic } from "./veterinary";
 export {

@@ -9,28 +9,33 @@ import { signOut } from "next-auth/react";
 import type { ActionResponse } from "@/types/server-action-response";
 import jwt from "jsonwebtoken";
 
+const isEmailTaken = async (email: string): Promise<boolean> => {
+    const user = await prisma.users.findFirst({
+        where: {
+            email: email,
+        },
+    });
+    return user !== null;
+};
+
 const createAccount = async (values: z.infer<typeof SignUpSchema>): Promise<ActionResponse<{ user_uuid: string }>> => {
     try {
         const formData = SignUpSchema.safeParse(values);
         if (!formData.success) {
             return { success: false, error: "Invalid input" };
         }
-        const user = await prisma.users.findFirst({
-            where: {
-                OR: [{ email: values.email }, { phone_number: values.phone_number }],
-            },
-        });
-        if (user) return { success: false, error: "email_or_phone_number_already_exists" };
-        const userEmail = formData.data.email.toLowerCase();
+        const userEmailTaken = await isEmailTaken(formData.data.email);
+        if (userEmailTaken) return { success: false, error: "email_or_phone_number_already_exists" };
+        const userEmail = formData.data.email;
         const verification_token = generateVerificationToken(userEmail);
         const verification_url = `${process.env.FRONTEND_URL}/auth/verify-email/${verification_token}`;
         const expires_at = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
         const result = await prisma.users.create({
             data: {
-                email: userEmail,
+                email: formData.data.email,
                 password_hash: await hashPassword(formData.data.password),
-                first_name: toTitleCase(formData.data.first_name),
-                last_name: toTitleCase(formData.data.last_name),
+                first_name: formData.data.first_name,
+                last_name: formData.data.last_name,
                 phone_number: formData.data.phone_number,
                 role: role_type.user,
                 email_verified: false,
@@ -132,7 +137,7 @@ const createClinicAccount = async (
     values: z.infer<typeof NewClinicAccountSchema>,
 ): Promise<ActionResponse<{ user_uuid: string }>> => {
     try {
-        const formData = NewClinicAccountSchema.safeParse(values);
+        const formData = await NewClinicAccountSchema.safeParseAsync(values);
         if (!formData.success) return { success: false, error: "Invalid input" };
 
         const user = await prisma.users.findFirst({
@@ -327,4 +332,5 @@ export {
     verifyOTPToken,
     nextAuthLogin,
     regenerateOTPToken,
+    isEmailTaken,
 };
