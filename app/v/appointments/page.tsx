@@ -208,7 +208,6 @@ const Appointments = async () => {
                         </div>
                     ))}
             </TabsContent>
-
             <TabsContent value="today">
                 <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {timeGroups.today.length > 0 ? (
@@ -227,7 +226,6 @@ const Appointments = async () => {
                     )}
                 </div>
             </TabsContent>
-
             <TabsContent value="requested">
                 <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {statusGroups.requested.length > 0 ? (
@@ -246,7 +244,6 @@ const Appointments = async () => {
                     )}
                 </div>
             </TabsContent>
-
             <TabsContent value="pending">
                 <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {statusGroups.requested.length > 0 ? (
