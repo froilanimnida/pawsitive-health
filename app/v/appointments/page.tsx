@@ -209,7 +209,6 @@ const Appointments = async () => {
                     ))}
             </TabsContent>
 
-            {/* Today's Appointments */}
             <TabsContent value="today">
                 <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {timeGroups.today.length > 0 ? (
@@ -229,7 +228,6 @@ const Appointments = async () => {
                 </div>
             </TabsContent>
 
-            {/* Requested Appointments */}
             <TabsContent value="requested">
                 <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {statusGroups.requested.length > 0 ? (
@@ -249,7 +247,6 @@ const Appointments = async () => {
                 </div>
             </TabsContent>
 
-            {/* Requested Appointments */}
             <TabsContent value="pending">
                 <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {statusGroups.requested.length > 0 ? (
@@ -304,7 +301,15 @@ const VeterinaryAppointment = () => {
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-semibold">My Appointments</h1>
             </div>
-            <Suspense fallback={<SkeletonCard />}>
+            <Suspense
+                fallback={
+                    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {Array.from({ length: 16 }, (_, i) => (
+                            <SkeletonCard key={i} />
+                        ))}
+                    </div>
+                }
+            >
                 <Appointments />
             </Suspense>
         </section>
