@@ -5,46 +5,64 @@ import { ProcedureSchema, type ProcedureType } from "@/schemas";
 import type { ActionResponse } from "@/types/server-action-response";
 import type { healthcare_procedures, procedure_type } from "@prisma/client";
 
-const addHealthcareProcedure = async (values: ProcedureType): Promise<ActionResponse<{ procedure_uuid: string }>> => {
+const addHealthcareProcedure = async (
+    values: ProcedureType | ProcedureType[],
+): Promise<ActionResponse<{ data: object }>> => {
     try {
-        const data = ProcedureSchema.safeParse(values);
-        if (!data.success) {
-            return {
-                success: false,
-                error: "Please check the form inputs",
-            };
-        }
-        const pet = await prisma.pets.findFirst({
-            where: {
-                pet_uuid: data.data.pet_uuid,
-            },
-        });
-        if (!pet)
-            return {
-                success: false,
-                error: "Pet not found",
-            };
+        const proceduresArray = Array.isArray(values) ? values : [values];
 
-        const result = await prisma.healthcare_procedures.create({
-            data: {
-                procedure_type: data.data.procedure_type as procedure_type,
-                procedure_date: data.data.procedure_date,
-                next_due_date: data.data.next_due_date,
-                product_used: data.data.product_used,
-                dosage: data.data.dosage,
-                notes: data.data.notes,
-                pet_id: pet.pet_id,
-            },
-        });
-        if (!result) {
-            return {
-                success: false,
-                error: "Failed to add healthcare procedure",
-            };
-        }
+        const results = await Promise.all(
+            proceduresArray.map(async (procedure) => {
+                const data = ProcedureSchema.safeParse(procedure);
+                if (!data.success) {
+                    return {
+                        success: false,
+                        error: "Please check the form inputs",
+                    };
+                }
+
+                const pet = await prisma.pets.findFirst({
+                    where: {
+                        pet_uuid: data.data.pet_uuid,
+                    },
+                });
+
+                if (!pet) {
+                    return {
+                        success: false,
+                        error: `Pet with UUID ${data.data.pet_uuid} not found`,
+                    };
+                }
+
+                return prisma.healthcare_procedures.create({
+                    data: {
+                        procedure_type: data.data.procedure_type as procedure_type,
+                        procedure_date: data.data.procedure_date,
+                        next_due_date: data.data.next_due_date,
+                        product_used: data.data.product_used,
+                        dosage: data.data.dosage,
+                        notes: data.data.notes,
+                        pet_id: pet.pet_id,
+                    },
+                });
+            }),
+        );
+
+        //const failures = results.filter((result) => result.success === false);
+        //if (failures.length > 0) {
+        //    return {
+        //        success: false,
+        //        error: failures.map((f) => f.error).join("; "),
+        //    };
+        //}
+
+        //return {
+        //    success: true,
+        //    data: { data: results.filter((r) => r.success !== false) },
+        //};
         return {
             success: true,
-            data: { procedure_uuid: result.procedure_uuid },
+            data: { data: results.filter((r) => typeof r !== "object") },
         };
     } catch (error) {
         return {

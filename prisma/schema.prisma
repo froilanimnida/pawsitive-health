@@ -8,20 +8,22 @@ datasource db {
 }
 
 model appointments {
-    appointment_id   Int                @id @default(autoincrement())
-    appointment_uuid String             @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-    pet_id           Int?
-    vet_id           Int?
-    appointment_date DateTime           @db.Timestamptz(6)
-    notes            String?
-    created_at       DateTime           @default(now()) @db.Timestamptz(6)
-    appointment_type appointment_type
-    clinic_id        Int?
-    duration_minutes Int                @default(30)
-    status           appointment_status
-    clinics          clinics?           @relation(fields: [clinic_id], references: [clinic_id], onDelete: NoAction, onUpdate: NoAction)
-    pets             pets?              @relation(fields: [pet_id], references: [pet_id], onDelete: NoAction, onUpdate: NoAction)
-    veterinarians    veterinarians?     @relation(fields: [vet_id], references: [vet_id], onDelete: NoAction, onUpdate: NoAction)
+    appointment_id        Int                     @id @default(autoincrement())
+    appointment_uuid      String                  @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+    pet_id                Int?
+    vet_id                Int?
+    appointment_date      DateTime                @db.Timestamptz(6)
+    notes                 String?
+    created_at            DateTime                @default(now()) @db.Timestamptz(6)
+    appointment_type      appointment_type
+    clinic_id             Int?
+    duration_minutes      Int                     @default(30)
+    status                appointment_status
+    clinics               clinics?                @relation(fields: [clinic_id], references: [clinic_id], onDelete: NoAction, onUpdate: NoAction)
+    pets                  pets?                   @relation(fields: [pet_id], references: [pet_id], onDelete: NoAction, onUpdate: NoAction)
+    veterinarians         veterinarians?          @relation(fields: [vet_id], references: [vet_id], onDelete: NoAction, onUpdate: NoAction)
+    vaccinations          vaccinations[]
+    healthcare_procedures healthcare_procedures[]
 }
 
 model educational_content {
@@ -215,8 +217,10 @@ model vaccinations {
     administered_by   Int?
     batch_number      String?        @db.VarChar(50)
     created_at        DateTime       @default(now()) @db.Timestamptz(6)
+    appointment_id    Int?
     veterinarians     veterinarians? @relation(fields: [administered_by], references: [vet_id], onDelete: NoAction, onUpdate: NoAction)
     pets              pets?          @relation(fields: [pet_id], references: [pet_id], onDelete: NoAction, onUpdate: NoAction)
+    appointments      appointments?  @relation(fields: [appointment_id], references: [appointment_id], onDelete: SetNull, onUpdate: NoAction)
 }
 
 model veterinarians {
@@ -307,8 +311,10 @@ model healthcare_procedures {
     administered_by Int?
     notes           String?
     created_at      DateTime       @default(now()) @db.Timestamptz(6)
+    appointment_id  Int?
     veterinarians   veterinarians? @relation(fields: [administered_by], references: [vet_id], onDelete: NoAction, onUpdate: NoAction)
     pets            pets?          @relation(fields: [pet_id], references: [pet_id], onDelete: NoAction, onUpdate: NoAction)
+    appointments    appointments?  @relation(fields: [appointment_id], references: [appointment_id], onDelete: SetNull, onUpdate: NoAction) // Add this relation
 }
 
 enum procedure_type {
