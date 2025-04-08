@@ -38,15 +38,7 @@ import { toTitleCase } from "@/lib";
 import { breed_type, pet_sex_type, procedure_type, species_type } from "@prisma/client";
 import { SelectFormField } from "@/types/forms/select-form-field";
 
-// Adding params to make it reusable for edit pet functionalities:
-interface AddPetFormType {
-    editMode?: boolean;
-    petName?: string;
-    weightKg?: number;
-    petUuid?: string;
-}
-
-const AddPetForm = ({ editMode = false, petName, weightKg, petUuid }: AddPetFormType) => {
+const AddPetForm = () => {
     const [selectedBreed, setSelectedBreed] = useState<breed_type | string>("");
     const [selectedSpecies, setSelectedSpecies] = useState<species_type>("dog");
     const [procedures, setProcedures] = useState<

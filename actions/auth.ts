@@ -98,34 +98,46 @@ const verifyEmail = async (token: string): Promise<ActionResponse<{ verified: bo
 
 const logout = async () => await signOut({ callbackUrl: "/auth/login" });
 
-const verifyOTPToken = async (email: string, otpToken: string): Promise<ActionResponse<{ correct: boolean }>> => {
+const verifyOTPToken = async (
+    email: string,
+    otpToken: string,
+): Promise<ActionResponse<{ correct: boolean; role?: role_type }>> => {
     try {
         const user = await prisma.users.findFirst({
-            where: {
-                email: email,
-            },
+            where: { email },
             select: {
                 user_id: true,
                 otp_token: true,
                 otp_expires_at: true,
+                role: true,
             },
         });
 
         if (!user) return { success: false, error: "User not found" };
         if (user.otp_token === null || user.otp_expires_at === null)
             return { success: false, error: "OTP token not found or expired" };
-        await prisma.users.update({
-            where: { user_id: user.user_id },
-            data: {
-                otp_token: null,
-                otp_expires_at: null,
-            },
-        });
+
+        const isCorrect = user.otp_token === otpToken && user.otp_expires_at > new Date();
+
+        if (isCorrect) {
+            await prisma.users.update({
+                where: { user_id: user.user_id },
+                data: {
+                    otp_token: null,
+                    otp_expires_at: null,
+                },
+            });
+        }
+
         return {
             success: true,
-            data: { correct: user.otp_token === otpToken && user.otp_expires_at > new Date() },
+            data: {
+                correct: isCorrect,
+                role: isCorrect ? user.role : undefined,
+            },
         };
     } catch (error) {
+        console.error("OTP verification error:", error);
         return {
             success: false,
             error: error instanceof Error ? error.message : "Invalid or expired OTP token",
@@ -251,7 +263,7 @@ const regenerateOTPToken = async (email: string): Promise<ActionResponse<{ user:
         };
     }
 };
-const loginAccount = async (values: LoginType): Promise<ActionResponse<{}>> => {
+const loginAccount = async (values: LoginType): Promise<ActionResponse<{ data: object }>> => {
     try {
         const user = await prisma.users.findFirst({
             where: {
@@ -291,7 +303,7 @@ const loginAccount = async (values: LoginType): Promise<ActionResponse<{}>> => {
             },
         );
 
-        return { success: true, data: {} };
+        return { success: true, data: { data: {} } };
     } catch (error) {
         return {
             success: false,

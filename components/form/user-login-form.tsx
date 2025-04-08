@@ -96,43 +96,70 @@ const UserLoginForm = () => {
 
     const handleOtp = async (values: { otp: string }) => {
         setIsOtpLoading(true);
-        toast.promise(verifyOTPToken(email, values.otp), {
-            loading: "Verifying OTP...",
-            success: (data) => {
-                if (data.success && data.data?.correct) {
-                    setShowOtpDialog(false);
-                    return "OTP verified successfully!";
-                } else {
-                    throw new Error("Invalid OTP code");
-                }
-            },
-            error: (error) => {
+
+        try {
+            const otpResult = await verifyOTPToken(email, values.otp);
+
+            if (!otpResult.success || !otpResult.data?.correct) {
+                toast.error("Invalid OTP code");
                 setIsOtpLoading(false);
-                return error.message || "Failed to verify OTP";
-            },
-        });
+                return;
+            }
 
-        const signInResult = await signIn("credentials", {
-            email,
-            password,
-            redirect: false,
-        });
+            const signInResult = await signIn("credentials", {
+                email,
+                password,
+                redirect: false,
+            });
 
-        if (signInResult?.error) {
-            toast.error("Authentication failed: " + signInResult.error);
-            return;
+            if (signInResult?.error) {
+                toast.error("Authentication failed: " + signInResult.error);
+                setIsOtpLoading(false);
+                return;
+            }
+
+            toast.success("Successfully signed in!");
+            setShowOtpDialog(false);
+
+            const userRole = otpResult.data.role;
+            if (userRole) {
+                console.log("User role:", userRole);
+                setTimeout(() => {
+                    switch (userRole) {
+                        case "user":
+                            router.push("/u");
+                            break;
+                        case "client":
+                            router.push("/c");
+                            break;
+                        case "veterinarian":
+                            router.push("/v");
+                            break;
+                        case "admin":
+                            router.push("/a");
+                            break;
+                        default:
+                            router.push("/");
+                    }
+                }, 500);
+            } else {
+                const session = await getSession();
+                if (session?.user?.role) {
+                    if (session.user.role === "client") router.push("/c");
+                    else if (session.user.role === "veterinarian") router.push("/v");
+                    else if (session.user.role === "admin") router.push("/a");
+                    else if (session.user.role === "user") router.push("/u");
+                    else router.push("/");
+                } else {
+                    router.push("/");
+                }
+            }
+        } catch (error) {
+            console.error("OTP handling error:", error);
+            toast.error("An unexpected error occurred");
+        } finally {
+            setIsOtpLoading(false);
         }
-
-        const session = await getSession();
-
-        if (session?.user?.role) {
-            toast.success("Signed in successfully");
-            if (session.user.role === "client") router.push("/c");
-            else if (session.user.role === "veterinarian") router.push("/v");
-            else if (session.user.role === "admin") router.push("/a");
-            else if (session.user.role === "user") router.push("/u");
-            else router.push("/");
-        } else toast.error("Failed to retrieve user role");
     };
 
     return (

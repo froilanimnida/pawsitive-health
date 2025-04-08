@@ -8,7 +8,7 @@ import { type ActionResponse } from "@/types/server-action-response";
 import type { Pets } from "@/types/pets";
 import { revalidatePath } from "next/cache";
 
-const addPet = async (values: PetOnboardingSchema): Promise<ActionResponse> => {
+const addPet = async (values: PetOnboardingSchema): Promise<ActionResponse | void> => {
     try {
         const session = await auth();
         const newPetData = OnboardingPetSchema.safeParse(values);
@@ -182,7 +182,6 @@ async function getPet(identifier: string | number): Promise<ActionResponse<{ pet
         const petInfo = {
             ...pet,
             weight_kg: formatDecimal(pet.weight_kg),
-            // Format decimal values in health monitoring records
             health_monitoring: pet.health_monitoring.map((record) => ({
                 ...record,
                 weight_kg: formatDecimal(record.weight_kg),
@@ -199,7 +198,7 @@ async function getPet(identifier: string | number): Promise<ActionResponse<{ pet
     }
 }
 
-const updatePet = async (values: UpdatePetType): Promise<ActionResponse> => {
+const updatePet = async (values: UpdatePetType): Promise<ActionResponse | void> => {
     try {
         const petData = UpdatePetSchema.safeParse(values);
         if (!petData.success) return { success: false, error: "Please check the form inputs" };
