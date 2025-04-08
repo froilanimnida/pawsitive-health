@@ -33,13 +33,16 @@ const EditPetForm = ({ petName, weightKg, petUuid }: { petName: string; weightKg
 
     const handleSubmit = async (values: UpdatePetType) => {
         setIsLoading(true);
+        const t = toast.loading("Updating pet...");
         const result = await updatePet(values);
-        if (result && result.success) {
-            if (result.success) {
-                toast.success("Pet updated successfully");
-            }
-            toast.error("Failed to update pet");
+        if (result === undefined) {
+            setIsLoading(false);
+            toast.dismiss(t);
+            toast.success("Pet updated successfully");
+            return;
         }
+        setIsLoading(false);
+        toast.error("An error occurred while updating the pet");
     };
 
     return (

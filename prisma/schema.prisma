@@ -207,6 +207,7 @@ model users {
 
 model vaccinations {
     vaccination_id    Int            @id @default(autoincrement())
+    vaccination_uuid  String         @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
     pet_id            Int?
     vaccine_name      String?        @db.VarChar(100)
     administered_date DateTime?      @db.Date
@@ -311,12 +312,43 @@ model healthcare_procedures {
 }
 
 enum procedure_type {
-    deworming
-    flea_treatment
-    heartworm_prevention
+    acupuncture
+    allergy_testing
+    behavioral_consultation
+    blood_test
     dental_cleaning
-    spay_neuter
+    deworming
+    ear_cleaning
+    emergency_care
+    examination
+    fecal_test
+    flea_treatment
     general_checkup
+    grooming
+    heartworm_prevention
+    imaging
+    immunotherapy
+    laboratory_work
+    microchipping
+    nail_trimming
+    neutering
+    nutrition_consultation
+    oral_medication
+    parasite_control
+    physical_therapy
+    preventive_care
+    radiology
+    rehabilitation
+    skin_treatment
+    spay_neuter
+    surgical_procedure
+    teeth_brushing
+    ultrasound
+    urinalysis
+    vaccination
+    wellness_exam
+    wound_care
+    x_ray
     other
 }
 

@@ -24,9 +24,10 @@ export {
 } from "./appointment";
 export { getUserId } from "./user";
 export { getVeterinaryAvailability } from "./veterinarian-availability";
-//export {} from "./vaccinations";
+export { createVaccination, getPetVaccinations } from "./vaccination";
 //export {} from "./medical-records";
 //export {} from "./health-monitoring";
+export { addHealthcareProcedure, getHealthcareProcedure, getHealthcareProcedures } from "./healthcare-procedures";
 export { getClinicSchedule } from "./clinic-schedule";
 export { createMedication, getMedicationsList } from "./medications";
 export { sendEmail, sendSimpleEmail } from "./send-email";

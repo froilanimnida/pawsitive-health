@@ -19,6 +19,8 @@ import {
 import Link from "next/link";
 import { toTitleCase } from "@/lib";
 import EditPetForm from "@/components/form/edit-pet-form";
+import PetProcedureForm from "@/components/form/pet-healthcare-form";
+import PetVaccinationForm from "@/components/form/pet-vaccination-form";
 
 export async function generateMetadata({ params }: { params: Promise<{ uuid: string }> }): Promise<Metadata> {
     const { uuid } = await params;
@@ -83,6 +85,30 @@ export default async function PetDetails({ params }: { params: Promise<{ uuid: s
                                 <DialogDescription>Update your pet&apos;s information.</DialogDescription>
                             </DialogHeader>
                             <EditPetForm petName={pet.name} petUuid={pet.pet_uuid} weightKg={Number(pet.weight_kg)} />
+                        </DialogContent>
+                    </Dialog>
+                    <Dialog>
+                        <DialogTrigger asChild>
+                            <Button variant="outline">Add Pet Procedure</Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[425px]">
+                            <DialogHeader>
+                                <DialogTitle>Add Pet Healthcare Procedure</DialogTitle>
+                                <DialogDescription>Add historical pet procedure</DialogDescription>
+                            </DialogHeader>
+                            <PetProcedureForm petUuid={pet.pet_uuid} />
+                        </DialogContent>
+                    </Dialog>
+                    <Dialog>
+                        <DialogTrigger asChild>
+                            <Button variant="outline">Add Pet Vaccination</Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[425px]">
+                            <DialogHeader>
+                                <DialogTitle>Add Pet Vaccination</DialogTitle>
+                                <DialogDescription>Add historical pet vaccination</DialogDescription>
+                            </DialogHeader>
+                            <PetVaccinationForm petUuid={pet.pet_uuid} />
                         </DialogContent>
                     </Dialog>
 

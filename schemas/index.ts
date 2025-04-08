@@ -4,6 +4,8 @@ export {
     type PetHealthcareType,
     ProcedureSchema,
     type ProcedureType,
+    PetVaccinationSchema,
+    type PetVaccinationType,
 } from "./procedure-definition";
 export { PrescriptionDefinition, type PrescriptionType } from "./prescription-definition";
 export { PetSchema, type PetType, UpdatePetSchema, type UpdatePetType } from "./pet-definition";
