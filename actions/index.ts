@@ -21,6 +21,7 @@ export {
     getAppointment,
     getClinicAppointments,
     getVeterinarianAppointments,
+    changeAppointmentStatus,
 } from "./appointment";
 export { getUserId } from "./user";
 export { getVeterinaryAvailability } from "./veterinarian-availability";

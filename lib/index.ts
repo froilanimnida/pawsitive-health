@@ -6,4 +6,5 @@ export { generateOtp, generateSecret, verifyOTPToken } from "./functions/securit
 export { hashPassword, verifyPassword } from "./functions/security/password-check";
 export { prisma } from "./prisma";
 export { cn } from "./utils";
+export { deleteFileFromR2, getPresignedDownloadUrl, uploadFileToR2 } from "./r2-service";
 export { toTitleCase } from "./functions/text/title-case";

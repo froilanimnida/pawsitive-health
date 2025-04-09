@@ -6,10 +6,12 @@ async function VeterinaryLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <div className="flex h-screen">
-            <AppSidebar variant="floating" />
-            {children}
-        </div>
+        <main className="min-h-screen w-full flex flex-row">
+            <section>
+                <AppSidebar variant="floating" />
+            </section>
+            <aside className="p-4 w-full h-full">{children}</aside>
+        </main>
     );
 }
 

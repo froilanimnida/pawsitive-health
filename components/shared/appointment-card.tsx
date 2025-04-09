@@ -1,7 +1,6 @@
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, MapPin, User, Stethoscope, XCircle, CheckCircle } from "lucide-react";
+import { Calendar, Clock, MapPin, User, Stethoscope, XCircle, CheckCircle, Check } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toTitleCase } from "@/lib/functions/text/title-case";
@@ -15,10 +14,17 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-} from "../ui/dialog";
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui";
 import { CancelAppointmentButton } from "./cancel-appointment-button";
 import { AppointmentDetailsResponse } from "@/types/actions/appointments";
 import { AcceptAppointmentButton } from "./accept=appointment-button";
+import { CheckInButton } from "./checked-in-button";
 
 export const statusColors: Record<string, string> = {
     confirmed: "bg-green-100 text-green-800 border-green-200",
@@ -28,19 +34,17 @@ export const statusColors: Record<string, string> = {
     pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
 };
 
-export interface AppointmentCardProps {
-    appointment: AppointmentDetailsResponse;
-    viewerType: "user" | "vet" | "clinic";
-    additionalActions?: React.ReactNode;
-    showFooter?: boolean;
-}
-
 export function AppointmentCard({
     appointment,
     viewerType,
     additionalActions,
     showFooter = true,
-}: AppointmentCardProps) {
+}: {
+    appointment: AppointmentDetailsResponse;
+    viewerType: "user" | "vet" | "clinic";
+    additionalActions?: React.ReactNode;
+    showFooter?: boolean;
+}) {
     const appointmentDate = new Date(appointment.appointment_date);
     const dateString = format(appointmentDate, "EEEE, MMMM d, yyyy");
     const timeString = format(appointmentDate, "h:mm a");
@@ -50,7 +54,7 @@ export function AppointmentCard({
         : "Unknown Veterinarian";
 
     return (
-        <Card className="overflow-hidden">
+        <Card className="w-full">
             <CardHeader className="pb-0">
                 <div className="flex items-center justify-between flex-wrap gap-4">
                     <CardTitle className="text-2xl">Appointment Details</CardTitle>
@@ -201,6 +205,31 @@ export function AppointmentCard({
                                     </DialogHeader>
                                     <DialogFooter>
                                         <CancelAppointmentButton appointmentUuid={appointment.appointment_uuid} />
+                                        <DialogClose asChild>
+                                            <Button variant="default">Cancel</Button>
+                                        </DialogClose>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
+                        )}
+                        {appointment.status === "confirmed" && viewerType === "vet" && (
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <Button variant="default">
+                                        <Check className="mr-2 h-4 w-4" />
+                                        Check-in
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>Are you absolutely sure?</DialogTitle>
+                                        <DialogDescription>
+                                            Please make sure that the user is inside the premise and is ready for the
+                                            appointment.
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <DialogFooter>
+                                        <CheckInButton appointmentUuid={appointment.appointment_uuid} />
                                         <DialogClose asChild>
                                             <Button variant="outline">Cancel</Button>
                                         </DialogClose>

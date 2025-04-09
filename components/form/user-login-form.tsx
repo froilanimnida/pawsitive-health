@@ -16,6 +16,9 @@ import {
     FormLabel,
     FormMessage,
     Input,
+    InputOTP,
+    InputOTPGroup,
+    InputOTPSlot,
 } from "@/components/ui";
 import { useForm } from "react-hook-form";
 import { getSession, signIn } from "next-auth/react";
@@ -209,22 +212,30 @@ const UserLoginForm = () => {
                                 name="otp"
                                 render={({ field, fieldState }) => (
                                     <FormItem>
-                                        <FormLabel>OTP</FormLabel>
+                                        <FormLabel>One-Time Password</FormLabel>
                                         <FormControl>
-                                            <Input
-                                                type="text"
-                                                placeholder="Enter OTP"
-                                                {...field}
-                                                required
-                                                disabled={isOtpLoading}
-                                            />
+                                            <InputOTP maxLength={6} {...field}>
+                                                <InputOTPGroup>
+                                                    <InputOTPSlot index={0} />
+                                                    <InputOTPSlot index={1} />
+                                                    <InputOTPSlot index={2} />
+                                                    <InputOTPSlot index={3} />
+                                                    <InputOTPSlot index={4} />
+                                                    <InputOTPSlot index={5} />
+                                                </InputOTPGroup>
+                                            </InputOTP>
                                         </FormControl>
-                                        <FormDescription>Enter the OTP sent to your email address.</FormDescription>
-                                        <FormMessage className="text-red-500">{fieldState.error?.message}</FormMessage>
+                                        <FormDescription>
+                                            Please enter the one-time password sent to your phone.
+                                        </FormDescription>
+                                        <FormMessage>{fieldState.error?.message}</FormMessage>
                                     </FormItem>
                                 )}
                             />
                             <DialogFooter>
+                                <Button disabled={isOtpLoading} type="submit">
+                                    {isOtpLoading ? "Verifying..." : "Verify OTP"}
+                                </Button>
                                 <Button disabled={isOtpLoading} type="submit">
                                     {isOtpLoading ? "Verifying..." : "Verify OTP"}
                                 </Button>

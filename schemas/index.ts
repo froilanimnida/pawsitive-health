@@ -23,3 +23,4 @@ export {
     type SignUpType,
 } from "./auth-definitions";
 export { AppointmentSchema, type AppointmentType } from "./appointment-definition";
+export { DocumentUploadSchema, type DocumentUploadType } from "./document-schema";

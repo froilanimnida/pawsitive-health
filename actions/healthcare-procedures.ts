@@ -5,6 +5,7 @@ import { ProcedureSchema, type ProcedureType } from "@/schemas";
 import type { ActionResponse } from "@/types/server-action-response";
 import type { healthcare_procedures, procedure_type } from "@prisma/client";
 
+// TODO: Add intent parameter to conditionally revalidateCache based on the doer of the action like if vet refresh like /v/something of if user refresh like /u/something
 const addHealthcareProcedure = async (
     values: ProcedureType | ProcedureType[],
 ): Promise<ActionResponse<{ data: object }>> => {

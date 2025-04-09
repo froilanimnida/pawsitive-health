@@ -3,11 +3,12 @@ import { prisma, toTitleCase } from "@/lib";
 import { getClinic, getPet, getUserId, sendEmail } from "@/actions";
 import { AppointmentType } from "@/schemas";
 import { auth } from "@/auth";
-import { type appointment_type, type Prisma } from "@prisma/client";
+import { type appointment_status, type appointment_type, type Prisma } from "@prisma/client";
 import type { ActionResponse } from "@/types/server-action-response";
 import { endOfDay, startOfDay } from "date-fns";
 import { AppointmentDetailsResponse, GetUserAppointmentsResponse } from "@/types/actions/appointments";
 import { AppointmentConfirmation, AppointmentConfirmed } from "@/templates";
+import { revalidatePath } from "next/cache";
 
 export type AppointmentWithRelations = Prisma.appointmentsGetPayload<{
     include: {
@@ -450,6 +451,28 @@ const confirmAppointment = async (appointment_uuid: string): Promise<ActionRespo
     }
 };
 
+const changeAppointmentStatus = async (
+    appointment_uuid: string,
+    status: appointment_status,
+): Promise<ActionResponse | void> => {
+    try {
+        const appointment = await prisma.appointments.update({
+            where: {
+                appointment_uuid: appointment_uuid,
+            },
+            data: {
+                status: status,
+            },
+        });
+
+        if (!appointment) return { success: false, error: "Appointment not found" };
+
+        revalidatePath(`/v/appointments/${appointment.appointment_uuid}`);
+    } catch (error) {
+        return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
+    }
+};
+
 export {
     getUserAppointments,
     createUserAppointment,
@@ -459,4 +482,5 @@ export {
     getAppointment,
     cancelAppointment,
     confirmAppointment,
+    changeAppointmentStatus,
 };

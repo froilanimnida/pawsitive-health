@@ -13,9 +13,17 @@ export default async function middleware(request: NextRequest) {
     }
 
     const isProtected = PROTECTED_ROUTES.some((route) => request.nextUrl.pathname.startsWith(route));
+    console.log(request.url);
     if (isProtected) console.log("This route is protected");
 
-    return NextResponse.next();
+    return NextResponse.next({
+        request: {
+            headers: {
+                ...request.headers,
+                "x-pathname": request.nextUrl.pathname,
+            }
+        },
+    });
 }
 
 export const config = {
