@@ -26,7 +26,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { LoginSchema, LoginType, OtpSchema } from "@/schemas";
 import { toast } from "sonner";
 import { TextFormField } from "@/types/forms/text-form-field";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { loginAccount, verifyOTPToken } from "@/actions";
 
 const UserLoginForm = () => {
@@ -36,6 +36,8 @@ const UserLoginForm = () => {
     const [password, setPassword] = useState("");
     const [showOtpDialog, setShowOtpDialog] = useState(false);
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const nextUrl = searchParams.get("next") || "";
 
     const loginFormFields: TextFormField[] = [
         {
@@ -124,37 +126,40 @@ const UserLoginForm = () => {
             toast.success("Successfully signed in!");
             setShowOtpDialog(false);
 
-            const userRole = otpResult.data.role;
-            if (userRole) {
-                console.log("User role:", userRole);
-                setTimeout(() => {
-                    switch (userRole) {
-                        case "user":
-                            router.push("/u");
-                            break;
-                        case "client":
-                            router.push("/c");
-                            break;
-                        case "veterinarian":
-                            router.push("/v");
-                            break;
-                        case "admin":
-                            router.push("/a");
-                            break;
-                        default:
-                            router.push("/");
-                    }
-                }, 500);
+            if (nextUrl) {
+                router.push(nextUrl);
             } else {
-                const session = await getSession();
-                if (session?.user?.role) {
-                    if (session.user.role === "client") router.push("/c");
-                    else if (session.user.role === "veterinarian") router.push("/v");
-                    else if (session.user.role === "admin") router.push("/a");
-                    else if (session.user.role === "user") router.push("/u");
-                    else router.push("/");
+                const userRole = otpResult.data.role;
+                if (userRole) {
+                    setTimeout(() => {
+                        switch (userRole) {
+                            case "user":
+                                router.push("/u");
+                                break;
+                            case "client":
+                                router.push("/c");
+                                break;
+                            case "veterinarian":
+                                router.push("/v");
+                                break;
+                            case "admin":
+                                router.push("/a");
+                                break;
+                            default:
+                                router.push("/");
+                        }
+                    }, 500);
                 } else {
-                    router.push("/");
+                    const session = await getSession();
+                    if (session?.user?.role) {
+                        if (session.user.role === "client") router.push("/c");
+                        else if (session.user.role === "veterinarian") router.push("/v");
+                        else if (session.user.role === "admin") router.push("/a");
+                        else if (session.user.role === "user") router.push("/u");
+                        else router.push("/");
+                    } else {
+                        router.push("/");
+                    }
                 }
             }
         } catch (error) {

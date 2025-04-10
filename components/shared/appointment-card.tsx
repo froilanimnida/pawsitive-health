@@ -264,6 +264,32 @@ export function AppointmentCard({
                                 </Dialog>
                             ))}
 
+                        {appointment.status === "checked_in" && viewerType === "vet" && (
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <Button>
+                                        <CheckCircle className="mr-2 h-4 w-4" />
+                                        Finalize Appointment
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>Are you absolutely sure?</DialogTitle>
+                                        <DialogDescription>
+                                            This action cannot be undone. This will permanently mark this appointment as
+                                            completed. We&apos;ll send a confirmation to the user.
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <DialogFooter>
+                                        <AcceptAppointmentButton appointmentUuid={appointment.appointment_uuid} />
+                                        <DialogClose asChild>
+                                            <Button variant="outline">Cancel</Button>
+                                        </DialogClose>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
+                        )}
+
                         {/* {appointment.status !== "cancelled" && onReschedule && (
                             <Button variant="outline" onClick={() => onReschedule(appointment.appointment_uuid)}>
                                 <Calendar className="mr-2 h-4 w-4" />
