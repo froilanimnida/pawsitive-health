@@ -14,52 +14,13 @@ import {
     Badge,
     Button,
 } from "@/components/ui";
+import { Navbar } from "@/components/shared/home-navbar";
 import { Heart, Activity, Calendar, Bell, Shield, Star, ArrowRight, CheckCircle2 } from "lucide-react";
 
 export default function LandingPage() {
     return (
         <div className="flex min-h-screen flex-col w-full">
-            <header className="sticky top-0 z-40 w-full border-b flex justify-center bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                <div className="container flex h-16 items-center space-x-4 sm:justify-between sm:space-x-0">
-                    <div className="flex gap-2 items-center">
-                        <Heart className="h-6 w-6 text-teal-500" />
-                        <span className="hidden font-bold text-xl sm:inline-block">PetCare</span>
-                    </div>
-                    <div className="flex flex-1 items-center justify-end space-x-4">
-                        <nav className="flex items-center space-x-2">
-                            <Link
-                                href="#features"
-                                className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-                            >
-                                Features
-                            </Link>
-                            <Link
-                                href="#testimonials"
-                                className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-                            >
-                                Testimonials
-                            </Link>
-                            <Link
-                                href="/education"
-                                className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-                            >
-                                Education Content
-                            </Link>
-                            <Button variant="outline" size="sm" asChild className="hidden sm:flex">
-                                <Link href={"/auth/login"} className="hidden sm:flex">
-                                    Login
-                                </Link>
-                            </Button>
-                            <Button size="sm">
-                                <Link href={"/auth/sign-up"} className="hidden sm:flex">
-                                    Sign Up
-                                </Link>
-                            </Button>
-                        </nav>
-                    </div>
-                </div>
-            </header>
-
+            <Navbar />
             <main className="flex-1">
                 {/* Hero Section */}
                 <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 flex flex-col justify-center">

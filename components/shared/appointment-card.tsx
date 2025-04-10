@@ -23,7 +23,7 @@ import {
 } from "@/components/ui";
 import { CancelAppointmentButton } from "./cancel-appointment-button";
 import { AppointmentDetailsResponse } from "@/types/actions/appointments";
-import { AcceptAppointmentButton } from "./accept=appointment-button";
+import { AcceptAppointmentButton } from "./accept-appointment-button";
 import { CheckInButton } from "./checked-in-button";
 
 export const statusColors: Record<string, string> = {
