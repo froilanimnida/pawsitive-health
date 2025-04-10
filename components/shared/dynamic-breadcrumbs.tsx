@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+//import { Fragment } from "react";
 import Link from "next/link";
 import { Home } from "lucide-react";
 import {
@@ -6,12 +6,12 @@ import {
     BreadcrumbItem,
     BreadcrumbLink,
     BreadcrumbList,
-    BreadcrumbPage,
-    BreadcrumbSeparator,
+    //BreadcrumbPage,
+    //BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import {headers} from "next/headers";
+import { headers } from "next/headers";
 
-export async function  DynamicBreadcrumbs() {
+export async function DynamicBreadcrumbs() {
     const header = await headers();
     const pathname = header.get("x-pathname");
     console.log(pathname);
