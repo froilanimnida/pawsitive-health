@@ -19,7 +19,7 @@ import { Heart, Activity, Calendar, Bell, Shield, Star, ArrowRight, CheckCircle2
 export default function LandingPage() {
     return (
         <div className="flex min-h-screen flex-col w-full">
-            <header className="sticky top-0 z-40 w-full max-w-11/12 border-b flex justify-center bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <header className="sticky top-0 z-40 w-full border-b flex justify-center bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                 <div className="container flex h-16 items-center space-x-4 sm:justify-between sm:space-x-0">
                     <div className="flex gap-2 items-center">
                         <Heart className="h-6 w-6 text-teal-500" />
@@ -50,49 +50,41 @@ export default function LandingPage() {
                                     Login
                                 </Link>
                             </Button>
-                            <Button size="sm">Sign up</Button>
+                            <Button size="sm">
+                                <Link href={"/auth/sign-up"} className="hidden sm:flex">
+                                    Sign Up
+                                </Link>
+                            </Button>
                         </nav>
                     </div>
                 </div>
             </header>
 
-            <main className="flex-1 w-full max-w-11/12">
+            <main className="flex-1">
                 {/* Hero Section */}
-                <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 flex justify-center">
-                    <div className="container px-4 md:px-6">
-                        <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 xl:grid-cols-2">
-                            <div className="flex flex-col justify-center space-y-4">
-                                <div className="space-y-2">
-                                    <Badge className="inline-block" variant="outline">
-                                        Trusted by 10,000+ pet owners
-                                    </Badge>
-                                    <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
-                                        Complete healthcare monitoring for your pets
-                                    </h1>
-                                    <p className="max-w-[600px] text-muted-foreground md:text-xl">
-                                        Track your pet&apos;s health, schedule vet appointments, and receive real-time
-                                        alerts about your furry friend&apos;s wellbeing.
-                                    </p>
-                                </div>
-                                <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                                    <Button size="lg" className="bg-teal-600 hover:bg-teal-700">
-                                        Get Started
-                                        <ArrowRight className="ml-2 h-4 w-4" />
-                                    </Button>
-                                    <Button size="lg" variant="outline">
-                                        Book a Demo
-                                    </Button>
-                                </div>
+                <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 flex flex-col justify-center">
+                    <div className="px-4 md:px-6">
+                        <div className="flex justify-center items-center space-y-4 text-center flex-col">
+                            <div className="space-y-2 flex justify-center flex-col items-center">
+                                <Badge className="inline-block" variant="outline">
+                                    Trusted by 10,000+ pet owners
+                                </Badge>
+                                <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
+                                    Complete healthcare monitoring for your pets
+                                </h1>
+                                <p className="max-w-[600px] text-muted-foreground md:text-xl">
+                                    Track your pet&apos;s health, schedule vet appointments, and receive real-time
+                                    alerts about your furry friend&apos;s wellbeing.
+                                </p>
                             </div>
-                            <div className="flex items-center justify-center">
-                                <Image
-                                    src="/placeholder.svg?height=550&width=550"
-                                    width={550}
-                                    height={550}
-                                    alt="Veterinarian with dog and cat"
-                                    className="rounded-lg object-cover"
-                                    priority
-                                />
+                            <div className="flex flex-col gap-2 min-[400px]:flex-row">
+                                <Button size="lg" className="bg-teal-600 hover:bg-teal-700">
+                                    Get Started
+                                    <ArrowRight className="ml-2 h-4 w-4" />
+                                </Button>
+                                <Button size="lg" variant="outline">
+                                    Book a Demo
+                                </Button>
                             </div>
                         </div>
                     </div>
