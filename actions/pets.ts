@@ -254,4 +254,24 @@ const getPets = async (): Promise<ActionResponse<{ pets: Pets[] }>> => {
     }
 };
 
-export { addPet, getPet, updatePet, getPets };
+const getPetId = async (pet_uuid: string): Promise<ActionResponse<{ pet_id: number }>> => {
+    try {
+        const pet = await prisma.pets.findUnique({
+            where: { pet_uuid },
+            select: {
+                pet_id: true,
+            },
+        });
+
+        if (!pet) return { success: false, error: "Pet not found" };
+
+        return { success: true, data: { pet_id: pet.pet_id } };
+    } catch (error) {
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "An unexpected error occurred",
+        };
+    }
+};
+
+export { addPet, getPet, updatePet, getPets, getPetId };

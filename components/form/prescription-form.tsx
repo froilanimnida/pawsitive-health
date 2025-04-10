@@ -28,6 +28,7 @@ import { cn } from "@/lib/utils";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { format, addDays } from "date-fns";
 import { z } from "zod";
+import { getMedicationsList } from "@/actions";
 
 const PrescriptionFormSchema = PrescriptionDefinition.extend({
     pet_uuid: z.string().uuid(),
@@ -45,16 +46,22 @@ const PrescriptionForm = ({ petUuid, appointmentUuid, onSuccess }: PrescriptionF
     const [isLoading, setIsLoading] = useState(false);
     const [medications, setMedications] = useState<{ id: number; name: string }[]>([]);
 
-    // Fetch available medications
     useEffect(() => {
         const fetchMedications = async () => {
             try {
-                // Replace with your actual API call
-                const response = await fetch("/api/medications");
-                const data = await response.json();
-                if (data.success) {
-                    setMedications(data.medications);
+                const response = await getMedicationsList();
+                if (!response.success) {
+                    throw new Error(response.error || "Failed to fetch medications");
                 }
+
+                setMedications(
+                    response.data.medication.map((med) => {
+                        return {
+                            id: med.medication_id,
+                            name: med.name,
+                        };
+                    }),
+                );
             } catch (error) {
                 console.error("Error fetching medications:", error);
             }
@@ -79,9 +86,7 @@ const PrescriptionForm = ({ petUuid, appointmentUuid, onSuccess }: PrescriptionF
 
     const onSubmit = async (data: PrescriptionType) => {
         setIsLoading(true);
-
         try {
-            // Replace with your actual API endpoint
             const response = await fetch("/api/prescriptions", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },

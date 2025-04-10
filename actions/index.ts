@@ -1,4 +1,4 @@
-export { addPet, getPet, updatePet, getPets } from "./pets";
+export { addPet, getPet, updatePet, getPets, getPetId } from "./pets";
 export { getClinics, getNearbyClinics, getClinic } from "./clinic";
 export {
     createAccount,
