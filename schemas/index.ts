@@ -4,9 +4,11 @@ export {
     type PetHealthcareType,
     ProcedureSchema,
     type ProcedureType,
+    PetVaccinationSchema,
+    type PetVaccinationType,
 } from "./procedure-definition";
 export { PrescriptionDefinition, type PrescriptionType } from "./prescription-definition";
-export { PetSchema, type PetType } from "./pet-definition";
+export { PetSchema, type PetType, UpdatePetSchema, type UpdatePetType } from "./pet-definition";
 export { OnboardingPetSchema, type PetOnboardingSchema } from "./onboarding-definition";
 export { MedicineSchema, type MedicineType } from "./medicine-definition";
 export { MedicalRecordsDefinition, type MedicalRecordsType } from "./medical-records-definition";
@@ -21,3 +23,4 @@ export {
     type SignUpType,
 } from "./auth-definitions";
 export { AppointmentSchema, type AppointmentType } from "./appointment-definition";
+export { DocumentUploadSchema, type DocumentUploadType } from "./document-schema";

@@ -175,11 +175,14 @@ const AddPetForm = () => {
         ]);
     };
     const onSubmit = async (values: PetOnboardingSchema) => {
-        toast.promise(addPet(values), {
-            loading: "Adding pet...",
-            success: "Pet added successfully",
-            error: "Failed to add pet",
-        });
+        toast.loading("Adding pet...");
+        const result = await addPet(values);
+        if (result === undefined) {
+            toast.dismiss();
+            toast.success("Pet added successfully");
+            return;
+        }
+        toast.error("Failed to add pet");
     };
 
     return (

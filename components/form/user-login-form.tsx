@@ -16,6 +16,9 @@ import {
     FormLabel,
     FormMessage,
     Input,
+    InputOTP,
+    InputOTPGroup,
+    InputOTPSlot,
 } from "@/components/ui";
 import { useForm } from "react-hook-form";
 import { getSession, signIn } from "next-auth/react";
@@ -23,7 +26,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { LoginSchema, LoginType, OtpSchema } from "@/schemas";
 import { toast } from "sonner";
 import { TextFormField } from "@/types/forms/text-form-field";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { loginAccount, verifyOTPToken } from "@/actions";
 
 const UserLoginForm = () => {
@@ -33,6 +36,8 @@ const UserLoginForm = () => {
     const [password, setPassword] = useState("");
     const [showOtpDialog, setShowOtpDialog] = useState(false);
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const nextUrl = searchParams.get("next") || "";
 
     const loginFormFields: TextFormField[] = [
         {
@@ -96,43 +101,73 @@ const UserLoginForm = () => {
 
     const handleOtp = async (values: { otp: string }) => {
         setIsOtpLoading(true);
-        toast.promise(verifyOTPToken(email, values.otp), {
-            loading: "Verifying OTP...",
-            success: (data) => {
-                if (data.success && data.data?.correct) {
-                    setShowOtpDialog(false);
-                    return "OTP verified successfully!";
-                } else {
-                    throw new Error("Invalid OTP code");
-                }
-            },
-            error: (error) => {
+
+        try {
+            const otpResult = await verifyOTPToken(email, values.otp);
+
+            if (!otpResult.success || !otpResult.data?.correct) {
+                toast.error("Invalid OTP code");
                 setIsOtpLoading(false);
-                return error.message || "Failed to verify OTP";
-            },
-        });
+                return;
+            }
 
-        const signInResult = await signIn("credentials", {
-            email,
-            password,
-            redirect: false,
-        });
+            const signInResult = await signIn("credentials", {
+                email,
+                password,
+                redirect: false,
+            });
 
-        if (signInResult?.error) {
-            toast.error("Authentication failed: " + signInResult.error);
-            return;
+            if (signInResult?.error) {
+                toast.error("Authentication failed: " + signInResult.error);
+                setIsOtpLoading(false);
+                return;
+            }
+
+            toast.success("Successfully signed in!");
+            setShowOtpDialog(false);
+
+            if (nextUrl) {
+                router.push(nextUrl);
+            } else {
+                const userRole = otpResult.data.role;
+                if (userRole) {
+                    setTimeout(() => {
+                        switch (userRole) {
+                            case "user":
+                                router.push("/u");
+                                break;
+                            case "client":
+                                router.push("/c");
+                                break;
+                            case "veterinarian":
+                                router.push("/v");
+                                break;
+                            case "admin":
+                                router.push("/a");
+                                break;
+                            default:
+                                router.push("/");
+                        }
+                    }, 500);
+                } else {
+                    const session = await getSession();
+                    if (session?.user?.role) {
+                        if (session.user.role === "client") router.push("/c");
+                        else if (session.user.role === "veterinarian") router.push("/v");
+                        else if (session.user.role === "admin") router.push("/a");
+                        else if (session.user.role === "user") router.push("/u");
+                        else router.push("/");
+                    } else {
+                        router.push("/");
+                    }
+                }
+            }
+        } catch (error) {
+            console.error("OTP handling error:", error);
+            toast.error("An unexpected error occurred");
+        } finally {
+            setIsOtpLoading(false);
         }
-
-        const session = await getSession();
-
-        if (session?.user?.role) {
-            toast.success("Signed in successfully");
-            if (session.user.role === "client") router.push("/c");
-            else if (session.user.role === "veterinarian") router.push("/v");
-            else if (session.user.role === "admin") router.push("/a");
-            else if (session.user.role === "user") router.push("/u");
-            else router.push("/");
-        } else toast.error("Failed to retrieve user role");
     };
 
     return (
@@ -182,22 +217,30 @@ const UserLoginForm = () => {
                                 name="otp"
                                 render={({ field, fieldState }) => (
                                     <FormItem>
-                                        <FormLabel>OTP</FormLabel>
+                                        <FormLabel>One-Time Password</FormLabel>
                                         <FormControl>
-                                            <Input
-                                                type="text"
-                                                placeholder="Enter OTP"
-                                                {...field}
-                                                required
-                                                disabled={isOtpLoading}
-                                            />
+                                            <InputOTP maxLength={6} {...field}>
+                                                <InputOTPGroup>
+                                                    <InputOTPSlot index={0} />
+                                                    <InputOTPSlot index={1} />
+                                                    <InputOTPSlot index={2} />
+                                                    <InputOTPSlot index={3} />
+                                                    <InputOTPSlot index={4} />
+                                                    <InputOTPSlot index={5} />
+                                                </InputOTPGroup>
+                                            </InputOTP>
                                         </FormControl>
-                                        <FormDescription>Enter the OTP sent to your email address.</FormDescription>
-                                        <FormMessage className="text-red-500">{fieldState.error?.message}</FormMessage>
+                                        <FormDescription>
+                                            Please enter the one-time password sent to your phone.
+                                        </FormDescription>
+                                        <FormMessage>{fieldState.error?.message}</FormMessage>
                                     </FormItem>
                                 )}
                             />
                             <DialogFooter>
+                                <Button disabled={isOtpLoading} type="submit">
+                                    {isOtpLoading ? "Verifying..." : "Verify OTP"}
+                                </Button>
                                 <Button disabled={isOtpLoading} type="submit">
                                     {isOtpLoading ? "Verifying..." : "Verify OTP"}
                                 </Button>

@@ -102,7 +102,7 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
     return (
         <Sidebar collapsible="icon" {...props}>
             <SidebarContent>
-                <NavMenus projects={getNavLinks()} />
+                <NavMenus items={getNavLinks()} />
             </SidebarContent>
             <SidebarFooter>
                 <NavUser user={userData} />

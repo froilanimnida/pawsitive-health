@@ -105,7 +105,10 @@ const newVeterinarian = async (
             },
         };
     } catch (error) {
-        return Promise.reject(error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "An unexpected error occurred",
+        };
     }
 };
 
@@ -150,7 +153,10 @@ const getClinicVeterinarians = async (): Promise<
             },
         };
     } catch (error) {
-        return Promise.reject(error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "An unexpected error occurred",
+        };
     }
 };
 

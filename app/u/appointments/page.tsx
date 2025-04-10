@@ -66,7 +66,6 @@ const AppointmentsHistory = async () => {
                                 {appointment.appointment_date.toLocaleTimeString("en-US", {
                                     hour: "2-digit",
                                     minute: "2-digit",
-                                    dateStyle: "short",
                                 })}
                             </div>
                             <div>
@@ -117,7 +116,11 @@ function Appointments() {
                     </DialogContent>
                 </Dialog>
             </div>
-            <Suspense fallback={<SkeletonCard />}>
+            <Suspense
+                fallback={Array.from({ length: 16 }, (_, i) => (
+                    <SkeletonCard key={i} />
+                ))}
+            >
                 <AppointmentsHistory />
             </Suspense>
         </section>

@@ -115,3 +115,4 @@ export {
 } from "./breadcrumb";
 export { Badge } from "./badge";
 export { Toaster } from "./sonner";
+export { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "./input-otp";

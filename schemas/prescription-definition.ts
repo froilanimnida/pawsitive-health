@@ -6,6 +6,9 @@ export const PrescriptionDefinition = z.object({
     start_date: z.date(),
     end_date: z.date(),
     refills_remaining: z.number(),
+    pet_uuid: z.string().uuid({
+        message: "Invalid pet UUID",
+    }),
 });
 
 export type PrescriptionType = z.infer<typeof PrescriptionDefinition>;
