@@ -1,15 +1,15 @@
 "use client";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui";
-//import PetProcedureForm from "../form/pet-healthcare-form";
-//import PetVaccinationForm from "../form/pet-vaccination-form";
 import PrescriptionForm from "../form/prescription-form";
 import { useState } from "react";
 import PetVaccinationForm from "./pet-vaccination-form";
 import PetProcedureForm from "./pet-healthcare-form";
+//import type { medications } from "@prisma/client";
 
 interface AppointmentHealthcareFormsProps {
     petUuid: string;
     appointmentUuid: string;
+    //medicationLists: medications[];
 }
 
 export function AppointmentHealthcareForms({ petUuid, appointmentUuid }: AppointmentHealthcareFormsProps) {
