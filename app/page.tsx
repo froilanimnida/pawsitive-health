@@ -40,10 +40,10 @@ export default function LandingPage() {
                                 Testimonials
                             </Link>
                             <Link
-                                href="#pricing"
+                                href="/education"
                                 className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
                             >
-                                Pricing
+                                Education Content
                             </Link>
                             <Button variant="outline" size="sm" asChild className="hidden sm:flex">
                                 <Link href={"/auth/login"} className="hidden sm:flex">
