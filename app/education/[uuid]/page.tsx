@@ -44,7 +44,7 @@ export default async function EducationDetailPage({ params }: { params: Promise<
                 </CardHeader>
 
                 <CardContent className="pt-6">
-                    <div className="prose max-w-none dark:prose-invert">
+                    <div className="prose max-w-none dark:prose-invert text-justify indent-16">
                         {/* For a real application, this would ideally be rich text or markdown */}
                         {content.content.split("\n").map((paragraph: string, index: number) => (
                             <p key={index}>{paragraph}</p>

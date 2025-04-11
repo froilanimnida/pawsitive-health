@@ -7,7 +7,7 @@ import { getSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { LoginSchema, OtpSchema, type LoginType } from "@/schemas";
-import { loginAccount, verifyOTPToken } from "@/actions";
+import { loginAccount, regenerateOTPToken, verifyOTPToken } from "@/actions";
 import { type TextFormField } from "@/types/forms/text-form-field";
 import {
     Button,
@@ -177,6 +177,26 @@ const UserLoginForm = () => {
         }
     };
 
+    const handleResendOtp = async () => {
+        setIsLoading(true);
+        toast.promise(regenerateOTPToken(email), {
+            loading: "Resending OTP...",
+            success: (data) => {
+                setIsLoading(false);
+                if (data.success) {
+                    setShowOtpDialog(true);
+                    return "OTP has been resent to your email address";
+                } else {
+                    throw new Error(data.error || "Failed to resend OTP");
+                }
+            },
+            error: (error) => {
+                setIsLoading(false);
+                return error.message || "An unexpected error occurred";
+            },
+        });
+    };
+
     return (
         <>
             <Form {...loginForm}>
@@ -242,8 +262,13 @@ const UserLoginForm = () => {
                                 <Button type="submit" disabled={isOtpLoading}>
                                     {isOtpLoading ? "Verifying..." : "Verify"}
                                 </Button>
-                                <Button variant="outline" type="button" onClick={() => setShowOtpDialog(false)}>
-                                    Cancel
+                                <Button
+                                    variant="outline"
+                                    type="button"
+                                    onClick={() => handleResendOtp()}
+                                    disabled={isOtpLoading}
+                                >
+                                    Resend OTP
                                 </Button>
                             </DialogFooter>
                         </form>

@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 import LogoutButton from "../logout";
+import Link from "next/link";
 
 export function NavUser({
     user,
@@ -70,8 +71,10 @@ export function NavUser({
                                 Account
                             </DropdownMenuItem>
                             <DropdownMenuItem>
-                                <Bell />
-                                Notifications
+                                <Link href="/u/notification" className="flex items-center gap-2">
+                                    <Bell />
+                                    Notifications
+                                </Link>
                             </DropdownMenuItem>
                         </DropdownMenuGroup>
                         <DropdownMenuSeparator />
