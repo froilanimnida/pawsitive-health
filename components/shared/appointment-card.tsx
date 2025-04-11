@@ -237,32 +237,31 @@ export function AppointmentCard({
                                 </DialogContent>
                             </Dialog>
                         )}
-                        {(appointment.status !== "cancelled" && viewerType === "vet") ||
-                            (viewerType === "clinic" && (
-                                <Dialog>
-                                    <DialogTrigger asChild>
-                                        <Button>
-                                            <CheckCircle className="mr-2 h-4 w-4" />
-                                            Accept Appointment
-                                        </Button>
-                                    </DialogTrigger>
-                                    <DialogContent>
-                                        <DialogHeader>
-                                            <DialogTitle>Are you absolutely sure?</DialogTitle>
-                                            <DialogDescription>
-                                                This action cannot be undone. This will permanently mark this
-                                                appointment as accepted. We&apos;ll send a confirmation to the user.
-                                            </DialogDescription>
-                                        </DialogHeader>
-                                        <DialogFooter>
-                                            <AcceptAppointmentButton appointmentUuid={appointment.appointment_uuid} />
-                                            <DialogClose asChild>
-                                                <Button variant="outline">Cancel</Button>
-                                            </DialogClose>
-                                        </DialogFooter>
-                                    </DialogContent>
-                                </Dialog>
-                            ))}
+                        {appointment.status === "requested" && (viewerType === "vet" || viewerType === "clinic") && (
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <Button>
+                                        <CheckCircle className="mr-2 h-4 w-4" />
+                                        Accept Appointment
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>Are you absolutely sure?</DialogTitle>
+                                        <DialogDescription>
+                                            This action cannot be undone. This will permanently mark this appointment as
+                                            accepted. We&apos;ll send a confirmation to the user.
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <DialogFooter>
+                                        <AcceptAppointmentButton appointmentUuid={appointment.appointment_uuid} />
+                                        <DialogClose asChild>
+                                            <Button variant="outline">Cancel</Button>
+                                        </DialogClose>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
+                        )}
 
                         {appointment.status === "checked_in" && viewerType === "vet" && (
                             <Dialog>

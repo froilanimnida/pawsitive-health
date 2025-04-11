@@ -1,5 +1,14 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { signIn } from "next-auth/react";
+import { getSession } from "next-auth/react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { toast } from "sonner";
+import { LoginSchema, OtpSchema, type LoginType } from "@/schemas";
+import { loginAccount, regenerateOTPToken, verifyOTPToken } from "@/actions";
+import { type TextFormField } from "@/types/forms/text-form-field";
 import {
     Button,
     Dialog,
@@ -16,18 +25,8 @@ import {
     FormLabel,
     FormMessage,
     Input,
-    InputOTP,
-    InputOTPGroup,
-    InputOTPSlot,
 } from "@/components/ui";
-import { useForm } from "react-hook-form";
-import { getSession, signIn } from "next-auth/react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { LoginSchema, LoginType, OtpSchema } from "@/schemas";
-import { toast } from "sonner";
-import { TextFormField } from "@/types/forms/text-form-field";
-import { useRouter, useSearchParams } from "next/navigation";
-import { loginAccount, verifyOTPToken } from "@/actions";
+import { NotificationPermissionDialog } from "@/components/shared/notification-permission-dialog";
 
 const UserLoginForm = () => {
     const [isLoading, setIsLoading] = useState(false);
@@ -35,6 +34,7 @@ const UserLoginForm = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showOtpDialog, setShowOtpDialog] = useState(false);
+    const [showNotificationDialog, setShowNotificationDialog] = useState(false);
     const router = useRouter();
     const searchParams = useSearchParams();
     const nextUrl = searchParams.get("next") || "";
@@ -98,6 +98,13 @@ const UserLoginForm = () => {
             },
         });
     };
+    useEffect(() => {
+        setTimeout(() => {
+            if (Notification.permission === "default") {
+                setShowNotificationDialog(true);
+            }
+        }, 1000);
+    }, []);
 
     const handleOtp = async (values: { otp: string }) => {
         setIsOtpLoading(true);
@@ -170,6 +177,26 @@ const UserLoginForm = () => {
         }
     };
 
+    const handleResendOtp = async () => {
+        setIsLoading(true);
+        toast.promise(regenerateOTPToken(email), {
+            loading: "Resending OTP...",
+            success: (data) => {
+                setIsLoading(false);
+                if (data.success) {
+                    setShowOtpDialog(true);
+                    return "OTP has been resent to your email address";
+                } else {
+                    throw new Error(data.error || "Failed to resend OTP");
+                }
+            },
+            error: (error) => {
+                setIsLoading(false);
+                return error.message || "An unexpected error occurred";
+            },
+        });
+    };
+
     return (
         <>
             <Form {...loginForm}>
@@ -217,38 +244,40 @@ const UserLoginForm = () => {
                                 name="otp"
                                 render={({ field, fieldState }) => (
                                     <FormItem>
-                                        <FormLabel>One-Time Password</FormLabel>
+                                        <FormLabel>OTP Code</FormLabel>
                                         <FormControl>
-                                            <InputOTP maxLength={6} {...field}>
-                                                <InputOTPGroup>
-                                                    <InputOTPSlot index={0} />
-                                                    <InputOTPSlot index={1} />
-                                                    <InputOTPSlot index={2} />
-                                                    <InputOTPSlot index={3} />
-                                                    <InputOTPSlot index={4} />
-                                                    <InputOTPSlot index={5} />
-                                                </InputOTPGroup>
-                                            </InputOTP>
+                                            <Input
+                                                {...field}
+                                                placeholder="Enter 6-digit OTP"
+                                                maxLength={6}
+                                                disabled={isOtpLoading}
+                                            />
                                         </FormControl>
-                                        <FormDescription>
-                                            Please enter the one-time password sent to your phone.
-                                        </FormDescription>
+                                        <FormDescription>The code is valid for 5 minutes.</FormDescription>
                                         <FormMessage>{fieldState.error?.message}</FormMessage>
                                     </FormItem>
                                 )}
                             />
                             <DialogFooter>
-                                <Button disabled={isOtpLoading} type="submit">
-                                    {isOtpLoading ? "Verifying..." : "Verify OTP"}
+                                <Button type="submit" disabled={isOtpLoading}>
+                                    {isOtpLoading ? "Verifying..." : "Verify"}
                                 </Button>
-                                <Button disabled={isOtpLoading} type="submit">
-                                    {isOtpLoading ? "Verifying..." : "Verify OTP"}
+                                <Button
+                                    variant="outline"
+                                    type="button"
+                                    onClick={() => handleResendOtp()}
+                                    disabled={isOtpLoading}
+                                >
+                                    Resend OTP
                                 </Button>
                             </DialogFooter>
                         </form>
                     </Form>
                 </DialogContent>
             </Dialog>
+
+            {/* Notification Permission Dialog */}
+            <NotificationPermissionDialog open={showNotificationDialog} onOpenChange={setShowNotificationDialog} />
         </>
     );
 };

@@ -9,6 +9,7 @@ import { endOfDay, startOfDay } from "date-fns";
 import { AppointmentDetailsResponse, GetUserAppointmentsResponse } from "@/types/actions/appointments";
 import { AppointmentConfirmation, AppointmentConfirmed } from "@/templates";
 import { revalidatePath } from "next/cache";
+import { createNotification } from "./notification";
 
 export type AppointmentWithRelations = Prisma.appointmentsGetPayload<{
     include: {
@@ -360,8 +361,35 @@ const cancelAppointment = async (appointment_uuid: string): Promise<ActionRespon
         const appointment = await prisma.appointments.update({
             where: { appointment_uuid: appointment_uuid },
             data: { status: "cancelled" },
+            include: {
+                pets: {
+                    include: {
+                        users: true,
+                    },
+                },
+                veterinarians: {
+                    include: {
+                        users: true,
+                    },
+                },
+                clinics: true,
+            },
         });
+        if (!appointment.pets) return { success: false, error: "Pet not found" };
+        if (!appointment.veterinarians) return { success: false, error: "Veterinarian not found" };
+        if (!appointment.clinics) return { success: false, error: "Clinic not found" };
         if (!appointment) return { success: false, error: "Appointment not found" };
+        if (!appointment.pets.users) return { success: false, error: "User not found." };
+        await createNotification({
+            userId: appointment.pets.users.user_id,
+            title: "Appointment Cancelled",
+            content: `Your appointment for ${appointment.pets.name} has been cancelled.`,
+            type: "appointment_cancelled",
+            petId: appointment.pets.pet_id,
+            appointmentId: appointment.appointment_id,
+            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+            actionUrl: `/u/appointments/${appointment.appointment_uuid}`,
+        });
         return { success: true, data: { appointment_uuid: appointment.appointment_uuid } };
     } catch (error) {
         return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
@@ -440,6 +468,16 @@ const confirmAppointment = async (appointment_uuid: string): Promise<ActionRespo
                 subject: `Your Appointment for ${appointment.pets.name} has been Confirmed`,
             },
         );
+        await createNotification({
+            userId: appointment.pets.users.user_id,
+            title: "Appointment Confirmed",
+            content: `Your appointment for ${appointment.pets.name} has been confirmed with ${appointment.veterinarians.users.first_name} ${appointment.veterinarians.users.last_name} at ${appointment.clinics.name}.`,
+            type: "appointment_confirmation",
+            petId: appointment.pets.pet_id,
+            appointmentId: appointment.appointment_id,
+            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+            actionUrl: `/u/appointments/${appointment.appointment_uuid}`,
+        });
 
         return {
             success: true,
