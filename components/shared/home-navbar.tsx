@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { Heart, Menu, Home, Calendar, User, LogOut, Settings, BookOpen, Bell } from "lucide-react";
+import { Heart, Menu, Home, Calendar, User, LogOut, Settings, BookOpen, Bell, AlertTriangle } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger, SheetClose, Button } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
@@ -62,6 +62,11 @@ export function Navbar({ isAuthenticated = false, userRole, userName }: NavbarPr
                   icon: <BookOpen className="h-5 w-5" />,
               },
               {
+                  name: "Emergency",
+                  href: "/emergency",
+                  icon: <AlertTriangle className="h-5 w-5 text-red-500" />,
+              },
+              {
                   name: "Profile",
                   href: `${getHomePath()}/profile`,
                   icon: <User className="h-5 w-5" />,
@@ -88,6 +93,11 @@ export function Navbar({ isAuthenticated = false, userRole, userName }: NavbarPr
                   href: "/education",
                   icon: <BookOpen className="h-5 w-5" />,
               },
+              {
+                  name: "Emergency",
+                  href: "/emergency",
+                  icon: <AlertTriangle className="h-5 w-5 text-red-500" />,
+              },
           ];
 
     return (
@@ -106,7 +116,7 @@ export function Navbar({ isAuthenticated = false, userRole, userName }: NavbarPr
                                 href={item.href}
                                 className={cn(
                                     "text-sm font-medium transition-colors hover:text-primary",
-                                    pathname === item.href ? "text-primary" : "text-muted-foreground"
+                                    pathname === item.href ? "text-primary" : "text-muted-foreground",
                                 )}
                             >
                                 {item.name}
@@ -154,7 +164,7 @@ export function Navbar({ isAuthenticated = false, userRole, userName }: NavbarPr
                                                 href={item.href}
                                                 className={cn(
                                                     "flex items-center px-2 py-3 text-base rounded-md transition-colors",
-                                                    pathname === item.href ? "bg-muted font-medium" : "hover:bg-muted"
+                                                    pathname === item.href ? "bg-muted font-medium" : "hover:bg-muted",
                                                 )}
                                                 onClick={() => setIsOpen(false)}
                                             >
