@@ -61,7 +61,7 @@ const createAccount = async (values: z.infer<typeof SignUpSchema>): Promise<Acti
             {
                 to: userEmail,
                 subject: "Welcome to Pawsitive - Verify your email",
-            },
+            }
         );
         return { success: true, data: { user_uuid: result.user_uuid } };
     } catch (error) {
@@ -96,11 +96,11 @@ const verifyEmail = async (token: string): Promise<ActionResponse<{ verified: bo
     }
 };
 
-const logout = async () => await signOut({ callbackUrl: "/auth/login" });
+const logout = async () => await signOut({ callbackUrl: "/signin" });
 
 const verifyOTPToken = async (
     email: string,
-    otpToken: string,
+    otpToken: string
 ): Promise<ActionResponse<{ correct: boolean; role?: role_type }>> => {
     try {
         const user = await prisma.users.findFirst({
@@ -146,7 +146,7 @@ const verifyOTPToken = async (
 };
 
 const createClinicAccount = async (
-    values: z.infer<typeof NewClinicAccountSchema>,
+    values: z.infer<typeof NewClinicAccountSchema>
 ): Promise<ActionResponse<{ user_uuid: string }>> => {
     try {
         const formData = await NewClinicAccountSchema.safeParseAsync(values);
@@ -208,7 +208,7 @@ const createClinicAccount = async (
             {
                 to: formData.data.email,
                 subject: "Welcome to PawsitiveHealth - Verify Your Clinic",
-            },
+            }
         );
 
         return { success: true, data: { user_uuid: result.user_uuid } };
@@ -252,7 +252,7 @@ const regenerateOTPToken = async (email: string): Promise<ActionResponse<{ user:
             {
                 to: user.email,
                 subject: "PawsitiveHealth - Your Login Verification Code",
-            },
+            }
         );
 
         return { success: true, data: { user } };
@@ -300,7 +300,7 @@ const loginAccount = async (values: LoginType): Promise<ActionResponse<{ data: o
             {
                 to: user.email,
                 subject: "PawsitiveHealth - Your Login Verification Code",
-            },
+            }
         );
 
         return { success: true, data: { data: {} } };

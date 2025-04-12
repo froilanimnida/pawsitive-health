@@ -131,10 +131,10 @@ const NotificationDetail = async ({ uuid }: { uuid: string }) => {
     if (notificationData.action_url) {
         actionButton = (
             <Button className="gap-2" size="sm" asChild>
-                <a href={notificationData.action_url} target="_blank" rel="noopener noreferrer">
+                <Link href={notificationData.action_url} target="_blank" rel="noopener noreferrer">
                     <ExternalLink className="h-4 w-4" />
                     Take Action
-                </a>
+                </Link>
             </Button>
         );
     } else {
@@ -142,7 +142,7 @@ const NotificationDetail = async ({ uuid }: { uuid: string }) => {
         if (notificationData.appointment_id) {
             actionButton = (
                 <Button className="gap-2" size="sm" asChild>
-                    <Link href={`/u/appointments/${notificationData.appointments?.appointment_uuid || ""}`}>
+                    <Link href={`/user/appointments/${notificationData.appointments?.appointment_uuid || ""}`}>
                         <Calendar className="h-4 w-4" />
                         View Appointment
                     </Link>
@@ -151,7 +151,7 @@ const NotificationDetail = async ({ uuid }: { uuid: string }) => {
         } else if (notificationData.pet_id) {
             actionButton = (
                 <Button className="gap-2" size="sm" asChild>
-                    <Link href={`/u/pets/${notificationData.pets?.pet_uuid || ""}`}>
+                    <Link href={`/user/pets/${notificationData.pets?.pet_uuid || ""}`}>
                         <Stethoscope className="h-4 w-4" />
                         View Pet
                     </Link>
@@ -172,7 +172,7 @@ const NotificationDetail = async ({ uuid }: { uuid: string }) => {
     return (
         <div className="container py-8 max-w-2xl">
             <Link
-                href="/u/notification"
+                href="/user/notification"
                 className="flex items-center gap-2 mb-6 text-muted-foreground hover:text-primary"
             >
                 <ChevronLeft className="h-4 w-4" />

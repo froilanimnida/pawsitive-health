@@ -74,7 +74,7 @@ const AppointmentCard = ({ appointment }: { appointment: AppointmentWithRelation
         </CardContent>
         <CardFooter>
             <Button asChild>
-                <Link href={`/c/appointments/${appointment.appointment_uuid}`} className="w-full">
+                <Link href={`/clinic/appointments/${appointment.appointment_uuid}`} className="w-full">
                     View Details
                 </Link>
             </Button>
@@ -84,7 +84,7 @@ const AppointmentCard = ({ appointment }: { appointment: AppointmentWithRelation
 
 const Appointments = async () => {
     const clinicAppointments = await getClinicAppointments();
-    const appointments = clinicAppointments.success ? (clinicAppointments.data?.appointments ?? []) : [];
+    const appointments = clinicAppointments.success ? clinicAppointments.data?.appointments ?? [] : [];
 
     if (!appointments || appointments.length === 0) {
         return (
@@ -94,31 +94,25 @@ const Appointments = async () => {
         );
     }
 
-    const groupedAppointments = appointments.reduce(
-        (acc, appointment) => {
-            const status = appointment.status;
-            if (!acc[status]) {
-                acc[status] = [];
-            }
-            acc[status].push(appointment);
-            return acc;
-        },
-        {} as Record<string, typeof appointments>,
-    );
+    const groupedAppointments = appointments.reduce((acc, appointment) => {
+        const status = appointment.status;
+        if (!acc[status]) {
+            acc[status] = [];
+        }
+        acc[status].push(appointment);
+        return acc;
+    }, {} as Record<string, typeof appointments>);
 
     const statuses = Object.keys(groupedAppointments).sort(
         (a, b) =>
             (statusPriority[a as keyof typeof statusPriority] || 99) -
-            (statusPriority[b as keyof typeof statusPriority] || 99),
+            (statusPriority[b as keyof typeof statusPriority] || 99)
     );
 
-    const countByStatus = statuses.reduce(
-        (acc, status) => {
-            acc[status] = groupedAppointments[status].length;
-            return acc;
-        },
-        {} as Record<string, number>,
-    );
+    const countByStatus = statuses.reduce((acc, status) => {
+        acc[status] = groupedAppointments[status].length;
+        return acc;
+    }, {} as Record<string, number>);
 
     const totalAppointments = appointments.length;
 
@@ -144,7 +138,7 @@ const Appointments = async () => {
                                     status === "pending" && "bg-blue-100 text-blue-800",
                                     status === "confirmed" && "bg-green-100 text-green-800",
                                     status === "completed" && "bg-purple-100 text-purple-800",
-                                    status === "cancelled" && "bg-red-100 text-red-800",
+                                    status === "cancelled" && "bg-red-100 text-red-800"
                                 )}
                             >
                                 {countByStatus[status]}
@@ -159,7 +153,7 @@ const Appointments = async () => {
                             .sort(
                                 (a, b) =>
                                     (statusPriority[a.status as keyof typeof statusPriority] || 99) -
-                                    (statusPriority[b.status as keyof typeof statusPriority] || 99),
+                                    (statusPriority[b.status as keyof typeof statusPriority] || 99)
                             )
                             .map((appointment) => (
                                 <AppointmentCard key={appointment.appointment_id} appointment={appointment} />

@@ -58,7 +58,7 @@ const VeterinaryCard = ({ veterinary }: { veterinary: veterinarians & { users: u
                 <Badge
                     className={cn(
                         "px-2 py-1 text-xs",
-                        specializationColors[veterinary.specialization] || "bg-gray-100",
+                        specializationColors[veterinary.specialization] || "bg-gray-100"
                     )}
                 >
                     {toTitleCase(veterinary.specialization)}
@@ -73,7 +73,7 @@ const VeterinaryCard = ({ veterinary }: { veterinary: veterinarians & { users: u
         </CardContent>
         <CardFooter>
             <Button asChild className="w-full">
-                <Link href={`/c/vets/${veterinary.vet_uuid}`}>Manage</Link>
+                <Link href={`/clinic/vets/${veterinary.vet_uuid}`}>Manage</Link>
             </Button>
         </CardFooter>
     </Card>
@@ -81,7 +81,7 @@ const VeterinaryCard = ({ veterinary }: { veterinary: veterinarians & { users: u
 
 const Veterinaries = async () => {
     const data = await getClinicVeterinarians();
-    const veterinaries = data.success ? (data.data?.veterinarians ?? []) : [];
+    const veterinaries = data.success ? data.data?.veterinarians ?? [] : [];
 
     if (!veterinaries || veterinaries.length === 0) {
         return (
@@ -92,27 +92,21 @@ const Veterinaries = async () => {
         );
     }
 
-    const groupedVeterinarians = veterinaries.reduce(
-        (acc, vet) => {
-            const specialization = vet.specialization;
-            if (!acc[specialization]) {
-                acc[specialization] = [];
-            }
-            acc[specialization].push(vet);
-            return acc;
-        },
-        {} as Record<string, typeof veterinaries>,
-    );
+    const groupedVeterinarians = veterinaries.reduce((acc, vet) => {
+        const specialization = vet.specialization;
+        if (!acc[specialization]) {
+            acc[specialization] = [];
+        }
+        acc[specialization].push(vet);
+        return acc;
+    }, {} as Record<string, typeof veterinaries>);
 
     const specializations = Object.keys(groupedVeterinarians);
 
-    const countBySpecialization = specializations.reduce(
-        (acc, specialization) => {
-            acc[specialization] = groupedVeterinarians[specialization].length;
-            return acc;
-        },
-        {} as Record<string, number>,
-    );
+    const countBySpecialization = specializations.reduce((acc, specialization) => {
+        acc[specialization] = groupedVeterinarians[specialization].length;
+        return acc;
+    }, {} as Record<string, number>);
 
     const totalVeterinarians = veterinaries.length;
 

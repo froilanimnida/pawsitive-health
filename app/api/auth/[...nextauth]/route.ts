@@ -9,7 +9,7 @@ const authOptions: AuthOptions = {
     adapter: PrismaAdapter(prisma),
     session: { strategy: "jwt" },
     pages: {
-        signIn: "/auth/login",
+        signIn: "/signin",
     },
     providers: [
         CredentialsProvider({

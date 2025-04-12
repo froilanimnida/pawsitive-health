@@ -28,7 +28,7 @@ export const metadata: Metadata = {
 
 async function PetList() {
     const pets = await getPets();
-    const petsData = pets.success ? (pets.data?.pets ?? []) : [];
+    const petsData = pets.success ? pets.data?.pets ?? [] : [];
     if (!petsData || petsData.length === 0) {
         return (
             <div className="text-center py-10">
@@ -51,7 +51,7 @@ async function PetList() {
                         {pet.date_of_birth && <p>Age: {String(calculateAge(new Date(pet.date_of_birth), "full"))}</p>}
                     </CardContent>
                     <CardFooter>
-                        <Link href={`/u/pets/${pet.pet_uuid}`}>
+                        <Link href={`/user/pets/${pet.pet_uuid}`}>
                             <Button>View</Button>
                         </Link>
                     </CardFooter>

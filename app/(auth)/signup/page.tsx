@@ -21,7 +21,7 @@ const SignUp = () => {
                     <UserSignUpForm />
                 </CardContent>
                 <CardFooter className="flex justify-center">
-                    <Link href={"/auth/login"} className="text-sm">
+                    <Link href={"/signin"} className="text-sm">
                         Login instead
                     </Link>
                 </CardFooter>

@@ -24,7 +24,7 @@ const LoginPage = async () => {
                         <UserLoginForm />
                     </CardContent>
                     <CardFooter className="flex justify-center">
-                        <Link href={"/auth/sign-up"} className="text-sm">
+                        <Link href={"/signup"} className="text-sm">
                             Sign up instead
                         </Link>
                     </CardFooter>

@@ -18,17 +18,17 @@ import { useSession } from "next-auth/react";
 const userNavLinks = [
     {
         name: "Settings",
-        url: "/u/settings",
+        url: "/user/settings",
         icon: Settings2,
     },
     {
         name: "My Pets",
-        url: "/u/pets",
+        url: "/user/pets",
         icon: Dog,
     },
     {
         name: "My Booking",
-        url: "/u/appointments",
+        url: "/user/appointments",
         icon: CalendarCheck2,
     },
 ];
@@ -36,7 +36,7 @@ const userNavLinks = [
 const vetNavLinks = [
     {
         name: "Appointments",
-        url: "/v/appointments",
+        url: "/vet/appointments",
         icon: CalendarCheck2,
     },
 ];
@@ -44,12 +44,12 @@ const vetNavLinks = [
 const clientNavLinks = [
     {
         name: "Clinic Appointments",
-        url: "/c/appointments",
+        url: "/clinic/appointments",
         icon: CalendarCheck2,
     },
     {
         name: "Veterinaries",
-        url: "/c/vets",
+        url: "/clinic/vets",
         icon: Stethoscope,
     },
 ];
@@ -57,28 +57,28 @@ const clientNavLinks = [
 const adminNavLinks = [
     {
         name: "Appointments",
-        url: "/a/appointments",
+        url: "/admin/appointments",
         icon: BookmarkCheckIcon,
     },
     {
         name: "Veterinaries",
-        url: "/a/vets",
+        url: "/admin/vets",
         icon: Stethoscope,
     },
     {
         name: "Clinics",
-        url: "/a/clinics",
+        url: "/admin/clinics",
         icon: Building,
     },
     {
         name: "Users",
-        url: "/a/users",
+        url: "/admin/users",
         icon: User2,
     },
 
     {
         name: "Medicine",
-        url: "/a/medicine",
+        url: "/admin/medicine",
         icon: FlaskConical,
     },
 ];

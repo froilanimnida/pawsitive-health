@@ -113,7 +113,7 @@ export default async function PetDetails({ params }: { params: Promise<{ uuid: s
                     </Dialog>
 
                     <Button asChild variant="default">
-                        <Link href={`/u/appointments/${pet.pet_uuid}`}>Schedule Appointment</Link>
+                        <Link href={`/user/appointments/${pet.pet_uuid}`}>Schedule Appointment</Link>
                     </Button>
                 </CardFooter>
             </Card>

@@ -14,7 +14,7 @@ import Link from "next/link";
 
 const ClinicCardList = async () => {
     const clinics = await getClinics();
-    const clinicsData = clinics.success ? (clinics.data?.clinics ?? []) : [];
+    const clinicsData = clinics.success ? clinics.data?.clinics ?? [] : [];
     if (!clinicsData || clinicsData.length === 0) {
         return (
             <div className="text-center py-10">
@@ -38,7 +38,7 @@ const ClinicCardList = async () => {
                     </CardContent>
                     <CardFooter>
                         <Button asChild>
-                            <Link href={`/a/clinics/${clinic.clinic_uuid}`}>View</Link>
+                            <Link href={`/admin/clinics/${clinic.clinic_uuid}`}>View</Link>
                         </Button>
                     </CardFooter>
                 </Card>

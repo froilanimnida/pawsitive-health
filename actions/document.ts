@@ -33,9 +33,9 @@ export async function uploadDocument(values: DocumentUploadType): Promise<Action
         });
 
         if (data.data.petId) {
-            revalidatePath(`/u/pets`);
+            revalidatePath(`/user/pets`);
         } else if (data.data.recordId) {
-            revalidatePath(`/u/medical-records`);
+            revalidatePath(`/user/medical-records`);
         }
 
         return {
@@ -70,8 +70,8 @@ export async function deleteDocument(documentUuid: string): Promise<ActionRespon
             where: { document_uuid: documentUuid },
         });
 
-        if (document.pet_id) revalidatePath(`/u/pets`);
-        else if (document.record_id) revalidatePath(`/u/medical-records`);
+        if (document.pet_id) revalidatePath(`/user/pets`);
+        else if (document.record_id) revalidatePath(`/user/medical-records`);
 
         return { success: true, data: { data: {} } };
     } catch (error) {

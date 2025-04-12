@@ -58,7 +58,7 @@ const addPet = async (values: PetOnboardingSchema): Promise<ActionResponse | voi
                 });
             }
         }
-        revalidatePath("/u/pets");
+        revalidatePath("/user/pets");
     } catch (error) {
         return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
     }
@@ -211,7 +211,7 @@ const updatePet = async (values: UpdatePetType): Promise<ActionResponse | void> 
             },
         });
         if (!pet) return { success: false, error: "Failed to update pet" };
-        revalidatePath(`/u/pets/${pet.pet_uuid}`);
+        revalidatePath(`/user/pets/${pet.pet_uuid}`);
     } catch (error) {
         return {
             success: false,

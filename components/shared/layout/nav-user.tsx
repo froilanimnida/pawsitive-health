@@ -71,7 +71,7 @@ export function NavUser({
                                 Account
                             </DropdownMenuItem>
                             <DropdownMenuItem>
-                                <Link href="/u/notification" className="flex items-center gap-2">
+                                <Link href="/user/notification" className="flex items-center gap-2">
                                     <Bell />
                                     Notifications
                                 </Link>

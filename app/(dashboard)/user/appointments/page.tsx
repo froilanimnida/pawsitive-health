@@ -31,7 +31,7 @@ export const metadata: Metadata = {
 
 const AppointmentsHistory = async () => {
     const data = await getUserAppointments();
-    const appointments = data.success ? (data.data?.appointments ?? []) : [];
+    const appointments = data.success ? data.data?.appointments ?? [] : [];
     if (!appointments || appointments.length === 0) {
         return (
             <div className="text-center py-10 w-full mx-auto">
@@ -78,7 +78,7 @@ const AppointmentsHistory = async () => {
                     </CardContent>
                     <CardFooter>
                         <Button variant={"outline"}>
-                            <Link href={`/u/appointments/view/${appointment.appointment_uuid}`}>View</Link>
+                            <Link href={`/user/appointments/view/${appointment.appointment_uuid}`}>View</Link>
                         </Button>
                     </CardFooter>
                 </Card>
@@ -106,7 +106,7 @@ function Appointments() {
                         <DialogFooter>
                             <DialogClose asChild>
                                 <Button asChild>
-                                    <Link href="/u/pets">Okay</Link>
+                                    <Link href="/user/pets">Okay</Link>
                                 </Button>
                             </DialogClose>
                             <DialogClose asChild>

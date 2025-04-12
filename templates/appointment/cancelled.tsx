@@ -79,21 +79,21 @@ export default function AppointmentCancelled({
                         )}
 
                         <Text style={styles.reschedulingText}>
-                            If you'd like to reschedule this appointment, please visit our website or call the clinic
+                            If you&apos;d like to reschedule this appointment, please visit our website or call the clinic
                             directly at {clinicPhone}.
                         </Text>
 
                         <Hr style={styles.divider} />
 
                         <Section style={styles.buttonContainer}>
-                            <Button style={styles.button} href={`${process.env.FRONTEND_URL}/u/appointments`}>
+                            <Button style={styles.button} href={`${process.env.FRONTEND_URL}/user/appointments`}>
                                 Book New Appointment
                             </Button>
                         </Section>
                     </Section>
 
                     <Text style={styles.footer}>
-                        Thank you for choosing PawsitiveHealth for your pet's healthcare needs.
+                        Thank you for choosing PawsitiveHealth for your pet&apos;s healthcare needs.
                     </Text>
                 </Container>
             </Body>

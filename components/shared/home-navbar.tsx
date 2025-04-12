@@ -18,7 +18,7 @@ export function Navbar({ isAuthenticated = false, userRole, userName }: NavbarPr
     const [isOpen, setIsOpen] = useState(false);
 
     const handleSignOut = () => {
-        signOut({ callbackUrl: "/auth/login" });
+        signOut({ callbackUrl: "/signin" });
     };
 
     // Get home path based on user role
@@ -26,13 +26,13 @@ export function Navbar({ isAuthenticated = false, userRole, userName }: NavbarPr
         if (!userRole) return "/";
         switch (userRole) {
             case "user":
-                return "/u";
+                return "/user";
             case "client":
-                return "/c";
+                return "/clinic";
             case "veterinarian":
-                return "/v";
+                return "/vet";
             case "admin":
-                return "/a";
+                return "/admin";
             default:
                 return "/";
         }
@@ -106,7 +106,7 @@ export function Navbar({ isAuthenticated = false, userRole, userName }: NavbarPr
                                 href={item.href}
                                 className={cn(
                                     "text-sm font-medium transition-colors hover:text-primary",
-                                    pathname === item.href ? "text-primary" : "text-muted-foreground",
+                                    pathname === item.href ? "text-primary" : "text-muted-foreground"
                                 )}
                             >
                                 {item.name}
@@ -120,10 +120,10 @@ export function Navbar({ isAuthenticated = false, userRole, userName }: NavbarPr
                         ) : (
                             <>
                                 <Button variant="outline" size="sm" asChild>
-                                    <Link href="/auth/login">Login</Link>
+                                    <Link href="/signin">Login</Link>
                                 </Button>
                                 <Button size="sm" asChild>
-                                    <Link href="/auth/sign-up">Sign Up</Link>
+                                    <Link href="/signup">Sign Up</Link>
                                 </Button>
                             </>
                         )}
@@ -154,7 +154,7 @@ export function Navbar({ isAuthenticated = false, userRole, userName }: NavbarPr
                                                 href={item.href}
                                                 className={cn(
                                                     "flex items-center px-2 py-3 text-base rounded-md transition-colors",
-                                                    pathname === item.href ? "bg-muted font-medium" : "hover:bg-muted",
+                                                    pathname === item.href ? "bg-muted font-medium" : "hover:bg-muted"
                                                 )}
                                                 onClick={() => setIsOpen(false)}
                                             >
@@ -181,12 +181,12 @@ export function Navbar({ isAuthenticated = false, userRole, userName }: NavbarPr
                                         <div className="flex flex-col space-y-2">
                                             <SheetClose asChild>
                                                 <Button asChild variant="outline" className="w-full">
-                                                    <Link href="/auth/login">Login</Link>
+                                                    <Link href="/signin">Login</Link>
                                                 </Button>
                                             </SheetClose>
                                             <SheetClose asChild>
                                                 <Button asChild className="w-full">
-                                                    <Link href="/auth/sign-up">Sign Up</Link>
+                                                    <Link href="/signup">Sign Up</Link>
                                                 </Button>
                                             </SheetClose>
                                         </div>

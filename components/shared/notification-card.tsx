@@ -150,7 +150,7 @@ export function NotificationCard({ notification }: NotificationCardProps) {
                         </AvatarFallback>
                     </Avatar>
                     {notification.pets.name}
-                </Badge>,
+                </Badge>
             );
         }
 
@@ -159,7 +159,7 @@ export function NotificationCard({ notification }: NotificationCardProps) {
                 <Badge key="appt" variant="outline" className="flex items-center gap-1 text-[10px]">
                     <Calendar className="h-3 w-3" />
                     Appointment
-                </Badge>,
+                </Badge>
             );
         }
 
@@ -168,7 +168,7 @@ export function NotificationCard({ notification }: NotificationCardProps) {
                 <Badge key="post" variant="outline" className="flex items-center gap-1 text-[10px]">
                     <MessageCircle className="h-3 w-3" />
                     Forum Post
-                </Badge>,
+                </Badge>
             );
         }
 
@@ -196,18 +196,18 @@ export function NotificationCard({ notification }: NotificationCardProps) {
         }
 
         if (notification.appointment_id && notification.appointments) {
-            return `/u/appointments/${notification.appointments.appointment_uuid}`;
+            return `/user/appointments/${notification.appointments.appointment_uuid}`;
         }
 
         if (notification.pet_id && notification.pets) {
-            return `/u/pets/${notification.pets.pet_uuid}`;
+            return `/user/pets/${notification.pets.pet_uuid}`;
         }
 
         if (notification.forum_post_id && notification.forum_posts) {
             return `/post/${notification.forum_posts.post_uuid}`;
         }
 
-        return `/u/notification/${notification.notification_uuid}`;
+        return `/user/notification/${notification.notification_uuid}`;
     };
 
     // Priority indicator
@@ -263,7 +263,7 @@ export function NotificationCard({ notification }: NotificationCardProps) {
             </CardContent>
             <CardFooter className="pt-0 flex justify-between">
                 <Link
-                    href={`/u/notification/${notification.notification_uuid}`}
+                    href={`/user/notification/${notification.notification_uuid}`}
                     className="w-full"
                     onClick={(e) => e.stopPropagation()} // Prevent triggering the parent onClick
                 >

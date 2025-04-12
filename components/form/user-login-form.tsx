@@ -141,16 +141,16 @@ const UserLoginForm = () => {
                     setTimeout(() => {
                         switch (userRole) {
                             case "user":
-                                router.push("/u");
+                                router.push("/user");
                                 break;
                             case "client":
-                                router.push("/c");
+                                router.push("/clinic");
                                 break;
                             case "veterinarian":
-                                router.push("/v");
+                                router.push("/vet");
                                 break;
                             case "admin":
-                                router.push("/a");
+                                router.push("/admin");
                                 break;
                             default:
                                 router.push("/");
@@ -159,10 +159,10 @@ const UserLoginForm = () => {
                 } else {
                     const session = await getSession();
                     if (session?.user?.role) {
-                        if (session.user.role === "client") router.push("/c");
-                        else if (session.user.role === "veterinarian") router.push("/v");
-                        else if (session.user.role === "admin") router.push("/a");
-                        else if (session.user.role === "user") router.push("/u");
+                        if (session.user.role === "client") router.push("/clinic");
+                        else if (session.user.role === "veterinarian") router.push("/vet");
+                        else if (session.user.role === "admin") router.push("/admin");
+                        else if (session.user.role === "user") router.push("/user");
                         else router.push("/");
                     } else {
                         router.push("/");
