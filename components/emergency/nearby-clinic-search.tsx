@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { getNearbyClinics } from "@/actions";
 import { Badge, Button, Input } from "@/components/ui";

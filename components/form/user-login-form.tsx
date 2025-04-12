@@ -11,6 +11,11 @@ import { loginAccount, regenerateOTPToken, verifyOTPToken } from "@/actions";
 import { type TextFormField } from "@/types/forms/text-form-field";
 import {
     Button,
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
     Dialog,
     DialogContent,
     DialogDescription,
@@ -35,9 +40,26 @@ const UserLoginForm = () => {
     const [password, setPassword] = useState("");
     const [showOtpDialog, setShowOtpDialog] = useState(false);
     const [showNotificationDialog, setShowNotificationDialog] = useState(false);
+    const [existingSession, setExistingSession] = useState<{ exists: boolean; role?: string; name?: string }>({
+        exists: false,
+    });
     const router = useRouter();
     const searchParams = useSearchParams();
     const nextUrl = searchParams.get("next") || "";
+    useEffect(() => {
+        const checkExistingSession = async () => {
+            const session = await getSession();
+            if (session?.user) {
+                setExistingSession({
+                    exists: true,
+                    role: session.user.role as string,
+                    name: session.user.name || "User",
+                });
+            }
+        };
+
+        checkExistingSession();
+    }, []);
 
     const loginFormFields: TextFormField[] = [
         {
@@ -105,6 +127,27 @@ const UserLoginForm = () => {
             }
         }, 1000);
     }, []);
+    // Function to navigate to the appropriate dashboard based on user role
+    const navigateToDashboard = () => {
+        if (!existingSession.role) return;
+
+        switch (existingSession.role) {
+            case "user":
+                router.push("/user");
+                break;
+            case "client":
+                router.push("/clinic");
+                break;
+            case "veterinarian":
+                router.push("/vet");
+                break;
+            case "admin":
+                router.push("/admin");
+                break;
+            default:
+                router.push("/");
+        }
+    };
 
     const handleOtp = async (values: { otp: string }) => {
         setIsOtpLoading(true);
@@ -199,6 +242,19 @@ const UserLoginForm = () => {
 
     return (
         <>
+            {existingSession.exists && (
+                <Card className="mb-6 shadow-md border-blue-100">
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-lg">Welcome back, {existingSession.name}!</CardTitle>
+                        <CardDescription>You are already signed in as a {existingSession.role}.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Button onClick={navigateToDashboard} className="w-full" variant="default">
+                            Go to your dashboard
+                        </Button>
+                    </CardContent>
+                </Card>
+            )}
             <Form {...loginForm}>
                 <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-8">
                     {loginFormFields.map((loginField) => (
