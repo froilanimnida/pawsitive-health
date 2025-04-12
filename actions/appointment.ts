@@ -29,7 +29,7 @@ export type AppointmentWithRelations = Prisma.appointmentsGetPayload<{
 
 async function getExistingAppointments(
     date: Date,
-    vetId: number
+    vetId: number,
 ): Promise<
     ActionResponse<{
         appointments: {
@@ -124,7 +124,7 @@ const getUserAppointments = async (): Promise<ActionResponse<{ appointments: Get
 };
 
 const createUserAppointment = async (
-    values: AppointmentType
+    values: AppointmentType,
 ): Promise<ActionResponse<{ appointment_uuid: string }>> => {
     try {
         const session = await auth();
@@ -179,7 +179,7 @@ const createUserAppointment = async (
                 date: new Date().toLocaleDateString(),
                 time: values.appointment_time,
             },
-            { to: session.user.email, subject: "Appointment Confirmation | Pawsitive Health" }
+            { to: session.user.email, subject: "Appointment Confirmation | Pawsitive Health" },
         );
         return {
             success: true,
@@ -284,7 +284,7 @@ const getVeterinarianAppointments = async (): Promise<
 };
 const getAppointment = async (
     appointment_uuid: string,
-    is_user: boolean = false
+    is_user: boolean = false,
 ): Promise<ActionResponse<{ appointment: AppointmentDetailsResponse }>> => {
     try {
         const session = await auth();
@@ -312,6 +312,7 @@ const getAppointment = async (
                               species: true,
                               breed: true,
                               weight_kg: true,
+                              pet_id: true,
                           },
                       }
                     : undefined,
@@ -451,7 +452,6 @@ const confirmAppointment = async (appointment_uuid: string): Promise<ActionRespo
                 petName: appointment.pets.name,
                 ownerName: `${appointment.pets.users.first_name} ${appointment.pets.users.last_name}`,
                 vetName: `${appointment.veterinarians.users.first_name} ${appointment.veterinarians.users.last_name}`,
-
                 date: appointmentDate,
                 time: appointmentTime,
                 clinicName: appointment.clinics.name,
@@ -466,7 +466,7 @@ const confirmAppointment = async (appointment_uuid: string): Promise<ActionRespo
             {
                 to: ownerEmail,
                 subject: `Your Appointment for ${appointment.pets.name} has been Confirmed`,
-            }
+            },
         );
         await createNotification({
             userId: appointment.pets.users.user_id,
@@ -484,14 +484,13 @@ const confirmAppointment = async (appointment_uuid: string): Promise<ActionRespo
             data: { appointment_uuid: appointment.appointment_uuid },
         };
     } catch (error) {
-        console.error("Error confirming appointment:", error);
         return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
     }
 };
 
 const changeAppointmentStatus = async (
     appointment_uuid: string,
-    status: appointment_status
+    status: appointment_status,
 ): Promise<ActionResponse | void> => {
     try {
         const appointment = await prisma.appointments.update({
@@ -502,9 +501,7 @@ const changeAppointmentStatus = async (
                 status: status,
             },
         });
-
         if (!appointment) return { success: false, error: "Appointment not found" };
-
         revalidatePath(`/vet/appointments/${appointment.appointment_uuid}`);
     } catch (error) {
         return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };

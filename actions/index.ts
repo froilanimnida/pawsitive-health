@@ -34,3 +34,4 @@ export { createMedication, getMedicationsList } from "./medications";
 export { sendEmail, sendSimpleEmail } from "./send-email";
 export { getEducationalContent, getEducationalContentByUuid } from "./educational-content";
 export { getUserNotifications, getUserNotification, markNotificationAsRead } from "./notification";
+export { addPrescription, viewPrescription } from "./prescription";

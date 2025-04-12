@@ -27,10 +27,12 @@ const ViewAppointment = async ({ params }: { params: Promise<{ uuid: string }> }
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <AppointmentHealthcareForms
-                            petUuid={"232321313"}
-                            appointmentUuid={appointment.appointment_uuid}
-                        />
+                        {appointment.pets && (
+                            <AppointmentHealthcareForms
+                                petId={appointment.pets.pet_id}
+                                appointmentUuid={appointment.appointment_uuid}
+                            />
+                        )}
                     </CardContent>
                 </Card>
             )}

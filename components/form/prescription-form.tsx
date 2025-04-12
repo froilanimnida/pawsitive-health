@@ -28,21 +28,21 @@ import { cn } from "@/lib/utils";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { format, addDays } from "date-fns";
 import { z } from "zod";
-import { getMedicationsList } from "@/actions";
+import { addPrescription, getMedicationsList } from "@/actions";
 
 const PrescriptionFormSchema = PrescriptionDefinition.extend({
-    pet_uuid: z.string().uuid(),
+    //pet_uuid: z.string().uuid(),
     appointment_uuid: z.string().uuid().optional(),
     medication_id: z.number(),
 });
 
 interface PrescriptionFormProps {
-    petUuid: string;
+    petId: number;
+    //petUuid: string;
     appointmentUuid: string;
-    onSuccess?: () => void;
 }
 
-const PrescriptionForm = ({ petUuid, appointmentUuid, onSuccess }: PrescriptionFormProps) => {
+const PrescriptionForm = ({ petId, appointmentUuid }: PrescriptionFormProps) => {
     const [isLoading, setIsLoading] = useState(false);
     const [medications, setMedications] = useState<{ id: number; name: string }[]>([]);
 
@@ -73,52 +73,30 @@ const PrescriptionForm = ({ petUuid, appointmentUuid, onSuccess }: PrescriptionF
     const form = useForm({
         resolver: zodResolver(PrescriptionFormSchema),
         defaultValues: {
-            pet_uuid: petUuid,
+            pet_id: petId,
             appointment_uuid: appointmentUuid,
             medication_id: undefined,
             dosage: "",
             frequency: "",
             start_date: new Date(),
-            end_date: addDays(new Date(), 10),
+            end_date: addDays(new Date(), 7),
             refills_remaining: 0,
         },
     });
 
     const onSubmit = async (data: PrescriptionType) => {
         setIsLoading(true);
-        try {
-            const response = await fetch("/api/prescriptions", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data),
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                toast.success("Prescription issued successfully");
-                form.reset({
-                    pet_uuid: petUuid,
-                    appointment_uuid: appointmentUuid,
-                    medication_id: undefined,
-                    dosage: "",
-                    frequency: "",
-                    start_date: new Date(),
-                    end_date: addDays(new Date(), 10),
-                    refills_remaining: 0,
-                });
-
-                if (onSuccess) {
-                    onSuccess();
-                }
-            } else {
-                toast.error(result.error || "Failed to issue prescription");
-            }
-        } catch (error) {
-            toast.error("An unexpected error occurred");
-            console.error(error);
-        } finally {
+        toast.loading("Issuing prescription...");
+        const response = await addPrescription(data);
+        if (response === undefined) {
+            toast.dismiss();
+            toast.success("Prescription issued successfully");
+            form.reset();
             setIsLoading(false);
+        } else {
+            setIsLoading(false);
+            toast.dismiss();
+            toast.error(!response.success ? response.error : "Failed to issue prescription");
         }
     };
 

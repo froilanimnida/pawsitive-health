@@ -4,8 +4,10 @@ import { prisma } from "@/lib";
 import { ActionResponse } from "@/types/server-action-response";
 import { getPetId, getUserId } from "@/actions";
 import { auth } from "@/auth";
+import type { prescriptions } from "@prisma/client";
+import { revalidatePath } from "next/cache";
 
-const addPrescription = async (values: PrescriptionType): Promise<ActionResponse<{ prescription_uuid: string }>> => {
+const addPrescription = async (values: PrescriptionType): Promise<ActionResponse | void> => {
     try {
         const formData = PrescriptionDefinition.safeParse(values);
         const session = await auth();
@@ -42,10 +44,7 @@ const addPrescription = async (values: PrescriptionType): Promise<ActionResponse
                 error: "Failed to add prescription",
             };
         }
-        return {
-            success: true,
-            data: { prescription_uuid: result.prescription_uuid },
-        };
+        revalidatePath(`/vet/`);
     } catch (error) {
         console.error(error);
         return {
@@ -55,4 +54,32 @@ const addPrescription = async (values: PrescriptionType): Promise<ActionResponse
     }
 };
 
-export { addPrescription };
+const viewPrescription = async (
+    prescription_uuid: string,
+): Promise<ActionResponse<{ prescription: prescriptions }>> => {
+    try {
+        const prescription = await prisma.prescriptions.findUnique({
+            where: {
+                prescription_uuid: prescription_uuid,
+            },
+        });
+        if (!prescription) {
+            return {
+                success: false,
+                error: "Prescription not found",
+            };
+        }
+        return {
+            success: true,
+            data: { prescription: prescription },
+        };
+    } catch (error) {
+        console.error(error);
+        return {
+            success: false,
+            error: "Failed to view prescription",
+        };
+    }
+};
+
+export { addPrescription, viewPrescription };
