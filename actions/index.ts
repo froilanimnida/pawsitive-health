@@ -22,8 +22,9 @@ export {
     getClinicAppointments,
     getVeterinarianAppointments,
     changeAppointmentStatus,
+    rescheduleAppointment,
 } from "./appointment";
-export { getUserId } from "./user";
+export { getUserId, updateCalendarIntegration, updateUserProfile } from "./user";
 export { getVeterinaryAvailability } from "./veterinarian-availability";
 export { createVaccination, getPetVaccinations } from "./vaccination";
 //export {} from "./medical-records";
@@ -35,3 +36,11 @@ export { sendEmail, sendSimpleEmail } from "./send-email";
 export { getEducationalContent, getEducationalContentByUuid } from "./educational-content";
 export { getUserNotifications, getUserNotification, markNotificationAsRead } from "./notification";
 export { addPrescription, viewPrescription } from "./prescription";
+export { addToGoogleCalendar, deleteGoogleCalendarEvent, updateGoogleCalendarEvent } from "./calendar-sync";
+export {
+    changeTheme,
+    createNewPreferenceDefault,
+    getUserPreference,
+    getCalendarSyncPreference,
+    getThemePreference,
+} from "./preference";

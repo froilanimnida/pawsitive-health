@@ -41,6 +41,7 @@ type AppointmentDetailsResponse = {
         users: {
             first_name: string;
             last_name: string;
+            vet_id: number;
         } | null;
     } | null;
     clinics: {

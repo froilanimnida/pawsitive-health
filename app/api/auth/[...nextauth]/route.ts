@@ -5,7 +5,7 @@ import { nextAuthLogin } from "@/actions";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { role_type } from "@prisma/client";
 
-const authOptions: AuthOptions = {
+export const authOptions: AuthOptions = {
     adapter: PrismaAdapter(prisma),
     session: { strategy: "jwt" },
     pages: {

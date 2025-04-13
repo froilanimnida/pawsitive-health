@@ -2,11 +2,11 @@
 import { VeterinarianSchema, VeterinarianType } from "@/schemas";
 import { generateVerificationToken, hashPassword } from "@/lib";
 import { prisma } from "@/lib";
-import { getUserId } from "@/actions";
+import { createNewPreferenceDefault, getUserId } from "@/actions";
 import { role_type, type users, type veterinarians } from "@prisma/client";
 import { type veterinary_specialization } from "@prisma/client";
 import { auth } from "@/auth";
-import { ActionResponse } from "@/types/server-action-response";
+import type { ActionResponse } from "@/types/server-action-response";
 
 const newVeterinarian = async (
     values: VeterinarianType,
@@ -94,8 +94,8 @@ const newVeterinarian = async (
                 },
             }),
         );
-
         await Promise.all(availabilityPromises);
+        await createNewPreferenceDefault(result.user_id);
 
         return {
             success: true,

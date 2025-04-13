@@ -28,7 +28,8 @@ export const metadata: Metadata = {
 
 async function PetList() {
     const pets = await getPets();
-    const petsData = pets.success ? pets.data?.pets ?? [] : [];
+
+    const petsData = pets.success ? (pets.data?.pets ?? []) : [];
     if (!petsData || petsData.length === 0) {
         return (
             <div className="text-center py-10">

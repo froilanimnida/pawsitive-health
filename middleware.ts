@@ -6,6 +6,8 @@ export default async function middleware(request: NextRequest) {
     const cookieName = environment === "development" ? "next-auth.session-token" : "__Secure-next-auth.session-token";
     const token = request.cookies.get(cookieName);
     const isAuthPage = request.nextUrl.pathname.startsWith("/auth");
+    const headers: Headers = new Headers(request.headers);
+    headers.set("x-pathname", request.nextUrl.pathname);
 
     if (!token && !isAuthPage) {
         const url = request.nextUrl.clone();
@@ -18,7 +20,11 @@ export default async function middleware(request: NextRequest) {
     const isProtected = PROTECTED_ROUTES.some((route) => request.nextUrl.pathname.startsWith(route));
     console.log(isProtected);
 
-    return NextResponse.next();
+    return NextResponse.next({
+        request: {
+            headers: headers,
+        },
+    });
 }
 
 export const config = {

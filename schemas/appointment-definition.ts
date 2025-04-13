@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { appointment_type } from "@prisma/client";
 
-const appointmentDurationMap = {
+export const appointmentDurationMap = {
     wellness_exam: 30,
     vaccination: 15,
     sick_visit: 30,

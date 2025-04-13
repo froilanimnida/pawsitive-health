@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import SessionProviderWrapper from "@/context/session-provider-context";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui";
+//import { ThemeProvider } from "@/context/next-theme-context";
 
 const poppins = Poppins({
     variable: "--poppins-font",
@@ -29,6 +30,7 @@ export default function RootLayout({
     return (
         <html lang="en">
             <body className={`${poppins.className} antialiased w-full`}>
+                {/*<ThemeProvider attribute="class" defaultTheme="system" enableSystem={true} disableTransitionOnChange>*/}
                 <SidebarProvider>
                     <TooltipProvider>
                         <SessionProviderWrapper>
@@ -45,6 +47,7 @@ export default function RootLayout({
                         </SessionProviderWrapper>
                     </TooltipProvider>
                 </SidebarProvider>
+                {/*</ThemeProvider>*/}
             </body>
         </html>
     );
