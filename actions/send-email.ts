@@ -15,16 +15,9 @@ export async function sendEmail<T>(
 ): Promise<ActionResponse<{ sent: boolean }>> {
     try {
         const success = await emailService.sendMail(template, data, options);
-
-        return {
-            success: true,
-            data: { sent: success },
-        };
+        return { success: true, data: { sent: success } };
     } catch (error) {
-        return {
-            success: false,
-            error: error instanceof Error ? error.message : "Failed to send email",
-        };
+        return { success: false, error: error instanceof Error ? error.message : "Failed to send email" };
     }
 }
 
@@ -35,14 +28,8 @@ export async function sendSimpleEmail(options: EmailOptions): Promise<ActionResp
     try {
         const success = await emailService.sendSimpleEmail(options);
 
-        return {
-            success: true,
-            data: { sent: success },
-        };
+        return { success: true, data: { sent: success } };
     } catch (error) {
-        return {
-            success: false,
-            error: error instanceof Error ? error.message : "Failed to send email",
-        };
+        return { success: false, error: error instanceof Error ? error.message : "Failed to send email" };
     }
 }

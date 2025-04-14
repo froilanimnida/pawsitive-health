@@ -2,10 +2,10 @@
 import { notifications, type notification_type, notification_priority } from "@prisma/client";
 import { prisma } from "@/lib";
 import { ActionResponse } from "@/types/server-action-response";
-import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import type { NotificationFilters, NotificationWithRelations } from "@/types/actions/notification";
-import { getUserId } from "./user";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 interface NotificationsResult {
     notifications: notifications[];
@@ -30,20 +30,16 @@ const getUserNotifications = async ({ page = 1, pageSize = 10, type, isRead }: N
     ActionResponse<NotificationsResult>
 > => {
     try {
-        const user = await auth();
-        if (!user || !user.user?.email) redirect("/signin");
-        const user_data = await getUserId(user.user.email);
-
+        const user = await getServerSession(authOptions);
+        if (!user || !user.user?.id) redirect("/signin");
         const whereCondition = {
-            user_id: Number(user_data),
+            user_id: Number(user.user.id),
             ...(type !== undefined ? { type } : {}),
             ...(isRead !== undefined ? { is_read: isRead } : {}),
         };
 
         // Get total count for pagination
-        const totalCount = await prisma.notifications.count({
-            where: whereCondition,
-        });
+        const totalCount = await prisma.notifications.count({ where: whereCondition });
 
         const skip = (page - 1) * pageSize;
         const take = pageSize;
@@ -94,23 +90,13 @@ const getUserNotifications = async ({ page = 1, pageSize = 10, type, isRead }: N
 
 const markNotificationAsRead = async (notificationUuid: string): Promise<ActionResponse<boolean>> => {
     try {
-        const user = await auth();
+        const user = await getServerSession(authOptions);
         if (!user || user.user?.id === undefined) redirect("/signin");
-
         const notification = await prisma.notifications.findFirst({
-            where: {
-                notification_uuid: notificationUuid,
-                user_id: Number(user.user?.id),
-            },
+            where: { notification_uuid: notificationUuid, user_id: Number(user.user?.id) },
         });
 
-        if (!notification) {
-            return {
-                success: false,
-                error: "Notification not found",
-            };
-        }
-
+        if (!notification) return { success: false, error: "Notification not found" };
         await prisma.notifications.update({
             where: {
                 notification_id: notification.notification_id,
@@ -120,10 +106,7 @@ const markNotificationAsRead = async (notificationUuid: string): Promise<ActionR
             },
         });
 
-        return {
-            success: true,
-            data: true,
-        };
+        return { success: true, data: true };
     } catch (error) {
         return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
     }
@@ -131,7 +114,7 @@ const markNotificationAsRead = async (notificationUuid: string): Promise<ActionR
 
 const getUserNotification = async (notificationUuid: string): Promise<ActionResponse<NotificationWithRelations>> => {
     try {
-        const user = await auth();
+        const user = await getServerSession(authOptions);
         if (!user || user.user?.id === undefined) redirect("/signin");
         const notification = await prisma.notifications.findFirst({
             where: {
@@ -204,7 +187,7 @@ const createNotification = async ({
  */
 const markAllNotificationsAsRead = async (): Promise<ActionResponse<boolean>> => {
     try {
-        const user = await auth();
+        const user = await getServerSession(authOptions);
         if (!user || user.user?.id === undefined) redirect("/signin");
 
         await prisma.notifications.updateMany({
@@ -217,10 +200,7 @@ const markAllNotificationsAsRead = async (): Promise<ActionResponse<boolean>> =>
             },
         });
 
-        return {
-            success: true,
-            data: true,
-        };
+        return { success: true, data: true };
     } catch (error) {
         return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
     }
@@ -231,33 +211,21 @@ const markAllNotificationsAsRead = async (): Promise<ActionResponse<boolean>> =>
  */
 const deleteNotification = async (notificationUuid: string): Promise<ActionResponse<boolean>> => {
     try {
-        const user = await auth();
-        if (!user || user.user?.id === undefined) redirect("/signin");
-
+        const session = await getServerSession(authOptions);
+        if (!session || !session.user?.id) redirect("/signin");
         const notification = await prisma.notifications.findFirst({
             where: {
                 notification_uuid: notificationUuid,
-                user_id: Number(user.user?.id),
+                user_id: Number(session.user?.id),
             },
         });
-
-        if (!notification) {
-            return {
-                success: false,
-                error: "Notification not found",
-            };
-        }
-
+        if (!notification) return { success: false, error: "Notification not found" };
         await prisma.notifications.delete({
             where: {
                 notification_id: notification.notification_id,
             },
         });
-
-        return {
-            success: true,
-            data: true,
-        };
+        return { success: true, data: true };
     } catch (error) {
         return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
     }

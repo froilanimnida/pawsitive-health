@@ -25,4 +25,9 @@ export {
 export { AppointmentSchema, type AppointmentType } from "./appointment-definition";
 export { DocumentUploadSchema, type DocumentUploadType } from "./document-schema";
 export { ThemeSchema, GoogleCalendarSchema, type ThemeType, type GoogleCalendarType } from "./preference-definition";
-export { BaseIdentifierSchema, type BaseIdentifierType } from "./base-schema";
+export {
+    BaseIdentifierSchema,
+    type BaseIdentifierType,
+    BaseUserProfileSchema,
+    type BaseUserProfileType,
+} from "./base-schema";

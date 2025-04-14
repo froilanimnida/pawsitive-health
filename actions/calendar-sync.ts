@@ -1,19 +1,21 @@
 "use server";
 
 import { prisma } from "@/lib";
-import { auth } from "@/auth";
 import { createCalendarEvent, updateCalendarEvent, deleteCalendarEvent } from "@/lib/google/calendar";
 import { createCalendarEventDetails } from "@/lib/create-calendar-event-details";
 import { AppointmentMetadata, createAppointmentMetadata } from "@/types/appointments-metadata";
 import type { JsonObject } from "@prisma/client/runtime/library";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { redirect } from "next/navigation";
 
 /**
  * Add an appointment to Google Calendar if the user has calendar sync enabled
  */
 export async function addToGoogleCalendar(appointment_uuid: string): Promise<void> {
     try {
-        const session = await auth();
-        if (!session?.user?.email) return;
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.id) redirect("/signin");
 
         // Get the appointment details
         const appointment = await prisma.appointments.findUnique({
@@ -71,13 +73,10 @@ export async function addToGoogleCalendar(appointment_uuid: string): Promise<voi
         // Save the Google Calendar event ID in our database
         await prisma.appointments.update({
             where: { appointment_uuid },
-            data: {
-                metadata: updatedMetadata as JsonObject,
-            },
+            data: { metadata: updatedMetadata as JsonObject },
         });
 
         console.log(`Added appointment to Google Calendar: ${googleCalendarEventId}`);
-
         // If the token was refreshed, it will have been handled in createCalendarEvent
     } catch (error) {
         console.error("Error adding to Google Calendar:", error);
@@ -221,29 +220,15 @@ export async function synchronizeAllAppointments(): Promise<{
     error?: string;
 }> {
     try {
-        const session = await auth();
-        if (!session?.user?.email) {
-            return {
-                success: false,
-                synced: 0,
-                skipped: 0,
-                error: "User not authenticated",
-            };
-        }
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.id) redirect("/signin");
 
         // Get the user ID
         const userResult = await prisma.users.findUnique({
-            where: { email: session.user.email },
+            where: { user_id: Number(session.user.id) },
         });
 
-        if (!userResult) {
-            return {
-                success: false,
-                synced: 0,
-                skipped: 0,
-                error: "User not found",
-            };
-        }
+        if (!userResult) redirect("/signin");
 
         const userId = userResult.user_id;
 
