@@ -67,8 +67,9 @@ export default function ProfileForm() {
         try {
             const result = await updateUserProfile(data);
 
-            if (!result.success) {
-                throw new Error(result.error);
+            if (result === undefined) {
+                toast.success("Profile updated successfully!");
+                return;
             }
 
             // Update the session with new user data
