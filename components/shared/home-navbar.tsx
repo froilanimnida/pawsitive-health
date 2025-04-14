@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { Heart, Menu, Home, Calendar, User, LogOut, Settings, BookOpen, Bell } from "lucide-react";
+import { PawPrint, Menu, Home, Calendar, User, LogOut, Settings, BookOpen, Bell, AlertTriangle } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger, SheetClose, Button } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
@@ -18,7 +18,7 @@ export function Navbar({ isAuthenticated = false, userRole, userName }: NavbarPr
     const [isOpen, setIsOpen] = useState(false);
 
     const handleSignOut = () => {
-        signOut({ callbackUrl: "/auth/login" });
+        signOut({ callbackUrl: "/signin" });
     };
 
     // Get home path based on user role
@@ -26,19 +26,18 @@ export function Navbar({ isAuthenticated = false, userRole, userName }: NavbarPr
         if (!userRole) return "/";
         switch (userRole) {
             case "user":
-                return "/u";
+                return "/user";
             case "client":
-                return "/c";
+                return "/clinic";
             case "veterinarian":
-                return "/v";
+                return "/vet";
             case "admin":
-                return "/a";
+                return "/admin";
             default:
                 return "/";
         }
     };
 
-    // Navigation items based on authentication state
     const navItems = isAuthenticated
         ? [
               {
@@ -60,6 +59,11 @@ export function Navbar({ isAuthenticated = false, userRole, userName }: NavbarPr
                   name: "Educational Content",
                   href: "/education",
                   icon: <BookOpen className="h-5 w-5" />,
+              },
+              {
+                  name: "Emergency",
+                  href: "/emergency",
+                  icon: <AlertTriangle className="h-5 w-5 text-red-500" />,
               },
               {
                   name: "Profile",
@@ -88,6 +92,11 @@ export function Navbar({ isAuthenticated = false, userRole, userName }: NavbarPr
                   href: "/education",
                   icon: <BookOpen className="h-5 w-5" />,
               },
+              {
+                  name: "Emergency",
+                  href: "/emergency",
+                  icon: <AlertTriangle className="h-5 w-5 text-red-500" />,
+              },
           ];
 
     return (
@@ -95,7 +104,7 @@ export function Navbar({ isAuthenticated = false, userRole, userName }: NavbarPr
             <div className="flex h-16 justify-between items-center w-11/12 max-w-7xl">
                 <div className="flex w-full justify-between items-center">
                     <Link href={isAuthenticated ? getHomePath() : "/"} className="flex items-center gap-2">
-                        <Heart className="h-6 w-6 text-teal-500" />
+                        <PawPrint className="h-6 w-6 text-teal-500" />
                         <span className="font-bold text-xl hidden sm:inline-block">PawsitiveHealth</span>
                     </Link>
 
@@ -120,10 +129,10 @@ export function Navbar({ isAuthenticated = false, userRole, userName }: NavbarPr
                         ) : (
                             <>
                                 <Button variant="outline" size="sm" asChild>
-                                    <Link href="/auth/login">Login</Link>
+                                    <Link href="/signin">Login</Link>
                                 </Button>
                                 <Button size="sm" asChild>
-                                    <Link href="/auth/sign-up">Sign Up</Link>
+                                    <Link href="/signup">Sign Up</Link>
                                 </Button>
                             </>
                         )}
@@ -140,7 +149,7 @@ export function Navbar({ isAuthenticated = false, userRole, userName }: NavbarPr
                             <div className="flex flex-col h-full">
                                 <div className="px-2 py-4 border-b">
                                     <div className="flex items-center mb-4">
-                                        <Heart className="h-6 w-6 text-teal-500 mr-2" />
+                                        <PawPrint className="h-6 w-6 text-teal-500 mr-2" />
                                         <h2 className="font-bold text-lg">PawsitiveHealth</h2>
                                     </div>
                                     {isAuthenticated && userName && (
@@ -181,12 +190,12 @@ export function Navbar({ isAuthenticated = false, userRole, userName }: NavbarPr
                                         <div className="flex flex-col space-y-2">
                                             <SheetClose asChild>
                                                 <Button asChild variant="outline" className="w-full">
-                                                    <Link href="/auth/login">Login</Link>
+                                                    <Link href="/signin">Login</Link>
                                                 </Button>
                                             </SheetClose>
                                             <SheetClose asChild>
                                                 <Button asChild className="w-full">
-                                                    <Link href="/auth/sign-up">Sign Up</Link>
+                                                    <Link href="/signup">Sign Up</Link>
                                                 </Button>
                                             </SheetClose>
                                         </div>

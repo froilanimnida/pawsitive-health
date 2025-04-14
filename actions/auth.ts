@@ -1,9 +1,8 @@
 "use server";
-import { sendEmail } from "@/actions";
-import { LoginType, SignUpSchema, NewClinicAccountSchema } from "@/schemas";
+import { createNewPreferenceDefault, sendEmail } from "@/actions";
+import { LoginType, SignUpSchema, NewClinicAccountSchema, type SignUpType, type NewClinicAccountType } from "@/schemas";
 import { OtpVerificationEmail, ClinicOnboardingEmail, UserOnboardingEmail } from "@/templates";
 import { hashPassword, verifyPassword, prisma, generateOtp, generateVerificationToken, toTitleCase } from "@/lib";
-import type { z } from "zod";
 import { role_type, type users } from "@prisma/client";
 import { signOut } from "next-auth/react";
 import type { ActionResponse } from "@/types/server-action-response";
@@ -18,7 +17,7 @@ const isEmailTaken = async (email: string): Promise<boolean> => {
     return user !== null;
 };
 
-const createAccount = async (values: z.infer<typeof SignUpSchema>): Promise<ActionResponse<{ user_uuid: string }>> => {
+const createAccount = async (values: SignUpType): Promise<ActionResponse<{ user_uuid: string }>> => {
     try {
         const formData = SignUpSchema.safeParse(values);
         if (!formData.success) {
@@ -63,6 +62,7 @@ const createAccount = async (values: z.infer<typeof SignUpSchema>): Promise<Acti
                 subject: "Welcome to Pawsitive - Verify your email",
             },
         );
+        await createNewPreferenceDefault(result.user_id);
         return { success: true, data: { user_uuid: result.user_uuid } };
     } catch (error) {
         return {
@@ -96,7 +96,7 @@ const verifyEmail = async (token: string): Promise<ActionResponse<{ verified: bo
     }
 };
 
-const logout = async () => await signOut({ callbackUrl: "/auth/login" });
+const logout = async () => await signOut({ callbackUrl: "/signin" });
 
 const verifyOTPToken = async (
     email: string,
@@ -145,9 +145,7 @@ const verifyOTPToken = async (
     }
 };
 
-const createClinicAccount = async (
-    values: z.infer<typeof NewClinicAccountSchema>,
-): Promise<ActionResponse<{ user_uuid: string }>> => {
+const createClinicAccount = async (values: NewClinicAccountType): Promise<ActionResponse<{ user_uuid: string }>> => {
     try {
         const formData = await NewClinicAccountSchema.safeParseAsync(values);
         if (!formData.success) return { success: false, error: "Invalid input" };
@@ -210,7 +208,7 @@ const createClinicAccount = async (
                 subject: "Welcome to PawsitiveHealth - Verify Your Clinic",
             },
         );
-
+        await createNewPreferenceDefault(result.user_id);
         return { success: true, data: { user_uuid: result.user_uuid } };
     } catch (error) {
         return {

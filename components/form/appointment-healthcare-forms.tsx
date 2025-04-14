@@ -7,16 +7,13 @@ import PetProcedureForm from "./pet-healthcare-form";
 //import type { medications } from "@prisma/client";
 
 interface AppointmentHealthcareFormsProps {
-    petUuid: string;
+    petId: number;
     appointmentUuid: string;
     //medicationLists: medications[];
 }
 
-export function AppointmentHealthcareForms({ petUuid, appointmentUuid }: AppointmentHealthcareFormsProps) {
+export function AppointmentHealthcareForms({ petId, appointmentUuid }: AppointmentHealthcareFormsProps) {
     const [activeTab, setActiveTab] = useState("vaccination");
-
-    const handleSuccess = () => {};
-
     return (
         <div className="mt-6 space-y-4">
             <Tabs defaultValue="vaccination" value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -35,6 +32,7 @@ export function AppointmentHealthcareForms({ petUuid, appointmentUuid }: Appoint
                     </div>
                     <PetVaccinationForm
                         //petUuid={petUuid}
+                        petId={petId}
                         petUuid={appointmentUuid}
                     />
                 </TabsContent>
@@ -47,7 +45,7 @@ export function AppointmentHealthcareForms({ petUuid, appointmentUuid }: Appoint
                         </p>
                     </div>
                     <PetProcedureForm
-                        petUuid={petUuid}
+                        petId={petId}
                         //appointmentUuid={appointmentUuid}
                     />
                 </TabsContent>
@@ -57,7 +55,7 @@ export function AppointmentHealthcareForms({ petUuid, appointmentUuid }: Appoint
                         <h3 className="text-lg font-semibold">Issue Prescription</h3>
                         <p className="text-sm text-muted-foreground">Create prescriptions for medications</p>
                     </div>
-                    <PrescriptionForm petUuid={petUuid} appointmentUuid={appointmentUuid} onSuccess={handleSuccess} />
+                    <PrescriptionForm petId={petId} appointmentUuid={appointmentUuid} />
                 </TabsContent>
             </Tabs>
         </div>

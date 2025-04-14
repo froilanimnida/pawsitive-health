@@ -19,6 +19,7 @@ model appointments {
     clinic_id             Int?
     duration_minutes      Int                     @default(30)
     status                appointment_status
+    metadata              Json?                   @default("{}")
     clinics               clinics?                @relation(fields: [clinic_id], references: [clinic_id], onDelete: NoAction, onUpdate: NoAction)
     pets                  pets?                   @relation(fields: [pet_id], references: [pet_id], onDelete: NoAction, onUpdate: NoAction)
     veterinarians         veterinarians?          @relation(fields: [vet_id], references: [vet_id], onDelete: NoAction, onUpdate: NoAction)
@@ -199,13 +200,16 @@ model prescriptions {
 }
 
 model user_settings {
-    user_id                  Int       @id
-    notification_preferences Json?
-    theme_preferences        Json?
-    language_preference      String?   @default("en") @db.VarChar(10)
-    timezone                 String?   @db.VarChar(50)
-    updated_at               DateTime? @default(now()) @db.Timestamptz(6)
-    users                    users     @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+    user_id               Int        @id
+    theme_mode            theme_mode @default(light)
+    email_notifications   Boolean    @default(true)
+    push_notifications    Boolean    @default(true)
+    health_alerts         Boolean    @default(true)
+    google_calendar_sync  Boolean    @default(false)
+    google_calendar_token String?    @db.Text
+    updated_at            DateTime   @default(now()) @db.Timestamptz(6)
+    last_sync             DateTime?  @db.Timestamptz(6)
+    users                 users      @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model users {
@@ -605,6 +609,12 @@ enum breed_type {
     xoloitzcuintli
     yorkshire_terrier
     others                             @map("others")
+}
+
+enum theme_mode {
+    light
+    dark
+    system
 }
 
 enum role_type {

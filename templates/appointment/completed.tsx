@@ -126,7 +126,7 @@ export default function AppointmentCompleted({
                         <Hr style={styles.divider} />
 
                         <Section style={styles.buttonContainer}>
-                            <Button style={styles.button} href={`${process.env.FRONTEND_URL}/u/appointments`}>
+                            <Button style={styles.button} href={`${process.env.FRONTEND_URL}/user/appointments`}>
                                 View Appointment History
                             </Button>
                         </Section>

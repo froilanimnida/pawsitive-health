@@ -55,13 +55,13 @@ export default function AppointmentConfirmation({
 
                         <Hr style={styles.divider} />
 
-                        <Button style={styles.button} href={`${process.env.FRONTEND_URL}/u/appointments`}>
+                        <Button style={styles.button} href={`${process.env.FRONTEND_URL}/user/appointments`}>
                             Manage Your Appointments
                         </Button>
                     </Section>
 
                     <Text style={styles.footer}>
-                        Thank you for choosing PawsitiveHealth for your pet's healthcare needs.
+                        Thank you for choosing PawsitiveHealth for your pet&apos;s healthcare needs.
                     </Text>
                 </Container>
             </Body>

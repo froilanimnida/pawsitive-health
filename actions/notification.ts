@@ -31,7 +31,7 @@ const getUserNotifications = async ({ page = 1, pageSize = 10, type, isRead }: N
 > => {
     try {
         const user = await auth();
-        if (!user || !user.user?.email) redirect("/auth/login");
+        if (!user || !user.user?.email) redirect("/signin");
         const user_data = await getUserId(user.user.email);
 
         const whereCondition = {
@@ -95,7 +95,7 @@ const getUserNotifications = async ({ page = 1, pageSize = 10, type, isRead }: N
 const markNotificationAsRead = async (notificationUuid: string): Promise<ActionResponse<boolean>> => {
     try {
         const user = await auth();
-        if (!user || user.user?.id === undefined) redirect("/auth/login");
+        if (!user || user.user?.id === undefined) redirect("/signin");
 
         const notification = await prisma.notifications.findFirst({
             where: {
@@ -132,7 +132,7 @@ const markNotificationAsRead = async (notificationUuid: string): Promise<ActionR
 const getUserNotification = async (notificationUuid: string): Promise<ActionResponse<NotificationWithRelations>> => {
     try {
         const user = await auth();
-        if (!user || user.user?.id === undefined) redirect("/auth/login");
+        if (!user || user.user?.id === undefined) redirect("/signin");
         const notification = await prisma.notifications.findFirst({
             where: {
                 notification_uuid: notificationUuid,
@@ -205,7 +205,7 @@ const createNotification = async ({
 const markAllNotificationsAsRead = async (): Promise<ActionResponse<boolean>> => {
     try {
         const user = await auth();
-        if (!user || user.user?.id === undefined) redirect("/auth/login");
+        if (!user || user.user?.id === undefined) redirect("/signin");
 
         await prisma.notifications.updateMany({
             where: {
@@ -232,7 +232,7 @@ const markAllNotificationsAsRead = async (): Promise<ActionResponse<boolean>> =>
 const deleteNotification = async (notificationUuid: string): Promise<ActionResponse<boolean>> => {
     try {
         const user = await auth();
-        if (!user || user.user?.id === undefined) redirect("/auth/login");
+        if (!user || user.user?.id === undefined) redirect("/signin");
 
         const notification = await prisma.notifications.findFirst({
             where: {

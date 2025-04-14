@@ -34,12 +34,14 @@ type AppointmentDetailsResponse = {
         species: string;
         breed: string;
         weight_kg: number;
+        pet_id: number;
     } | null;
     veterinarians: {
         specialization: string | null;
         users: {
             first_name: string;
             last_name: string;
+            vet_id: number;
         } | null;
     } | null;
     clinics: {

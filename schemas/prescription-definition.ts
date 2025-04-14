@@ -9,6 +9,7 @@ export const PrescriptionDefinition = z.object({
     pet_uuid: z.string().uuid({
         message: "Invalid pet UUID",
     }),
+    pet_id: z.number(),
 });
 
 export type PrescriptionType = z.infer<typeof PrescriptionDefinition>;
