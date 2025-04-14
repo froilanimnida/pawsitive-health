@@ -209,3 +209,200 @@ export async function deleteGoogleCalendarEvent(appointment_uuid: string): Promi
         console.error("Error deleting Google Calendar event:", error);
     }
 }
+
+/**
+ * Synchronize all upcoming appointments for the current user to Google Calendar
+ * This will respect existing entries and avoid duplicates
+ */
+export async function synchronizeAllAppointments(): Promise<{
+    success: boolean;
+    synced: number;
+    skipped: number;
+    error?: string;
+}> {
+    try {
+        const session = await auth();
+        if (!session?.user?.email) {
+            return {
+                success: false,
+                synced: 0,
+                skipped: 0,
+                error: "User not authenticated",
+            };
+        }
+
+        // Get the user ID
+        const userResult = await prisma.users.findUnique({
+            where: { email: session.user.email },
+        });
+
+        if (!userResult) {
+            return {
+                success: false,
+                synced: 0,
+                skipped: 0,
+                error: "User not found",
+            };
+        }
+
+        const userId = userResult.user_id;
+
+        // Check if user has Google Calendar integration enabled
+        const userSettings = await prisma.user_settings.findUnique({
+            where: { user_id: userId },
+        });
+
+        if (!userSettings?.google_calendar_sync || !userSettings?.google_calendar_token) {
+            return {
+                success: false,
+                synced: 0,
+                skipped: 0,
+                error: "Google Calendar integration not enabled",
+            };
+        }
+
+        const tokenData = JSON.parse(userSettings.google_calendar_token);
+
+        // Get all of the user's pets
+        const pets = await prisma.pets.findMany({
+            where: {
+                user_id: userId,
+                deleted: false,
+            },
+            select: { pet_id: true },
+        });
+
+        if (pets.length === 0) {
+            return {
+                success: true,
+                synced: 0,
+                skipped: 0,
+            };
+        }
+
+        const petIds = pets.map((pet) => pet.pet_id);
+
+        // Get all upcoming appointments for all pets
+        const appointments = await prisma.appointments.findMany({
+            where: {
+                pet_id: { in: petIds },
+                appointment_date: {
+                    gte: new Date(), // Only future appointments
+                },
+                status: {
+                    notIn: ["cancelled", "no_show"],
+                },
+            },
+            include: {
+                pets: {
+                    include: {
+                        users: true,
+                    },
+                },
+                veterinarians: {
+                    include: {
+                        users: true,
+                    },
+                },
+                clinics: true,
+            },
+            orderBy: {
+                appointment_date: "asc",
+            },
+        });
+
+        if (appointments.length === 0) {
+            // Update the last sync time even if there are no appointments
+            await prisma.user_settings.update({
+                where: { user_id: userId },
+                data: { last_sync: new Date() },
+            });
+
+            return {
+                success: true,
+                synced: 0,
+                skipped: 0,
+            };
+        }
+
+        // Track sync stats
+        let synced = 0;
+        let skipped = 0;
+
+        // Process each appointment
+        for (const appointment of appointments) {
+            // Check if the appointment already has a Google Calendar event ID
+            const metadata = appointment.metadata as AppointmentMetadata | null;
+            const googleEventId = metadata?.googleCalendarEventId;
+
+            // If it already has a Google Calendar ID, we'll update it
+            if (googleEventId) {
+                // Create updated event details
+                const eventDetails = createCalendarEventDetails(appointment);
+
+                // Update the event using our utility
+                const success = await updateCalendarEvent(tokenData, googleEventId, eventDetails);
+
+                if (success) {
+                    skipped++;
+                } else {
+                    // If the update fails (possibly because the event was deleted in Google Calendar)
+                    // We'll try to create a new one
+                    const result = await createCalendarEvent(tokenData, eventDetails);
+
+                    if (result) {
+                        // Save the new Google Calendar event ID
+                        const updatedMetadata = createAppointmentMetadata(appointment.metadata, {
+                            googleCalendarEventId: result.id,
+                        });
+
+                        await prisma.appointments.update({
+                            where: { appointment_uuid: appointment.appointment_uuid },
+                            data: { metadata: updatedMetadata as JsonObject },
+                        });
+
+                        synced++;
+                    }
+                }
+            } else {
+                // If it doesn't have a Google Calendar ID, create a new event
+                const eventDetails = createCalendarEventDetails(appointment);
+                const result = await createCalendarEvent(tokenData, eventDetails);
+
+                if (result) {
+                    // Save the Google Calendar event ID
+                    const updatedMetadata = createAppointmentMetadata(appointment.metadata, {
+                        googleCalendarEventId: result.id,
+                    });
+
+                    await prisma.appointments.update({
+                        where: { appointment_uuid: appointment.appointment_uuid },
+                        data: { metadata: updatedMetadata as JsonObject },
+                    });
+
+                    synced++;
+                }
+            }
+        }
+
+        // Update the last sync time
+        await prisma.user_settings.update({
+            where: { user_id: userId },
+            data: { last_sync: new Date() },
+        });
+
+        return {
+            success: true,
+            synced,
+            skipped,
+        };
+    } catch (error) {
+        console.error("Error synchronizing appointments to Google Calendar:", error);
+        return {
+            success: false,
+            synced: 0,
+            skipped: 0,
+            error: error instanceof Error ? error.message : "An unexpected error occurred",
+        };
+    }
+}

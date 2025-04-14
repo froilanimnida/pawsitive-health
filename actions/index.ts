@@ -36,7 +36,12 @@ export { sendEmail, sendSimpleEmail } from "./send-email";
 export { getEducationalContent, getEducationalContentByUuid } from "./educational-content";
 export { getUserNotifications, getUserNotification, markNotificationAsRead } from "./notification";
 export { addPrescription, viewPrescription } from "./prescription";
-export { addToGoogleCalendar, deleteGoogleCalendarEvent, updateGoogleCalendarEvent } from "./calendar-sync";
+export {
+    addToGoogleCalendar,
+    deleteGoogleCalendarEvent,
+    updateGoogleCalendarEvent,
+    synchronizeAllAppointments,
+} from "./calendar-sync";
 export {
     changeTheme,
     createNewPreferenceDefault,

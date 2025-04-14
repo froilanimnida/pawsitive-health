@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import {
@@ -14,13 +13,17 @@ import {
     Alert,
     AlertTitle,
     AlertDescription,
+    Tooltip,
+    TooltipTrigger,
+    TooltipContent,
 } from "@/components/ui";
-import { Calendar, RefreshCw, AlertCircle } from "lucide-react";
-import { updateCalendarIntegration } from "@/actions";
+import { Calendar, RefreshCw, AlertCircle, Loader2 } from "lucide-react";
+import { updateCalendarIntegration, synchronizeAllAppointments } from "@/actions";
 import { GoogleCalendarSchema } from "@/schemas";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSearchParams } from "next/navigation";
+import { formatDistanceToNow } from "date-fns";
 
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 interface CalendarIntegrationState {
@@ -32,6 +35,7 @@ interface CalendarIntegrationState {
 export default function CalendarIntegrationForm({ connected, userId }: { connected: boolean; userId: string }) {
     const [isLoading, setIsLoading] = useState(false);
     const [connectLoading, setConnectLoading] = useState(false);
+    const [syncLoading, setSyncLoading] = useState(false);
     const [state, setState] = useState<CalendarIntegrationState>({
         connected,
         syncEnabled: connected,
@@ -43,7 +47,6 @@ export default function CalendarIntegrationForm({ connected, userId }: { connect
     useEffect(() => {
         const error = searchParams.get("error");
         const connected = searchParams.get("connected");
-
         if (error) {
             toast.error(
                 error === "auth_failed" ? "Google authorization failed" : "Error connecting to Google Calendar",
@@ -60,6 +63,30 @@ export default function CalendarIntegrationForm({ connected, userId }: { connect
             toast.success("Successfully connected to Google Calendar!");
         }
     }, [searchParams]);
+
+    // Fetch user settings on component mount to get the last_sync time
+    useEffect(() => {
+        if (connected) {
+            const fetchLastSync = async () => {
+                try {
+                    const response = await fetch("/api/user/calendar-settings");
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.lastSync) {
+                            setState((prev) => ({
+                                ...prev,
+                                lastSynced: data.lastSync,
+                            }));
+                        }
+                    }
+                } catch (error) {
+                    console.error("Failed to fetch calendar settings:", error);
+                }
+            };
+
+            fetchLastSync();
+        }
+    }, [connected]);
 
     const googleCalendarForm = useForm({
         resolver: zodResolver(GoogleCalendarSchema),
@@ -130,6 +157,30 @@ export default function CalendarIntegrationForm({ connected, userId }: { connect
         }
     }
 
+    async function handleSync() {
+        setSyncLoading(true);
+
+        try {
+            const result = await synchronizeAllAppointments();
+
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+
+            setState({
+                ...state,
+                lastSynced: new Date().toISOString(),
+            });
+
+            const syncMessage = `Sync completed: ${result.synced} appointment${result.synced === 1 ? "" : "s"} added, ${result.skipped} unchanged`;
+            toast.success(syncMessage);
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : "Failed to sync appointments with Google Calendar");
+        } finally {
+            setSyncLoading(false);
+        }
+    }
+
     async function onSubmit() {
         setIsLoading(true);
 
@@ -162,6 +213,11 @@ export default function CalendarIntegrationForm({ connected, userId }: { connect
             syncEnabled: value,
         });
     }
+
+    // Format the last synced time
+    const formattedLastSynced = state.lastSynced
+        ? `Last synced ${formatDistanceToNow(new Date(state.lastSynced), { addSuffix: true })}`
+        : "Not synced yet";
 
     return (
         <Form {...googleCalendarForm}>
@@ -226,11 +282,36 @@ export default function CalendarIntegrationForm({ connected, userId }: { connect
                                 )}
                             />
 
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <RefreshCw className="h-4 w-4" />
-                                {state.lastSynced
-                                    ? `Last synced: ${new Date(state.lastSynced).toLocaleString()}`
-                                    : "Not synced yet"}
+                            <div className="flex items-center justify-between mt-4">
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                            <RefreshCw className="h-4 w-4" />
+                                            {formattedLastSynced}
+                                        </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        {state.lastSynced
+                                            ? new Date(state.lastSynced).toLocaleString()
+                                            : "No sync history"}
+                                    </TooltipContent>
+                                </Tooltip>
+
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleSync}
+                                    disabled={syncLoading || !state.syncEnabled}
+                                    className="flex items-center gap-2"
+                                >
+                                    {syncLoading ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                        <RefreshCw className="h-4 w-4" />
+                                    )}
+                                    {syncLoading ? "Syncing..." : "Sync Now"}
+                                </Button>
                             </div>
 
                             <Alert>

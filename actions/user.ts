@@ -92,16 +92,44 @@ const updateCalendarIntegration = async (settings: {
         const session = await getServerSession(authOptions);
         if (!session || !session.user?.id) return { success: false, error: "User not authenticated" };
 
+        // If connecting for the first time, set last_sync to the current time
+        // This happens when token is present but syncEnabled was previously false
+        const currentSettings = await prisma.user_settings.findUnique({
+            where: { user_id: Number(session.user?.id) },
+        });
+
+        const updateData = {
+            google_calendar_sync: settings.syncEnabled,
+            google_calendar_token: settings.token || null,
+            last_sync: settings.token ? new Date() : null,
+        };
+
+        // Set last_sync timestamp in two cases:
+        // 1. When newly connecting (token is provided)
+        // 2. When turning on sync for an already connected account
+        if (
+            (settings.token && (!currentSettings?.google_calendar_token || !currentSettings.google_calendar_sync)) ||
+            (settings.syncEnabled &&
+                currentSettings &&
+                !currentSettings.google_calendar_sync &&
+                currentSettings.google_calendar_token)
+        ) {
+            updateData.last_sync = new Date();
+        }
+
+        // If disconnecting, clear the last_sync timestamp
+        if (!settings.syncEnabled && currentSettings?.google_calendar_sync) {
+            updateData.last_sync = null;
+        }
+
         await prisma.user_settings.upsert({
             where: { user_id: Number(session.user?.id) },
-            update: {
-                google_calendar_sync: settings.syncEnabled,
-                google_calendar_token: settings.token || null,
-            },
+            update: updateData,
             create: {
                 user_id: Number(session.user?.id),
                 google_calendar_sync: settings.syncEnabled,
                 google_calendar_token: settings.token || null,
+                last_sync: settings.token ? new Date() : null,
             },
         });
 

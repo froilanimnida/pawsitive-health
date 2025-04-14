@@ -3,6 +3,7 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/lib";
 import { nextAuthLogin } from "@/actions";
 import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
 import { role_type } from "@prisma/client";
 
 export const authOptions: AuthOptions = {
@@ -37,6 +38,17 @@ export const authOptions: AuthOptions = {
                 };
             },
         }),
+        GoogleProvider({
+            clientId: process.env.GOOGLE_CLIENT_ID || "",
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+            authorization: {
+                params: {
+                    prompt: "consent",
+                    access_type: "offline",
+                    response_type: "code",
+                },
+            },
+        }),
     ],
     callbacks: {
         async jwt({ token, user }) {
@@ -54,6 +66,15 @@ export const authOptions: AuthOptions = {
                 session.user.id = token.id;
             }
             return session;
+        },
+        async signIn({ user, account, profile }) {
+            if (!user || !account || !profile || !account.provider || !profile.email) {
+                return false;
+            }
+            if (account.provider === "google") {
+                return profile.email.endsWith("@gmail.com");
+            }
+            return true;
         },
     },
     secret: process.env.NEXTAUTH_SECRET,
