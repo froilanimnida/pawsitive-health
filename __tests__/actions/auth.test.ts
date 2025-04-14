@@ -8,9 +8,33 @@ import {
     regenerateOTPToken,
     isEmailTaken,
 } from "../../actions/auth";
-import { prismaMock, mockSession, emailServiceMock } from "../utils/mocks";
+import { prismaMock } from "../utils/mocks";
 import * as hashUtils from "../../lib/index";
 import jwt from "jsonwebtoken";
+import { role_type } from "@prisma/client";
+
+const VALID_DATA = {
+    user_id: 1,
+    user_uuid: "test-uuid",
+    created_at: new Date(),
+    updated_at: new Date(),
+    deleted_at: null,
+    disabled: false,
+    email: "test@example.com",
+    email_verified: false,
+    email_verification_expires_at: null,
+    email_verification_token: null,
+    first_name: "John",
+    last_name: "Doe",
+    password_hash: "hashed_password",
+    last_login: null,
+    phone_number: "1234567890",
+    otp_expires_at: null,
+    otp_token: null,
+    password_reset_expires_at: null,
+    password_reset_token: null,
+    role: role_type.user,
+};
 
 // Mock dependencies
 jest.mock("next-auth/react", () => ({
@@ -45,17 +69,7 @@ describe("Authentication Actions", () => {
 
     describe("isEmailTaken", () => {
         it("should return true if email is taken", async () => {
-            prismaMock.users.findFirst.mockResolvedValueOnce({
-                user_id: 1,
-                email: "test@example.com",
-                password_hash: "hashed",
-                user_uuid: "user-uuid",
-                first_name: "Test",
-                last_name: "User",
-                role: "USER",
-                created_at: new Date(),
-                updated_at: new Date(),
-            } as any);
+            prismaMock.users.findFirst.mockResolvedValueOnce(VALID_DATA);
 
             const result = await isEmailTaken("test@example.com");
             expect(result).toBe(true);
@@ -85,23 +99,13 @@ describe("Authentication Actions", () => {
             // Mock email check
             prismaMock.users.findFirst.mockResolvedValueOnce(null);
 
-            // Mock user creation
+            // Mock user creation with VALID_DATA and only updating user_uuid
             prismaMock.users.create.mockResolvedValueOnce({
-                user_id: 1,
+                ...VALID_DATA,
                 user_uuid: "new-user-uuid",
-                email: mockUserData.email,
-                first_name: mockUserData.first_name,
-                last_name: mockUserData.last_name,
-                phone_number: mockUserData.phone_number,
-                role: "USER",
-                email_verified: false,
-                email_verification_token: "test-verification-token",
-                email_verification_expires_at: expect.any(Date),
-                created_at: new Date(),
-                updated_at: new Date(),
-            } as any);
+            });
 
-            const result = await createAccount(mockUserData);
+            const result = await createAccount({ confirm_password: mockUserData.password, ...mockUserData });
 
             expect(result).toEqual({
                 success: true,
@@ -121,11 +125,16 @@ describe("Authentication Actions", () => {
         it("should handle email already taken", async () => {
             // Mock email check - email exists
             prismaMock.users.findFirst.mockResolvedValueOnce({
+                ...VALID_DATA,
                 user_id: 2,
                 email: mockUserData.email,
-            } as any);
+                user_uuid: "existing-user-uuid",
+                first_name: "Existing",
+                last_name: "User",
+                phone_number: "0987654321",
+            });
 
-            const result = await createAccount(mockUserData);
+            const result = await createAccount({ confirm_password: mockUserData.password, ...mockUserData });
 
             expect(result).toEqual({
                 success: false,
@@ -142,7 +151,10 @@ describe("Authentication Actions", () => {
                 email: "not-an-email", // Invalid email format
             };
 
-            const result = await createAccount(invalidUserData);
+            const result = await createAccount({
+                confirm_password: invalidUserData.password,
+                ...invalidUserData,
+            });
 
             expect(result).toEqual({
                 success: false,
@@ -160,7 +172,10 @@ describe("Authentication Actions", () => {
             // Mock database error
             prismaMock.users.create.mockRejectedValueOnce(new Error("Database error"));
 
-            const result = await createAccount(mockUserData);
+            const result = await createAccount({
+                confirm_password: mockUserData.password,
+                ...mockUserData,
+            });
 
             expect(result).toEqual({
                 success: false,
@@ -241,16 +256,15 @@ describe("Authentication Actions", () => {
             const now = new Date();
             const future = new Date(now.getTime() + 10 * 60 * 1000); // 10 minutes in the future
 
-            // Mock user lookup
+            // Mock user lookup with VALID_DATA
             prismaMock.users.findFirst.mockResolvedValueOnce({
-                user_id: 1,
+                ...VALID_DATA,
                 otp_token: validOtp,
                 otp_expires_at: future,
-                role: "USER",
-            } as any);
+            });
 
             // Mock update to clear OTP
-            prismaMock.users.update.mockResolvedValueOnce({} as any);
+            prismaMock.users.update.mockResolvedValueOnce({ ...VALID_DATA, otp_token: null, otp_expires_at: null });
 
             const result = await verifyOTPToken(testEmail, validOtp);
 
@@ -258,7 +272,7 @@ describe("Authentication Actions", () => {
                 success: true,
                 data: {
                     correct: true,
-                    role: "USER",
+                    role: "user",
                 },
             });
 
@@ -278,11 +292,10 @@ describe("Authentication Actions", () => {
 
             // Mock user lookup with expired token
             prismaMock.users.findFirst.mockResolvedValueOnce({
-                user_id: 1,
+                ...VALID_DATA,
                 otp_token: validOtp,
                 otp_expires_at: past,
-                role: "USER",
-            } as any);
+            });
 
             const result = await verifyOTPToken(testEmail, validOtp);
 
@@ -303,11 +316,10 @@ describe("Authentication Actions", () => {
 
             // Mock user lookup
             prismaMock.users.findFirst.mockResolvedValueOnce({
-                user_id: 1,
+                ...VALID_DATA,
                 otp_token: validOtp,
                 otp_expires_at: future,
-                role: "USER",
-            } as any);
+            });
 
             const result = await verifyOTPToken(testEmail, "wrong-otp");
 
@@ -337,11 +349,10 @@ describe("Authentication Actions", () => {
         it("should handle missing OTP", async () => {
             // Mock user with no OTP
             prismaMock.users.findFirst.mockResolvedValueOnce({
-                user_id: 1,
+                ...VALID_DATA,
                 otp_token: null,
                 otp_expires_at: null,
-                role: "USER",
-            } as any);
+            });
 
             const result = await verifyOTPToken(testEmail, validOtp);
 
@@ -361,17 +372,21 @@ describe("Authentication Actions", () => {
         it("should initiate login process successfully", async () => {
             // Mock user lookup
             prismaMock.users.findFirst.mockResolvedValueOnce({
-                user_id: 1,
+                ...VALID_DATA,
                 email: loginData.email,
-                password_hash: "hashed_password",
-                first_name: "John",
-                last_name: "Doe",
-                disabled: false,
                 email_verified: true,
-            } as any);
+            });
 
             // Mock update to set OTP
-            prismaMock.users.update.mockResolvedValueOnce({} as any);
+            prismaMock.users.update.mockResolvedValueOnce({
+                ...VALID_DATA,
+                user_id: 1,
+                email: loginData.email,
+                first_name: "John",
+                last_name: "Doe",
+                otp_token: "123456",
+                otp_expires_at: new Date(Date.now() + 10 * 60 * 1000),
+            });
 
             // Mock password verification
             (hashUtils.verifyPassword as jest.Mock).mockResolvedValueOnce(true);
@@ -400,9 +415,9 @@ describe("Authentication Actions", () => {
         it("should reject invalid password", async () => {
             // Mock user lookup
             prismaMock.users.findFirst.mockResolvedValueOnce({
+                ...VALID_DATA,
                 email: loginData.email,
-                password_hash: "hashed_password",
-            } as any);
+            });
 
             // Mock password verification - invalid password
             (hashUtils.verifyPassword as jest.Mock).mockResolvedValueOnce(false);
@@ -422,11 +437,10 @@ describe("Authentication Actions", () => {
         it("should reject unverified email", async () => {
             // Mock user lookup with unverified email
             prismaMock.users.findFirst.mockResolvedValueOnce({
+                ...VALID_DATA,
                 email: loginData.email,
-                password_hash: "hashed_password",
-                disabled: false,
                 email_verified: false,
-            } as any);
+            });
 
             // Mock password verification
             (hashUtils.verifyPassword as jest.Mock).mockResolvedValueOnce(true);
@@ -446,11 +460,11 @@ describe("Authentication Actions", () => {
         it("should reject disabled account", async () => {
             // Mock user lookup with disabled account
             prismaMock.users.findFirst.mockResolvedValueOnce({
+                ...VALID_DATA,
                 email: loginData.email,
-                password_hash: "hashed_password",
                 disabled: true,
                 email_verified: true,
-            } as any);
+            });
 
             // Mock password verification
             (hashUtils.verifyPassword as jest.Mock).mockResolvedValueOnce(true);
@@ -487,15 +501,10 @@ describe("Authentication Actions", () => {
 
         it("should validate user credentials successfully", async () => {
             const mockUser = {
-                user_id: 1,
+                ...VALID_DATA,
                 email: loginData.email,
-                password_hash: "hashed_password",
-                first_name: "John",
-                last_name: "Doe",
-                role: "USER",
-                disabled: false,
                 email_verified: true,
-            } as any;
+            };
 
             // Mock user lookup
             prismaMock.users.findFirst.mockResolvedValueOnce(mockUser);
@@ -514,9 +523,9 @@ describe("Authentication Actions", () => {
         it("should reject invalid password", async () => {
             // Mock user lookup
             prismaMock.users.findFirst.mockResolvedValueOnce({
+                ...VALID_DATA,
                 email: loginData.email,
-                password_hash: "hashed_password",
-            } as any);
+            });
 
             // Mock password verification - invalid password
             (hashUtils.verifyPassword as jest.Mock).mockResolvedValueOnce(false);
@@ -532,11 +541,10 @@ describe("Authentication Actions", () => {
         it("should reject unverified email", async () => {
             // Mock user lookup with unverified email
             prismaMock.users.findFirst.mockResolvedValueOnce({
+                ...VALID_DATA,
                 email: loginData.email,
-                password_hash: "hashed_password",
-                disabled: false,
                 email_verified: false,
-            } as any);
+            });
 
             // Mock password verification
             (hashUtils.verifyPassword as jest.Mock).mockResolvedValueOnce(true);
@@ -552,11 +560,11 @@ describe("Authentication Actions", () => {
         it("should reject disabled account", async () => {
             // Mock user lookup with disabled account
             prismaMock.users.findFirst.mockResolvedValueOnce({
+                ...VALID_DATA,
                 email: loginData.email,
-                password_hash: "hashed_password",
                 disabled: true,
                 email_verified: true,
-            } as any);
+            });
 
             // Mock password verification
             (hashUtils.verifyPassword as jest.Mock).mockResolvedValueOnce(true);
@@ -591,17 +599,15 @@ describe("Authentication Actions", () => {
 
             // Mock user creation
             prismaMock.users.create.mockResolvedValueOnce({
+                ...VALID_DATA,
                 user_id: 1,
                 user_uuid: "new-clinic-uuid",
                 email: mockClinicData.email,
                 first_name: mockClinicData.first_name,
                 last_name: mockClinicData.last_name,
                 phone_number: mockClinicData.phone_number,
-                role: "CLIENT",
-                email_verified: false,
-                created_at: new Date(),
-                updated_at: new Date(),
-            } as any);
+                role: role_type.client,
+            });
 
             // Mock clinic creation
             prismaMock.clinics.create.mockResolvedValueOnce({
@@ -615,8 +621,13 @@ describe("Authentication Actions", () => {
                 emergency_services: mockClinicData.emergency_services,
                 user_id: 1,
                 created_at: new Date(),
-                updated_at: new Date(),
-            } as any);
+                clinic_uuid: "new-clinic-uuid",
+                google_maps_url: "https://maps.google.com",
+                latitude: 12.345678,
+                longitude: 98.765432,
+                operating_hours: "",
+                website: "",
+            });
 
             const result = await createClinicAccount(mockClinicData);
 
@@ -643,9 +654,10 @@ describe("Authentication Actions", () => {
         it("should handle email already taken", async () => {
             // Mock email check - email exists
             prismaMock.users.findFirst.mockResolvedValueOnce({
+                ...VALID_DATA,
                 user_id: 2,
                 email: mockClinicData.email,
-            } as any);
+            });
 
             const result = await createClinicAccount(mockClinicData);
 
@@ -684,11 +696,12 @@ describe("Authentication Actions", () => {
         it("should regenerate OTP successfully", async () => {
             // Mock user lookup
             prismaMock.users.findFirst.mockResolvedValueOnce({
+                ...VALID_DATA,
                 user_id: 1,
                 email: testEmail,
                 first_name: "John",
                 last_name: "Doe",
-            } as any);
+            });
 
             // Mock update to set new OTP
             prismaMock.users.update.mockResolvedValueOnce({} as any);
@@ -699,6 +712,7 @@ describe("Authentication Actions", () => {
                 success: true,
                 data: {
                     user: {
+                        ...VALID_DATA,
                         user_id: 1,
                         email: testEmail,
                         first_name: "John",

@@ -31,13 +31,13 @@ export function getAppointmentSelectFields(
         handleVetChange,
         form,
     }: {
-        veterinarians: { label: string; value: string }[];
+        veterinarians: { label: string; value: number }[];
         isLoadingVets: boolean;
         handleClinicChange: (value: string) => void;
         handleVetChange: (value: string) => void;
 
         form: UseFormReturn<AppointmentControlSchema>;
-    }
+    },
 ): SelectFormField[] {
     return [
         {

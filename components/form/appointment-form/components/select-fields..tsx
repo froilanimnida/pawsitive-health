@@ -50,8 +50,8 @@ export function SelectFields({ fields, control, selectedClinicId, isLoadingVets 
                                 <Select
                                     required={field.required}
                                     onValueChange={(value) => {
-                                        formField.onChange(value);
-                                        if (field.onChange) field.onChange(value);
+                                        formField.onChange(Number(value));
+                                        if (field.onChange) field.onChange(Number(value));
                                     }}
                                     value={String(formField.value)}
                                     defaultValue={String(formField.value) || String(field.defaultValue)}
