@@ -10,9 +10,7 @@ import jwt from "jsonwebtoken";
 
 const isEmailTaken = async (email: string): Promise<boolean> => {
     const user = await prisma.users.findFirst({
-        where: {
-            email: email,
-        },
+        where: { email: email },
     });
     return user !== null;
 };
@@ -20,9 +18,7 @@ const isEmailTaken = async (email: string): Promise<boolean> => {
 const createAccount = async (values: SignUpType): Promise<ActionResponse<{ user_uuid: string }>> => {
     try {
         const formData = SignUpSchema.safeParse(values);
-        if (!formData.success) {
-            return { success: false, error: "Invalid input" };
-        }
+        if (!formData.success) return { success: false, error: "Invalid input" };
         const userEmailTaken = await isEmailTaken(formData.data.email);
         if (userEmailTaken) return { success: false, error: "email_or_phone_number_already_exists" };
         const userEmail = formData.data.email;
@@ -65,10 +61,7 @@ const createAccount = async (values: SignUpType): Promise<ActionResponse<{ user_
         await createNewPreferenceDefault(result.user_id);
         return { success: true, data: { user_uuid: result.user_uuid } };
     } catch (error) {
-        return {
-            success: false,
-            error: error instanceof Error ? error.message : "An unexpected error occurred",
-        };
+        return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
     }
 };
 
@@ -83,16 +76,11 @@ const verifyEmail = async (token: string): Promise<ActionResponse<{ verified: bo
             data: { email_verified: true, email_verification_token: null, email_verification_expires_at: null },
         });
 
-        if (result.count === 0) {
-            return { success: false, error: "User not found" };
-        }
+        if (result.count === 0) return { success: false, error: "User not found" };
 
         return { success: true, data: { verified: true } };
     } catch (error) {
-        return {
-            success: false,
-            error: error instanceof Error ? error.message : "Invalid or expired token",
-        };
+        return { success: false, error: error instanceof Error ? error.message : "Invalid or expired token" };
     }
 };
 
@@ -138,10 +126,7 @@ const verifyOTPToken = async (
         };
     } catch (error) {
         console.error("OTP verification error:", error);
-        return {
-            success: false,
-            error: error instanceof Error ? error.message : "Invalid or expired OTP token",
-        };
+        return { success: false, error: error instanceof Error ? error.message : "Invalid or expired OTP token" };
     }
 };
 
@@ -151,9 +136,7 @@ const createClinicAccount = async (values: NewClinicAccountType): Promise<Action
         if (!formData.success) return { success: false, error: "Invalid input" };
 
         const user = await prisma.users.findFirst({
-            where: {
-                OR: [{ email: values.email }, { phone_number: values.phone_number }],
-            },
+            where: { OR: [{ email: values.email }, { phone_number: values.phone_number }] },
         });
 
         if (user !== null) return { success: false, error: "email_or_phone_number_already_exists" };
@@ -221,9 +204,7 @@ const createClinicAccount = async (values: NewClinicAccountType): Promise<Action
 const regenerateOTPToken = async (email: string): Promise<ActionResponse<{ user: users }>> => {
     try {
         const user = await prisma.users.findFirst({
-            where: {
-                email: email,
-            },
+            where: { email: email },
         });
 
         if (!user) return { success: false, error: "User not found" };
@@ -255,18 +236,13 @@ const regenerateOTPToken = async (email: string): Promise<ActionResponse<{ user:
 
         return { success: true, data: { user } };
     } catch (error) {
-        return {
-            success: false,
-            error: error instanceof Error ? error.message : "An unexpected error occurred",
-        };
+        return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
     }
 };
 const loginAccount = async (values: LoginType): Promise<ActionResponse<{ data: object }>> => {
     try {
         const user = await prisma.users.findFirst({
-            where: {
-                email: values.email,
-            },
+            where: { email: values.email },
         });
 
         if (!user) return { success: false, error: "User not found" };
@@ -303,33 +279,23 @@ const loginAccount = async (values: LoginType): Promise<ActionResponse<{ data: o
 
         return { success: true, data: { data: {} } };
     } catch (error) {
-        return {
-            success: false,
-            error: error instanceof Error ? error.message : "An unexpected error occurred",
-        };
+        return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
     }
 };
 
 const nextAuthLogin = async (email: string, password: string): Promise<ActionResponse<{ user: users }>> => {
     try {
         const user = await prisma.users.findFirst({
-            where: {
-                email: email,
-            },
+            where: { email: email },
         });
-
         if (!user) return { success: false, error: "User not found" };
         if (!(await verifyPassword(password, user.password_hash))) return { success: false, error: "Invalid password" };
-
         if (user.disabled) return { success: false, error: "User account is disabled" };
         if (user.email_verified === false) return { success: false, error: "Email not verified" };
 
         return { success: true, data: { user } };
     } catch (error) {
-        return {
-            success: false,
-            error: error instanceof Error ? error.message : "An unexpected error occurred",
-        };
+        return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
     }
 };
 

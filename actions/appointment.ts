@@ -1,8 +1,7 @@
 "use server";
 import { prisma, toTitleCase } from "@/lib";
-import { getClinic, getPet, getUserId, sendEmail } from "@/actions";
+import { getClinic, getPet, sendEmail } from "@/actions";
 import { AppointmentType } from "@/schemas";
-import { auth } from "@/auth";
 import type { appointment_status, Prisma, appointment_type } from "@prisma/client";
 import type { ActionResponse } from "@/types/server-action-response";
 import { endOfDay, startOfDay } from "date-fns";
@@ -10,12 +9,10 @@ import { AppointmentDetailsResponse, GetUserAppointmentsResponse } from "@/types
 import { AppointmentConfirmation, AppointmentConfirmed } from "@/templates";
 import { revalidatePath } from "next/cache";
 import { createNotification } from "./notification";
-import {
-    //syncAppointmentToGoogleCalendar,
-    updateGoogleCalendarEvent,
-    deleteGoogleCalendarEvent,
-    addToGoogleCalendar,
-} from "./calendar-sync";
+import { updateGoogleCalendarEvent, deleteGoogleCalendarEvent, addToGoogleCalendar } from "./calendar-sync";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { redirect } from "next/navigation";
 
 export type AppointmentWithRelations = Prisma.appointmentsGetPayload<{
     include: {
@@ -78,15 +75,13 @@ async function getExistingAppointments(
 
 const getUserAppointments = async (): Promise<ActionResponse<{ appointments: GetUserAppointmentsResponse[] }>> => {
     try {
-        const session = await auth();
-        if (!session || !session.user || !session.user.email) {
-            throw new Error("User not found");
-        }
+        const session = await getServerSession(authOptions);
+        if (!session || !session.user || !session.user.id) redirect("/signin");
 
         const appointments = await prisma.appointments.findMany({
             where: {
                 pets: {
-                    user_id: await getUserId(session?.user?.email),
+                    user_id: Number(session.user.id),
                     deleted: false,
                 },
             },
@@ -133,8 +128,8 @@ const createUserAppointment = async (
     values: AppointmentType,
 ): Promise<ActionResponse<{ appointment_uuid: string }>> => {
     try {
-        const session = await auth();
-        if (!session || !session.user || !session.user.email) return { success: false, error: "User not found" };
+        const session = await getServerSession(authOptions);
+        if (!session || !session.user || !session.user.id || !session.user.email) redirect("/signin");
 
         const petResponse = await getPet(values.pet_uuid);
         if (!petResponse.success || !petResponse.data || !petResponse.data.pet)
@@ -156,17 +151,13 @@ const createUserAppointment = async (
             },
         });
 
-        if (conflictingVetAppointments.length > 0) {
+        if (conflictingVetAppointments.length > 0)
             return { success: false, error: "The veterinarian already has an appointment at this time" };
-        }
 
         // Check if the user has any other appointments at the same time
-        const userId = await getUserId(session.user.email);
         const conflictingUserAppointments = await prisma.appointments.findMany({
             where: {
-                pets: {
-                    user_id: userId,
-                },
+                pets: { user_id: Number(session.user.id) },
                 appointment_date: {
                     gte: new Date(values.appointment_date.getTime() - 30 * 60 * 1000),
                     lte: new Date(values.appointment_date.getTime() + 30 * 60 * 1000),
@@ -175,9 +166,8 @@ const createUserAppointment = async (
             },
         });
 
-        if (conflictingUserAppointments.length > 0) {
+        if (conflictingUserAppointments.length > 0)
             return { success: false, error: "You already have another appointment at this time" };
-        }
 
         // Continue with appointment creation
         const appointment = await prisma.appointments.create({
@@ -235,14 +225,11 @@ const createUserAppointment = async (
 
 const getClinicAppointments = async (): Promise<ActionResponse<{ appointments: AppointmentWithRelations[] }>> => {
     try {
-        const session = await auth();
-        if (!session || !session.user || !session.user.email) return { success: false, error: "User not found" };
+        const session = await getServerSession(authOptions);
+        if (!session || !session.user || !session.user.id) redirect("/signin");
 
-        const user_id = await getUserId(session?.user?.email);
         const clinic = await prisma.clinics.findFirst({
-            where: {
-                user_id: user_id,
-            },
+            where: { user_id: Number(session.user.id) },
         });
         if (!clinic) return { success: false, error: "Clinic not found" };
         const appointments = await prisma.appointments.findMany({
@@ -289,21 +276,14 @@ const getVeterinarianAppointments = async (): Promise<
     }>
 > => {
     try {
-        const session = await auth();
-        if (!session || !session.user || !session.user.email) {
-            throw new Error("User not found");
-        }
-        const user_id = await getUserId(session?.user?.email);
+        const session = await getServerSession(authOptions);
+        if (!session || !session.user || !session.user.id) redirect("/signin");
         const veterinarian = await prisma.veterinarians.findFirst({
-            where: {
-                user_id: user_id,
-            },
+            where: { user_id: Number(session.user.id) },
         });
         if (!veterinarian) return { success: false, error: "Veterinarian not found" };
         const appointments = await prisma.appointments.findMany({
-            where: {
-                vet_id: veterinarian.vet_id,
-            },
+            where: { vet_id: veterinarian.vet_id },
             include: {
                 pets: {
                     include: {
@@ -327,11 +307,8 @@ const getAppointment = async (
     is_user: boolean = false,
 ): Promise<ActionResponse<{ appointment: AppointmentDetailsResponse }>> => {
     try {
-        const session = await auth();
-        if (!session || !session.user || !session.user.email) {
-            throw new Error("User not found");
-        }
-
+        const session = await getServerSession(authOptions);
+        if (!session || !session.user || !session.user.id) redirect("/signin");
         const appointment = await prisma.appointments.findFirst({
             where: {
                 appointment_uuid: appointment_uuid,
@@ -386,9 +363,7 @@ const getAppointment = async (
 
         return {
             success: true,
-            data: {
-                appointment: appointment as unknown as AppointmentDetailsResponse,
-            },
+            data: { appointment: appointment as unknown as AppointmentDetailsResponse },
         };
     } catch (error) {
         return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
@@ -397,8 +372,8 @@ const getAppointment = async (
 
 const cancelAppointment = async (appointment_uuid: string): Promise<ActionResponse<{ appointment_uuid: string }>> => {
     try {
-        const session = await auth();
-        if (!session || !session.user || !session.user.email) return { success: false, error: "User not found" };
+        const session = await getServerSession(authOptions);
+        if (!session || !session.user || !session.user.id) redirect("/signin");
         const appointment = await prisma.appointments.update({
             where: { appointment_uuid: appointment_uuid },
             data: { status: "cancelled" },
@@ -443,8 +418,8 @@ const cancelAppointment = async (appointment_uuid: string): Promise<ActionRespon
 
 const confirmAppointment = async (appointment_uuid: string): Promise<ActionResponse<{ appointment_uuid: string }>> => {
     try {
-        const session = await auth();
-        if (!session || !session.user || !session.user.email) return { success: false, error: "User not found" };
+        const session = await getServerSession(authOptions);
+        if (!session || !session.user || !session.user.id) redirect("/signin");
 
         const appointment = await prisma.appointments.update({
             where: {
@@ -507,10 +482,7 @@ const confirmAppointment = async (appointment_uuid: string): Promise<ActionRespo
                 appointmentDateTime: appointment.appointment_date,
                 appointmentEndDateTime: endDateTime,
             },
-            {
-                to: ownerEmail,
-                subject: `Your Appointment for ${appointment.pets.name} has been Confirmed`,
-            },
+            { to: ownerEmail, subject: `Your Appointment for ${appointment.pets.name} has been Confirmed` },
         );
         await createNotification({
             userId: appointment.pets.users.user_id,
@@ -523,10 +495,7 @@ const confirmAppointment = async (appointment_uuid: string): Promise<ActionRespo
             actionUrl: `/user/appointments/${appointment.appointment_uuid}`,
         });
 
-        return {
-            success: true,
-            data: { appointment_uuid: appointment.appointment_uuid },
-        };
+        return { success: true, data: { appointment_uuid: appointment.appointment_uuid } };
     } catch (error) {
         return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
     }
@@ -559,10 +528,10 @@ const rescheduleAppointment = async (
     appointment_uuid: string,
     new_date: Date,
     notes?: string,
-): Promise<ActionResponse<{ appointment_uuid: string }>> => {
+): Promise<ActionResponse | void> => {
     try {
-        const session = await auth();
-        if (!session?.user?.email) return { success: false, error: "User not authenticated" };
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.id) redirect("/signin");
 
         // Get the current appointment to check who's allowed to reschedule it
         const currentAppointment = await prisma.appointments.findUnique({
@@ -581,9 +550,8 @@ const rescheduleAppointment = async (
         if (!currentAppointment) return { success: false, error: "Appointment not found" };
 
         // Check if the status allows rescheduling
-        if (currentAppointment.status === "completed" || currentAppointment.status === "cancelled") {
+        if (currentAppointment.status === "completed" || currentAppointment.status === "cancelled")
             return { success: false, error: `Cannot reschedule a ${currentAppointment.status} appointment` };
-        }
 
         // Check for scheduling conflicts at the new time for this veterinarian
         const conflictingAppointments = await prisma.appointments.findMany({
@@ -599,16 +567,14 @@ const rescheduleAppointment = async (
             },
         });
 
-        if (conflictingAppointments.length > 0) {
+        if (conflictingAppointments.length > 0)
             return { success: false, error: "There is a scheduling conflict at this time" };
-        }
 
         // Check if the current user has any other appointments at the same time
-        const userId = await getUserId(session.user.email);
         const userAppointments = await prisma.appointments.findMany({
             where: {
                 pets: {
-                    user_id: userId,
+                    user_id: Number(session.user.id),
                 },
                 appointment_date: {
                     gte: new Date(new_date.getTime() - 30 * 60 * 1000),
@@ -619,9 +585,8 @@ const rescheduleAppointment = async (
             },
         });
 
-        if (userAppointments.length > 0) {
+        if (userAppointments.length > 0)
             return { success: false, error: "You already have another appointment at this time" };
-        }
 
         // Update the appointment with the new date and notes if provided
         const updatedAppointment = await prisma.appointments.update({
@@ -666,20 +631,10 @@ const rescheduleAppointment = async (
             expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
             actionUrl: `/user/appointments/view/${updatedAppointment.appointment_uuid}`,
         });
-
         // Revalidate the appointment path to show the changes
         revalidatePath(`/user/appointments/view/${updatedAppointment.appointment_uuid}`);
-        revalidatePath(`/user/appointments`);
-        revalidatePath(`/vet/appointments`);
-        revalidatePath(`/clinic/appointments`);
-
-        return { success: true, data: { appointment_uuid: updatedAppointment.appointment_uuid } };
     } catch (error) {
-        console.error("Error rescheduling appointment:", error);
-        return {
-            success: false,
-            error: error instanceof Error ? error.message : "An unexpected error occurred",
-        };
+        return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
     }
 };
 

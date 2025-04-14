@@ -1,11 +1,11 @@
 "use server";
 import { prisma } from "@/lib";
-import { auth } from "@/auth";
 import { type ActionResponse } from "@/types/server-action-response";
 import { revalidatePath } from "next/cache";
-import { z } from "zod";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { BaseUserProfileSchema, type BaseUserProfileType } from "@/schemas";
+import { redirect } from "next/navigation";
 
 const getUserId = async (email: string) => {
     const user = await prisma.users.findUnique({
@@ -19,49 +19,27 @@ const getUserId = async (email: string) => {
     return user.user_id;
 };
 
-// Schema for user profile updates
-const UserProfileSchema = z.object({
-    first_name: z.string().min(2, { message: "First name must be at least 2 characters" }),
-    last_name: z.string().min(2, { message: "Last name must be at least 2 characters" }),
-    email: z.string().email({ message: "Please enter a valid email address" }),
-    phone_number: z.string().min(10, { message: "Please enter a valid phone number" }),
-});
-
-type UserProfileUpdate = z.infer<typeof UserProfileSchema>;
-
 /**
  * Update a user's profile information
  */
-const updateUserProfile = async (data: UserProfileUpdate): Promise<ActionResponse<{ updated: boolean }>> => {
+const updateUserProfile = async (data: BaseUserProfileType): Promise<ActionResponse | void> => {
     try {
-        const session = await auth();
-        if (!session?.user?.email) {
-            return { success: false, error: "User not authenticated" };
-        }
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.id) redirect("/signin");
+        const validated = BaseUserProfileSchema.safeParse(data);
+        if (!validated.success) return { success: false, error: "Invalid input data" };
 
-        // Validate input
-        const validated = UserProfileSchema.safeParse(data);
-        if (!validated.success) {
-            return { success: false, error: "Invalid input data" };
-        }
-
-        // Check if user exists
-        const userId = await getUserId(session.user.email);
-
-        // Check if new email is already taken by another user
         if (data.email !== session.user.email) {
             const existingUser = await prisma.users.findUnique({
                 where: { email: data.email },
             });
 
-            if (existingUser && existingUser.user_id !== userId) {
+            if (existingUser && existingUser.user_id !== Number(session.user.id))
                 return { success: false, error: "Email address is already in use" };
-            }
         }
 
-        // Update the user
         await prisma.users.update({
-            where: { user_id: userId },
+            where: { user_id: Number(session.user.id) },
             data: {
                 first_name: data.first_name,
                 last_name: data.last_name,
@@ -71,12 +49,8 @@ const updateUserProfile = async (data: UserProfileUpdate): Promise<ActionRespons
         });
 
         revalidatePath("/user/settings");
-        return { success: true, data: { updated: true } };
     } catch (error) {
-        return {
-            success: false,
-            error: error instanceof Error ? error.message : "An unexpected error occurred",
-        };
+        return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
     }
 };
 
@@ -135,10 +109,7 @@ const updateCalendarIntegration = async (settings: {
 
         return { success: true, data: { updated: true } };
     } catch (error) {
-        return {
-            success: false,
-            error: error instanceof Error ? error.message : "An unexpected error occurred",
-        };
+        return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
     }
 };
 

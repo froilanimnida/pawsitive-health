@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
 import { updateCalendarIntegration } from "@/actions/user";
+import { getServerSession } from "next-auth";
+import { authOptions } from "../../[...nextauth]/route";
 
 // Access environment variables once at the module level
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
@@ -20,10 +21,8 @@ export async function GET(request: Request) {
 
     try {
         // Get authenticated user
-        const session = await auth();
-        if (!session?.user?.email) {
-            throw new Error("User not authenticated");
-        }
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.email) return NextResponse.redirect(new URL("/signin", request.url));
 
         // Validate that we have necessary credentials
         if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
@@ -32,8 +31,6 @@ export async function GET(request: Request) {
         }
 
         const redirectUri = `${FRONTEND_URL}/api/auth/google-calendar/callback`;
-        console.log("Using redirect URI:", redirectUri);
-
         // Exchange the authorization code for tokens
         const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
             method: "POST",
@@ -67,10 +64,7 @@ export async function GET(request: Request) {
             }),
         });
 
-        if (!result.success) {
-            throw new Error(result.error);
-        }
-
+        if (!result.success) throw new Error(result.error);
         // Redirect back to calendar settings page
         return NextResponse.redirect(new URL("/user/settings?connected=true", request.url));
     } catch (error) {

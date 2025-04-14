@@ -150,11 +150,13 @@ export function RescheduleAppointmentDialog({
             // Call the reschedule API
             const result = await rescheduleAppointment(appointmentUuid, newDate, notes);
 
-            if (!result.success) {
-                throw new Error(result.error);
+            if (result === undefined) {
+                toast.success("Appointment successfully rescheduled");
+                setIsOpen(false);
+                return;
             }
 
-            toast.success("Appointment successfully rescheduled");
+            toast.error(!result.success ? result.error : "Failed to reschedule appointment. Please try again later.");
             setIsOpen(false);
         } catch (error) {
             toast.error(error instanceof Error ? error.message : "Failed to reschedule appointment");
