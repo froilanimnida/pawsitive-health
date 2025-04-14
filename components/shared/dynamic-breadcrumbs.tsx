@@ -28,7 +28,7 @@ export async function DynamicBreadcrumbs() {
     };
 
     return (
-        <Breadcrumb>
+        <Breadcrumb aria-label="Breadcrumb">
             <BreadcrumbList>
                 {segments.map((segment, index) => {
                     if (index === 0) {
