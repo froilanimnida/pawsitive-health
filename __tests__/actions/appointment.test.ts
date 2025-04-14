@@ -224,7 +224,7 @@ describe("Appointment Actions", () => {
                     appointment_id: 3,
                     appointment_uuid: "existing-appointment",
                     pet_id: 2,
-                    vet_id: 1,
+                    vet_id: "1",
                     clinic_id: 1,
                     appointment_date: mockAppointmentData.appointment_date,
                     appointment_type: appointment_type.allergy_testing,

@@ -34,7 +34,7 @@ export const appointmentDurationMap = {
 
 export const AppointmentSchema = z.object({
     pet_uuid: z.string(),
-    vet_id: z.string(),
+    vet_id: z.number(),
     clinic_id: z.string(),
     appointment_date: z.date(),
     appointment_type: z.enum(Object.values(appointment_type) as [string, ...string[]]),
