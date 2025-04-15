@@ -31,7 +31,6 @@ import { z } from "zod";
 import { addPrescription, getMedicationsList } from "@/actions";
 
 const PrescriptionFormSchema = PrescriptionDefinition.extend({
-    //pet_uuid: z.string().uuid(),
     appointment_uuid: z.string().uuid().optional(),
     medication_id: z.number(),
 });
@@ -40,9 +39,10 @@ interface PrescriptionFormProps {
     petId: number;
     //petUuid: string;
     appointmentUuid: string;
+    appointmentId?: number;
 }
 
-const PrescriptionForm = ({ petId, appointmentUuid }: PrescriptionFormProps) => {
+const PrescriptionForm = ({ petId, appointmentUuid, appointmentId }: PrescriptionFormProps) => {
     const [isLoading, setIsLoading] = useState(false);
     const [medications, setMedications] = useState<{ id: number; name: string }[]>([]);
 
@@ -77,6 +77,7 @@ const PrescriptionForm = ({ petId, appointmentUuid }: PrescriptionFormProps) => 
             appointment_uuid: appointmentUuid,
             medication_id: undefined,
             dosage: "",
+            appointment_id: appointmentId,
             frequency: "",
             start_date: new Date(),
             end_date: addDays(new Date(), 7),

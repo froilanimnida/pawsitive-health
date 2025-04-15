@@ -363,7 +363,7 @@ const getAppointment = async (
 
         return {
             success: true,
-            data: { appointment: appointment as unknown as AppointmentDetailsResponse },
+            data: { appointment: appointment },
         };
     } catch (error) {
         return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };

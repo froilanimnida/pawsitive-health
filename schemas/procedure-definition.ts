@@ -12,12 +12,7 @@ export const ProcedureSchema = z.object({
         message: "Invalid pet UUID",
     }),
     pet_id: z.number().optional(),
-    appointment_uuid: z
-        .string()
-        .uuid({
-            message: "Invalid appointment UUID",
-        })
-        .optional(),
+    appointment_id: z.number().optional(),
     external_provider: z.string().max(100).optional(),
 });
 

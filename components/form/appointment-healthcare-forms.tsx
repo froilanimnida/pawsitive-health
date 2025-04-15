@@ -9,10 +9,11 @@ import PetProcedureForm from "./pet-healthcare-form";
 interface AppointmentHealthcareFormsProps {
     petId: number;
     appointmentUuid: string;
+    appointmentId?: number;
     //medicationLists: medications[];
 }
 
-export function AppointmentHealthcareForms({ petId, appointmentUuid }: AppointmentHealthcareFormsProps) {
+export function AppointmentHealthcareForms({ petId, appointmentUuid, appointmentId }: AppointmentHealthcareFormsProps) {
     const [activeTab, setActiveTab] = useState("vaccination");
     return (
         <div className="mt-6 space-y-4">
@@ -46,6 +47,7 @@ export function AppointmentHealthcareForms({ petId, appointmentUuid }: Appointme
                     </div>
                     <PetProcedureForm
                         petId={petId}
+                        appointmentId={appointmentId}
                         //appointmentUuid={appointmentUuid}
                     />
                 </TabsContent>
@@ -55,7 +57,7 @@ export function AppointmentHealthcareForms({ petId, appointmentUuid }: Appointme
                         <h3 className="text-lg font-semibold">Issue Prescription</h3>
                         <p className="text-sm text-muted-foreground">Create prescriptions for medications</p>
                     </div>
-                    <PrescriptionForm petId={petId} appointmentUuid={appointmentUuid} />
+                    <PrescriptionForm petId={petId} appointmentUuid={appointmentUuid} appointmentId={appointmentId} />
                 </TabsContent>
             </Tabs>
         </div>

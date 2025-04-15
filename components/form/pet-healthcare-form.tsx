@@ -36,11 +36,12 @@ import { useRouter } from "next/navigation";
 interface PetProcedureFormProps {
     petUuid?: string;
     petId?: number;
+    appointmentId?: number;
     onSuccess?: () => void;
     onCancel?: () => void;
 }
 
-const PetProcedureForm = ({ petUuid, onSuccess, onCancel, petId }: PetProcedureFormProps) => {
+const PetProcedureForm = ({ petUuid, onSuccess, onCancel, petId, appointmentId }: PetProcedureFormProps) => {
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
 
@@ -51,6 +52,8 @@ const PetProcedureForm = ({ petUuid, onSuccess, onCancel, petId }: PetProcedureF
         progressive: true,
         defaultValues: {
             pet_uuid: petUuid,
+            appointment_id: appointmentId,
+            external_provider: "",
             pet_id: petId,
             procedure_type: "deworming" as procedure_type,
             procedure_date: new Date(),
