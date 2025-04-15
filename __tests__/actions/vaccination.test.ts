@@ -2,12 +2,45 @@ import { createVaccination, getPetVaccinations, getVaccination } from "../../act
 import { prismaMock, mockSession } from "../utils/mocks";
 import { getServerSession } from "next-auth";
 import * as petsActions from "../../actions/pets";
+import { breed_type, pet_sex_type, species_type, type pets, type vaccinations } from "@prisma/client";
+import { Decimal } from "@prisma/client/runtime/library";
 
 // Mock dependencies
 jest.mock("next-auth");
 jest.mock("../../actions/pets", () => ({
     getPet: jest.fn(),
 }));
+
+const VALID_VACCINATION_DATA: vaccinations = {
+    administered_by: null,
+    vaccination_id: 1,
+    appointment_id: null,
+    created_at: new Date(),
+    pet_id: 1,
+    vaccination_uuid: "test-vaccination-uuid",
+    vaccine_name: "Rabies",
+    administered_date: new Date("2025-01-15"),
+    next_due_date: new Date("2026-01-15"),
+    batch_number: "RAB-123456",
+};
+
+const VALID_PET_DATA: pets = {
+    pet_id: 1,
+    pet_uuid: "test-pet-uuid",
+    name: "Fluffy",
+    breed: breed_type.labrador_retriever,
+    created_at: new Date(),
+    updated_at: new Date(),
+    date_of_birth: new Date("2020-01-01"),
+    weight_kg: Decimal(25.5),
+    deleted: false,
+    user_id: 1,
+    deleted_at: null,
+    private: false,
+    profile_picture_url: null,
+    sex: pet_sex_type.female,
+    species: species_type.dog,
+};
 
 describe("Vaccination Actions", () => {
     beforeEach(() => {
@@ -28,33 +61,10 @@ describe("Vaccination Actions", () => {
 
         it("should create a new vaccination record successfully", async () => {
             // Mock finding the pet
-            prismaMock.pets.findFirst.mockResolvedValueOnce({
-                pet_id: 1,
-                pet_uuid: "test-pet-uuid",
-                name: "Fluffy",
-                breed: "LABRADOR_RETRIEVER",
-                species: "DOG",
-                sex: "MALE",
-                date_of_birth: new Date("2020-01-01"),
-                weight_kg: 25.5,
-                user_id: 1,
-                created_at: new Date(),
-                updated_at: new Date(),
-            });
+            prismaMock.pets.findFirst.mockResolvedValueOnce(VALID_PET_DATA);
 
             // Mock creating the vaccination
-            prismaMock.vaccinations.create.mockResolvedValueOnce({
-                vaccination_id: 1,
-                vaccination_uuid: "test-vaccination-uuid",
-                pet_id: 1,
-                vaccine_name: "Rabies",
-                administered_date: new Date("2025-01-15"),
-                next_due_date: new Date("2026-01-15"),
-                batch_number: "RAB-123456",
-                vet_id: null,
-                created_at: new Date(),
-                updated_at: new Date(),
-            });
+            prismaMock.vaccinations.create.mockResolvedValueOnce(VALID_VACCINATION_DATA);
 
             // Call the action
             const result = await createVaccination(mockVaccinationData);
@@ -91,7 +101,7 @@ describe("Vaccination Actions", () => {
                 batch_number: "RAB-123456",
             };
 
-            const result = await createVaccination(invalidVaccinationData as any);
+            const result = await createVaccination(invalidVaccinationData);
 
             // Verify the error response
             expect(result).toEqual({
@@ -122,19 +132,7 @@ describe("Vaccination Actions", () => {
 
         it("should handle database errors", async () => {
             // Mock finding the pet
-            prismaMock.pets.findFirst.mockResolvedValueOnce({
-                pet_id: 1,
-                pet_uuid: "test-pet-uuid",
-                name: "Fluffy",
-                breed: "LABRADOR_RETRIEVER",
-                species: "DOG",
-                sex: "MALE",
-                date_of_birth: new Date("2020-01-01"),
-                weight_kg: 25.5,
-                user_id: 1,
-                created_at: new Date(),
-                updated_at: new Date(),
-            });
+            prismaMock.pets.findFirst.mockResolvedValueOnce(VALID_PET_DATA);
 
             // Mock database error
             prismaMock.vaccinations.create.mockRejectedValueOnce(new Error("Database error"));
@@ -155,18 +153,7 @@ describe("Vaccination Actions", () => {
 
         it("should get a vaccination record successfully", async () => {
             // Mock finding the vaccination
-            prismaMock.vaccinations.findFirst.mockResolvedValueOnce({
-                vaccination_id: 1,
-                vaccination_uuid: mockVaccinationUuid,
-                pet_id: 1,
-                vaccine_name: "Rabies",
-                administered_date: new Date("2025-01-15"),
-                next_due_date: new Date("2026-01-15"),
-                batch_number: "RAB-123456",
-                vet_id: null,
-                created_at: new Date(),
-                updated_at: new Date(),
-            });
+            prismaMock.vaccinations.findFirst.mockResolvedValueOnce(VALID_VACCINATION_DATA);
 
             // Call the action
             const result = await getVaccination(mockVaccinationUuid);
@@ -180,8 +167,8 @@ describe("Vaccination Actions", () => {
                         vaccination_uuid: mockVaccinationUuid,
                         pet_id: 1,
                         vaccine_name: "Rabies",
-                        administered_date: expect.any(Date),
-                        next_due_date: expect.any(Date),
+                        administered_date: new Date("2025-01-15"),
+                        next_due_date: new Date("2026-01-15"),
                         batch_number: "RAB-123456",
                         vet_id: null,
                         created_at: expect.any(Date),
@@ -230,18 +217,30 @@ describe("Vaccination Actions", () => {
 
         it("should get all vaccinations for a pet successfully", async () => {
             // Mock getPet function
-            const mockPet = {
+            const mockPet: {
+                success: boolean;
+                data: {
+                    pet: pets;
+                };
+            } = {
                 success: true,
                 data: {
                     pet: {
                         pet_id: 1,
                         pet_uuid: mockPetUuid,
                         name: "Fluffy",
-                        breed: "LABRADOR_RETRIEVER",
-                        species: "DOG",
-                        sex: "MALE",
+                        breed: breed_type.labrador_retriever,
+                        species: species_type.dog,
+                        sex: pet_sex_type.female,
                         date_of_birth: new Date("2020-01-01"),
-                        weight_kg: "25.50",
+                        weight_kg: Decimal(25.5),
+                        created_at: new Date(),
+                        updated_at: new Date(),
+                        deleted: false,
+                        deleted_at: null,
+                        private: false,
+                        user_id: 1,
+                        profile_picture_url: null,
                     },
                 },
             };
@@ -250,6 +249,7 @@ describe("Vaccination Actions", () => {
 
             // Mock finding the vaccinations
             const mockVaccinations = [
+                { ...VALID_PET_DATA, pet_id: 2 },
                 {
                     vaccination_id: 1,
                     vaccination_uuid: "vaccination-1",
