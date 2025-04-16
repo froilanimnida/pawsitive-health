@@ -24,14 +24,23 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { PetVaccinationSchema, type PetVaccinationType } from "@/schemas";
 
+interface VaccinationFormProps {
+    petUuid?: string;
+    petId: number;
+    appointmentId?: number;
+    appointmentUuid?: string;
+    isUserView?: boolean; // Flag to determine if it's user view (for historical data) or vet view
+    onSuccess?: () => void;
+}
+
 export function VaccinationForm({
     petUuid,
+    petId,
+    appointmentId,
     appointmentUuid,
-}: {
-    petUuid: string;
-    appointmentUuid: string;
-    vetId: number;
-}) {
+    isUserView = false,
+    onSuccess,
+}: VaccinationFormProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const form = useForm({
@@ -41,6 +50,8 @@ export function VaccinationForm({
             administered_date: new Date(),
             batch_number: "",
             pet_uuid: petUuid,
+            pet_id: petId,
+            appointment_id: appointmentId,
             appointment_uuid: appointmentUuid,
             next_due_date: undefined,
         },
@@ -51,25 +62,29 @@ export function VaccinationForm({
 
         try {
             const result = await createVaccination({
-                pet_uuid: petUuid,
-                appointment_uuid: appointmentUuid,
-                vaccine_name: data.vaccine_name,
-                administered_date: data.administered_date,
-                next_due_date: data.next_due_date,
-                batch_number: data.batch_number || "",
+                ...data,
+                pet_id: petId,
+                appointment_id: appointmentId,
             });
 
             if (result.success) {
                 toast.success("Vaccination recorded successfully");
                 form.reset({
+                    ...form.getValues(),
                     vaccine_name: "",
                     administered_date: new Date(),
                     batch_number: "",
+                    next_due_date: undefined,
                 });
+
+                if (onSuccess) {
+                    onSuccess();
+                }
             } else {
                 toast.error(result.error || "Failed to record vaccination");
             }
-        } catch {
+        } catch (error) {
+            console.error("Error recording vaccination:", error);
             toast.error("An unexpected error occurred");
         } finally {
             setIsSubmitting(false);
@@ -86,7 +101,7 @@ export function VaccinationForm({
                         <FormItem>
                             <FormLabel>Vaccine Name</FormLabel>
                             <FormControl>
-                                <Input placeholder="Enter vaccine name" {...field} />
+                                <Input placeholder="Enter vaccine name" {...field} disabled={isSubmitting} />
                             </FormControl>
                             <FormDescription>The name of the vaccine administered</FormDescription>
                             <FormMessage className="text-red-500">{fieldState.error?.message}</FormMessage>
@@ -94,7 +109,7 @@ export function VaccinationForm({
                     )}
                 />
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                         control={form.control}
                         name="administered_date"
@@ -110,6 +125,8 @@ export function VaccinationForm({
                                                     "w-full pl-3 text-left font-normal",
                                                     !field.value && "text-muted-foreground",
                                                 )}
+                                                disabled={isSubmitting}
+                                                type="button"
                                             >
                                                 <CalendarIcon className="mr-2 h-4 w-4" />
                                                 {field.value ? format(field.value, "PPP") : <span>Select date</span>}
@@ -121,10 +138,16 @@ export function VaccinationForm({
                                             mode="single"
                                             selected={field.value}
                                             onSelect={field.onChange}
+                                            disabled={isUserView ? undefined : (date) => date > new Date()}
                                             initialFocus
                                         />
                                     </PopoverContent>
                                 </Popover>
+                                <FormDescription>
+                                    {isUserView
+                                        ? "When this vaccination was administered"
+                                        : "The date this vaccination is being administered"}
+                                </FormDescription>
                                 <FormMessage className="text-red-500">{fieldState.error?.message}</FormMessage>
                             </FormItem>
                         )}
@@ -137,7 +160,7 @@ export function VaccinationForm({
                             <FormItem>
                                 <FormLabel>Batch Number</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="Enter batch number" {...field} />
+                                    <Input placeholder="Enter batch number" {...field} disabled={isSubmitting} />
                                 </FormControl>
                                 <FormDescription>Optional batch/lot number</FormDescription>
                                 <FormMessage className="text-red-500">{fieldState.error?.message}</FormMessage>
@@ -161,6 +184,8 @@ export function VaccinationForm({
                                                 "w-full pl-3 text-left font-normal",
                                                 !field.value && "text-muted-foreground",
                                             )}
+                                            disabled={isSubmitting}
+                                            type="button"
                                         >
                                             <CalendarIcon className="mr-2 h-4 w-4" />
                                             {field.value ? (
@@ -187,8 +212,8 @@ export function VaccinationForm({
                     )}
                 />
 
-                <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? "Recording..." : "Record Vaccination"}
+                <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto">
+                    {isSubmitting ? "Recording..." : isUserView ? "Add Vaccination Record" : "Record Vaccination"}
                 </Button>
             </form>
         </Form>

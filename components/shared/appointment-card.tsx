@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, MapPin, User, Stethoscope, XCircle, CheckCircle, Check } from "lucide-react";
+import { Calendar, Clock, MapPin, User, Stethoscope, XCircle, CheckCircle, Check, History } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toTitleCase } from "@/lib/functions/text/title-case";
@@ -12,6 +12,7 @@ import { AcceptAppointmentButton } from "./accept-appointment-button";
 import { CheckInButton } from "./checked-in-button";
 import { RescheduleAppointmentDialog } from "./reschedule-appointment-dialog";
 import { ConfirmationDialog } from "./confirmation-dialog";
+import { AppointmentHistoricalData } from "./appointment-historical-data";
 
 export const statusColors: Record<string, string> = {
     confirmed: "bg-green-100 text-green-800 border-green-200",
@@ -19,6 +20,8 @@ export const statusColors: Record<string, string> = {
     completed: "bg-purple-100 text-purple-800 border-purple-200",
     cancelled: "bg-red-100 text-red-800 border-red-200",
     pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
+    checked_in: "bg-teal-100 text-teal-800 border-teal-200",
+    no_show: "bg-gray-100 text-gray-800 border-gray-200",
 };
 
 export function AppointmentCard({
@@ -250,6 +253,16 @@ export function AppointmentCard({
                                 </Button>
                             </RescheduleAppointmentDialog>
                         )}
+
+                        {/* Historical Health Data Button - Only for confirmed or checked-in appointments */}
+                        {(appointment.status === "confirmed" || appointment.status === "checked_in") &&
+                            appointment.pets && (
+                                <AppointmentHistoricalData
+                                    appointmentUuid={appointment.appointment_uuid}
+                                    petName={toTitleCase(appointment.pets.name)}
+                                    status={appointment.status}
+                                />
+                            )}
                     </div>
 
                     {additionalActions && <div className="flex gap-2">{additionalActions}</div>}

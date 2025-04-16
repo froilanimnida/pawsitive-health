@@ -1,4 +1,5 @@
 import { type appointment_type, type appointment_status } from "@prisma/client";
+import type { Decimal } from "@prisma/client/runtime/library";
 
 type GetUserAppointmentsResponse = {
     appointment_id: number;
@@ -33,7 +34,7 @@ type AppointmentDetailsResponse = {
         name: string;
         species: string;
         breed: string;
-        weight_kg: number;
+        weight_kg: Decimal;
         pet_id: number;
     } | null;
     veterinarians: {

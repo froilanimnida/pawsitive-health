@@ -19,7 +19,7 @@ import {
 import Link from "next/link";
 import { toTitleCase } from "@/lib";
 import EditPetForm from "@/components/form/edit-pet-form";
-import PetProcedureForm from "@/components/form/pet-healthcare-form";
+import PetProcedureForm from "@/components/form/pet-healthcare-procedure-form";
 import PetVaccinationForm from "@/components/form/pet-vaccination-form";
 
 export async function generateMetadata({ params }: { params: Promise<{ uuid: string }> }): Promise<Metadata> {

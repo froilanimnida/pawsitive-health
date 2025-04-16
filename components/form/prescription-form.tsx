@@ -32,17 +32,31 @@ import { addPrescription, getMedicationsList } from "@/actions";
 
 const PrescriptionFormSchema = PrescriptionDefinition.extend({
     appointment_uuid: z.string().uuid().optional(),
+    appointment_id: z.number().optional(),
     medication_id: z.number(),
 });
 
 interface PrescriptionFormProps {
     petId: number;
-    //petUuid: string;
-    appointmentUuid: string;
+    petUuid?: string;
+    appointmentUuid?: string;
     appointmentId?: number;
+    vetId?: number;
+    onSuccess?: () => void;
+    onCancel?: () => void;
+    isCheckIn?: boolean; // Flag to determine if the patient has checked in
 }
 
-const PrescriptionForm = ({ petId, appointmentUuid, appointmentId }: PrescriptionFormProps) => {
+const PrescriptionForm = ({
+    petId,
+    petUuid,
+    appointmentUuid,
+    appointmentId,
+    vetId,
+    onSuccess,
+    onCancel,
+    isCheckIn = true,
+}: PrescriptionFormProps) => {
     const [isLoading, setIsLoading] = useState(false);
     const [medications, setMedications] = useState<{ id: number; name: string }[]>([]);
 
@@ -64,6 +78,7 @@ const PrescriptionForm = ({ petId, appointmentUuid, appointmentId }: Prescriptio
                 );
             } catch (error) {
                 console.error("Error fetching medications:", error);
+                toast.error("Could not load medications list. Please try again.");
             }
         };
 
@@ -74,10 +89,12 @@ const PrescriptionForm = ({ petId, appointmentUuid, appointmentId }: Prescriptio
         resolver: zodResolver(PrescriptionFormSchema),
         defaultValues: {
             pet_id: petId,
+            pet_uuid: petUuid,
             appointment_uuid: appointmentUuid,
+            appointment_id: appointmentId,
+            vet_id: vetId,
             medication_id: undefined,
             dosage: "",
-            appointment_id: appointmentId,
             frequency: "",
             start_date: new Date(),
             end_date: addDays(new Date(), 7),
@@ -88,18 +105,54 @@ const PrescriptionForm = ({ petId, appointmentUuid, appointmentId }: Prescriptio
     const onSubmit = async (data: PrescriptionType) => {
         setIsLoading(true);
         toast.loading("Issuing prescription...");
-        const response = await addPrescription(data);
-        if (response === undefined) {
+
+        try {
+            const response = await addPrescription({
+                ...data,
+                pet_id: petId,
+                appointment_id: appointmentId,
+            });
+
+            if (response && response.success) {
+                toast.dismiss();
+                toast.success("Prescription issued successfully");
+                form.reset({
+                    ...form.getValues(),
+                    medication_id: undefined,
+                    dosage: "",
+                    frequency: "",
+                    start_date: new Date(),
+                    end_date: addDays(new Date(), 7),
+                    refills_remaining: 0,
+                });
+
+                if (onSuccess) {
+                    onSuccess();
+                }
+            } else {
+                toast.dismiss();
+                toast.error(response?.error || "Failed to issue prescription");
+            }
+        } catch (error) {
             toast.dismiss();
-            toast.success("Prescription issued successfully");
-            form.reset();
+            toast.error("An unexpected error occurred");
+            console.error("Error issuing prescription:", error);
+        } finally {
             setIsLoading(false);
-        } else {
-            setIsLoading(false);
-            toast.dismiss();
-            toast.error(!response.success ? response.error : "Failed to issue prescription");
         }
     };
+
+    if (!isCheckIn) {
+        return (
+            <div className="p-6 bg-amber-50 border border-amber-200 rounded-md text-amber-800">
+                <h3 className="font-medium text-lg mb-2">Patient Check-in Required</h3>
+                <p>
+                    You can only issue prescriptions for patients who have checked in for their appointment. Please
+                    check in the patient first.
+                </p>
+            </div>
+        );
+    }
 
     return (
         <Form {...form}>
@@ -270,9 +323,16 @@ const PrescriptionForm = ({ petId, appointmentUuid, appointmentId }: Prescriptio
                     )}
                 />
 
-                <Button type="submit" disabled={isLoading}>
-                    {isLoading ? "Issuing..." : "Issue Prescription"}
-                </Button>
+                <div className="flex justify-end space-x-4">
+                    {onCancel && (
+                        <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
+                            Cancel
+                        </Button>
+                    )}
+                    <Button type="submit" disabled={isLoading}>
+                        {isLoading ? "Issuing..." : "Issue Prescription"}
+                    </Button>
+                </div>
             </form>
         </Form>
     );

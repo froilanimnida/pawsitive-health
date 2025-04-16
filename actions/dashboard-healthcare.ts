@@ -214,3 +214,225 @@ export async function getDashboardHealthcare(): Promise<ActionResponse<Dashboard
         };
     }
 }
+
+/**
+ * Fetches pet's dashboard healthcare data including upcoming vaccinations and prescriptions
+ */
+export async function getDashboardHealthcareData(petId?: number): Promise<
+    ActionResponse<{
+        vaccinations: UpcomingVaccination[];
+        prescriptions: UpcomingPrescription[];
+    }>
+> {
+    try {
+        // Fetch upcoming vaccinations
+        const vaccinations = await prisma.vaccinations.findMany({
+            where: {
+                pet_id: petId,
+                next_due_date: {
+                    gte: new Date(),
+                },
+            },
+            include: {
+                pets: {
+                    select: {
+                        name: true,
+                        species: true,
+                        breed: true,
+                    },
+                },
+            },
+            orderBy: {
+                next_due_date: "asc",
+            },
+            take: 5,
+        });
+
+        // Fetch active prescriptions
+        const prescriptions = await prisma.prescriptions.findMany({
+            where: {
+                pet_id: petId,
+                end_date: {
+                    gte: new Date(),
+                },
+            },
+            include: {
+                pets: {
+                    select: {
+                        name: true,
+                        species: true,
+                        breed: true,
+                    },
+                },
+                medications: {
+                    select: {
+                        name: true,
+                        description: true,
+                    },
+                },
+            },
+            orderBy: {
+                end_date: "asc",
+            },
+            take: 5,
+        });
+
+        return {
+            success: true,
+            data: {
+                vaccinations: vaccinations.map((vax) => ({
+                    id: vax.vaccination_id,
+                    vaccine_name: vax.vaccine_name || "Unknown Vaccine",
+                    due_date: vax.next_due_date,
+                    pet_name: vax.pets?.name || "Unknown Pet",
+                    pet_species: vax.pets?.species || "Unknown Species",
+                    pet_breed: vax.pets?.breed || "Unknown Breed",
+                })),
+                prescriptions: prescriptions.map((rx) => ({
+                    id: rx.prescription_id,
+                    medication_name: rx.medications?.name || "Unknown Medication",
+                    medication_description: rx.medications?.description || "",
+                    dosage: rx.dosage,
+                    frequency: rx.frequency,
+                    start_date: rx.start_date,
+                    end_date: rx.end_date,
+                    refills_remaining: rx.refills_remaining || 0,
+                    pet_name: rx.pets?.name || "Unknown Pet",
+                    pet_species: rx.pets?.species || "Unknown Species",
+                    pet_breed: rx.pets?.breed || "Unknown Breed",
+                })),
+            },
+        };
+    } catch (error) {
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "An unexpected error occurred",
+        };
+    }
+}
+
+/**
+ * Fetches pet's historical healthcare data including vaccinations, prescriptions, and procedures
+ */
+export async function getPetHistoricalHealthcareData(petId: number): Promise<
+    ActionResponse<{
+        vaccinations: {
+            id: number;
+            vaccine_name: string | null;
+            administered_date: Date | null;
+            batch_number: string | null;
+        }[];
+        prescriptions: {
+            id: number;
+            medication_name: string;
+            dosage: string;
+            frequency: string;
+            start_date: Date | null;
+            end_date: Date | null;
+        }[];
+        procedures: {
+            id: number;
+            procedure_type: string;
+            procedure_date: Date | null;
+            product_used: string | null;
+            dosage: string | null;
+            notes: string | null;
+        }[];
+    }>
+> {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.id) redirect("/signin");
+
+        // Fetch vaccinations for the pet
+        const vaccinations = await prisma.vaccinations.findMany({
+            where: {
+                pet_id: petId,
+            },
+            select: {
+                vaccination_id: true,
+                vaccine_name: true,
+                administered_date: true,
+                batch_number: true,
+            },
+            orderBy: {
+                administered_date: "desc",
+            },
+        });
+
+        // Fetch prescriptions for the pet
+        const prescriptions = await prisma.prescriptions.findMany({
+            where: {
+                pet_id: petId,
+            },
+            select: {
+                prescription_id: true,
+                medications: {
+                    select: {
+                        name: true,
+                    },
+                },
+                dosage: true,
+                frequency: true,
+                start_date: true,
+                end_date: true,
+            },
+            orderBy: {
+                created_at: "desc",
+            },
+        });
+
+        // Fetch healthcare procedures for the pet
+        const procedures = await prisma.healthcare_procedures.findMany({
+            where: {
+                pet_id: petId,
+            },
+            select: {
+                procedure_id: true,
+                procedure_type: true,
+                procedure_date: true,
+                product_used: true,
+                dosage: true,
+                notes: true,
+            },
+            orderBy: {
+                procedure_date: "desc",
+            },
+        });
+
+        // Transform the data to the expected format
+        return {
+            success: true,
+            data: {
+                vaccinations: vaccinations.map((vax) => ({
+                    id: vax.vaccination_id,
+                    vaccine_name: vax.vaccine_name,
+                    administered_date: vax.administered_date,
+                    batch_number: vax.batch_number,
+                })),
+                prescriptions: prescriptions.map((rx) => ({
+                    id: rx.prescription_id,
+                    medication_name: rx.medications?.name || "Unknown Medication",
+                    dosage: rx.dosage,
+                    frequency: rx.frequency,
+                    start_date: rx.start_date,
+                    end_date: rx.end_date,
+                })),
+                procedures: procedures.map((proc) => ({
+                    id: proc.procedure_id,
+                    procedure_type: proc.procedure_type,
+                    procedure_date: proc.procedure_date,
+                    product_used: proc.product_used,
+                    dosage: proc.dosage,
+                    notes: proc.notes,
+                })),
+            },
+        };
+    } catch (error) {
+        console.error("Error fetching pet healthcare data:", error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "An unexpected error occurred",
+        };
+    }
+}

@@ -8,9 +8,9 @@ import {
     FormField,
     FormLabel,
     FormMessage,
+    FormDescription,
     Input,
     Button,
-    FormDescription,
     Select,
     SelectContent,
     SelectItem,
@@ -35,13 +35,25 @@ import { useRouter } from "next/navigation";
 
 interface PetProcedureFormProps {
     petUuid?: string;
-    petId?: number;
+    petId: number;
     appointmentId?: number;
+    appointmentUuid?: string;
+    isUserView?: boolean; // Flag to determine if it's user historical entry or vet current entry
     onSuccess?: () => void;
     onCancel?: () => void;
+    vetId?: number; // Optional vet ID for when a vet is performing the procedure
 }
 
-const PetProcedureForm = ({ petUuid, onSuccess, onCancel, petId, appointmentId }: PetProcedureFormProps) => {
+const PetProcedureForm = ({
+    petUuid,
+    petId,
+    appointmentId,
+    appointmentUuid,
+    isUserView = false,
+    onSuccess,
+    onCancel,
+    vetId,
+}: PetProcedureFormProps) => {
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
 
@@ -52,9 +64,11 @@ const PetProcedureForm = ({ petUuid, onSuccess, onCancel, petId, appointmentId }
         progressive: true,
         defaultValues: {
             pet_uuid: petUuid,
-            appointment_id: appointmentId,
-            external_provider: "",
             pet_id: petId,
+            appointment_id: appointmentId,
+            appointment_uuid: appointmentUuid,
+            administered_by: vetId,
+            external_provider: "",
             procedure_type: "deworming" as procedure_type,
             procedure_date: new Date(),
             next_due_date: undefined,
@@ -68,11 +82,23 @@ const PetProcedureForm = ({ petUuid, onSuccess, onCancel, petId, appointmentId }
         setIsLoading(true);
 
         try {
-            const result = await addHealthcareProcedure(values);
+            const result = await addHealthcareProcedure({
+                ...values,
+                pet_id: petId,
+                appointment_id: appointmentId,
+            });
 
             if (result.success) {
                 toast.success("Healthcare procedure added successfully");
-                petProcedureForm.reset();
+                petProcedureForm.reset({
+                    ...petProcedureForm.getValues(),
+                    procedure_type: "deworming" as procedure_type,
+                    procedure_date: new Date(),
+                    next_due_date: undefined,
+                    product_used: "",
+                    dosage: "",
+                    notes: "",
+                });
 
                 if (onSuccess) {
                     onSuccess();
@@ -136,6 +162,7 @@ const PetProcedureForm = ({ petUuid, onSuccess, onCancel, petId, appointmentId }
                                                     !field.value && "text-muted-foreground",
                                                 )}
                                                 disabled={isLoading}
+                                                type="button"
                                             >
                                                 <CalendarIcon className="mr-2 h-4 w-4" />
                                                 {field.value ? format(field.value, "PPP") : <span>Select date</span>}
@@ -147,12 +174,16 @@ const PetProcedureForm = ({ petUuid, onSuccess, onCancel, petId, appointmentId }
                                             mode="single"
                                             selected={field.value}
                                             onSelect={field.onChange}
-                                            disabled={(date) => date > new Date()}
+                                            disabled={isUserView ? undefined : (date) => date > new Date()}
                                             initialFocus
                                         />
                                     </PopoverContent>
                                 </Popover>
-                                <FormDescription>The date when the procedure was performed</FormDescription>
+                                <FormDescription>
+                                    {isUserView
+                                        ? "When this procedure was performed"
+                                        : "The date this procedure is being performed"}
+                                </FormDescription>
                                 <FormMessage>{fieldState.error?.message}</FormMessage>
                             </FormItem>
                         )}
@@ -174,6 +205,7 @@ const PetProcedureForm = ({ petUuid, onSuccess, onCancel, petId, appointmentId }
                                                     !field.value && "text-muted-foreground",
                                                 )}
                                                 disabled={isLoading}
+                                                type="button"
                                             >
                                                 <CalendarIcon className="mr-2 h-4 w-4" />
                                                 {field.value ? (
@@ -200,35 +232,60 @@ const PetProcedureForm = ({ petUuid, onSuccess, onCancel, petId, appointmentId }
                         )}
                     />
 
-                    <FormField
-                        control={petProcedureForm.control}
-                        name="product_used"
-                        render={({ field, fieldState }) => (
-                            <FormItem>
-                                <FormLabel>Product Used</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Enter product name" {...field} disabled={isLoading} />
-                                </FormControl>
-                                <FormDescription>The name of the medication or product used</FormDescription>
-                                <FormMessage>{fieldState.error?.message}</FormMessage>
-                            </FormItem>
-                        )}
-                    />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                            control={petProcedureForm.control}
+                            name="product_used"
+                            render={({ field, fieldState }) => (
+                                <FormItem>
+                                    <FormLabel>Product Used</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="Enter product name" {...field} disabled={isLoading} />
+                                    </FormControl>
+                                    <FormDescription>The name of the medication or product used</FormDescription>
+                                    <FormMessage>{fieldState.error?.message}</FormMessage>
+                                </FormItem>
+                            )}
+                        />
 
-                    <FormField
-                        control={petProcedureForm.control}
-                        name="dosage"
-                        render={({ field, fieldState }) => (
-                            <FormItem>
-                                <FormLabel>Dosage</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="e.g. 10mg/kg" {...field} disabled={isLoading} />
-                                </FormControl>
-                                <FormDescription>The dosage of the medication or product</FormDescription>
-                                <FormMessage>{fieldState.error?.message}</FormMessage>
-                            </FormItem>
-                        )}
-                    />
+                        <FormField
+                            control={petProcedureForm.control}
+                            name="dosage"
+                            render={({ field, fieldState }) => (
+                                <FormItem>
+                                    <FormLabel>Dosage</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="e.g. 10mg/kg" {...field} disabled={isLoading} />
+                                    </FormControl>
+                                    <FormDescription>The dosage of the medication or product</FormDescription>
+                                    <FormMessage>{fieldState.error?.message}</FormMessage>
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+
+                    {isUserView && (
+                        <FormField
+                            control={petProcedureForm.control}
+                            name="external_provider"
+                            render={({ field, fieldState }) => (
+                                <FormItem>
+                                    <FormLabel>Provider (Optional)</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            placeholder="Who performed this procedure?"
+                                            {...field}
+                                            disabled={isLoading}
+                                        />
+                                    </FormControl>
+                                    <FormDescription>
+                                        Name of veterinarian or clinic that performed this procedure
+                                    </FormDescription>
+                                    <FormMessage>{fieldState.error?.message}</FormMessage>
+                                </FormItem>
+                            )}
+                        />
+                    )}
                 </div>
 
                 <FormField
@@ -260,7 +317,7 @@ const PetProcedureForm = ({ petUuid, onSuccess, onCancel, petId, appointmentId }
                         </Button>
                     )}
                     <Button type="submit" disabled={isLoading}>
-                        {isLoading ? "Saving..." : "Add Procedure"}
+                        {isLoading ? "Saving..." : isUserView ? "Add Procedure Record" : "Record Procedure"}
                     </Button>
                 </div>
             </form>

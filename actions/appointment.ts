@@ -328,7 +328,6 @@ const getAppointment = async (
                               name: true,
                               species: true,
                               breed: true,
-                              weight_kg: true,
                               pet_id: true,
                           },
                       }
@@ -638,6 +637,107 @@ const rescheduleAppointment = async (
     }
 };
 
+/**
+ * Get historical data for a specific appointment
+ * This includes vaccination history, healthcare procedures, and prescriptions
+ */
+const getAppointmentHistoricalData = async (
+    appointment_uuid: string,
+): Promise<
+    ActionResponse<{
+        vaccinations: any[];
+        healthcareProcedures: any[];
+        prescriptions: any[];
+        medicalRecords: any[];
+    }>
+> => {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.id) redirect("/signin");
+
+        // First get the appointment to verify access and get pet_id
+        const appointment = await prisma.appointments.findUnique({
+            where: { appointment_uuid },
+            include: {
+                pets: true,
+                veterinarians: {
+                    include: { users: true },
+                },
+            },
+        });
+
+        if (!appointment) return { success: false, error: "Appointment not found" };
+
+        // Verify that the appointment is confirmed or checked-in
+        if (appointment.status !== "confirmed" && appointment.status !== "checked_in") {
+            return {
+                success: false,
+                error: "Historical data is only available for confirmed or checked-in appointments",
+            };
+        }
+
+        const petId = appointment.pet_id;
+        if (!petId) return { success: false, error: "Pet information not found" };
+
+        // Get vaccination history for the pet
+        const vaccinations = await prisma.vaccinations.findMany({
+            where: { pet_id: petId },
+            orderBy: { administered_date: "desc" },
+            include: {
+                veterinarians: {
+                    include: { users: true },
+                },
+            },
+        });
+
+        // Get healthcare procedures for the pet
+        const healthcareProcedures = await prisma.healthcare_procedures.findMany({
+            where: { pet_id: petId },
+            orderBy: { procedure_date: "desc" },
+            include: {
+                veterinarians: {
+                    include: { users: true },
+                },
+            },
+        });
+
+        // Get prescriptions for the pet
+        const prescriptions = await prisma.prescriptions.findMany({
+            where: { pet_id: petId },
+            orderBy: { created_at: "desc" },
+            include: {
+                medications: true,
+                veterinarians: {
+                    include: { users: true },
+                },
+            },
+        });
+
+        // Get medical records for the pet
+        const medicalRecords = await prisma.medical_records.findMany({
+            where: { pet_id: petId },
+            orderBy: { visit_date: "desc" },
+            include: {
+                veterinarians: {
+                    include: { users: true },
+                },
+            },
+        });
+
+        return {
+            success: true,
+            data: {
+                vaccinations,
+                healthcareProcedures,
+                prescriptions,
+                medicalRecords,
+            },
+        };
+    } catch (error) {
+        return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
+    }
+};
+
 export {
     getUserAppointments,
     createUserAppointment,
@@ -649,4 +749,5 @@ export {
     confirmAppointment,
     changeAppointmentStatus,
     rescheduleAppointment,
+    getAppointmentHistoricalData,
 };
