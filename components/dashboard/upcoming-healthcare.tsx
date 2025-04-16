@@ -2,13 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, Badge, Button } from "@/components/ui";
-import { Syringe, Pill, Calendar, ChevronRight } from "lucide-react";
+import { Syringe, Pill, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { getDashboardHealthcare } from "@/actions/dashboard-healthcare";
 import { formatDistanceToNow, isPast } from "date-fns";
+import { UpcomingVaccination, UpcomingPrescription } from "@/types/actions";
 
 export function UpcomingHealthcareDashboard() {
-    const [healthcareData, setHealthcareData] = useState({
+    const [healthcareData, setHealthcareData] = useState<{
+        vaccinations: UpcomingVaccination[];
+        prescriptions: UpcomingPrescription[];
+    }>({
         vaccinations: [],
         prescriptions: [],
     });
@@ -21,8 +25,8 @@ export function UpcomingHealthcareDashboard() {
                 const response = await getDashboardHealthcare();
                 if (response.success && response.data) {
                     setHealthcareData({
-                        vaccinations: response.data.vaccinations || [],
-                        prescriptions: response.data.prescriptions || [],
+                        vaccinations: response.data.vaccinations,
+                        prescriptions: response.data.prescriptions,
                     });
                 }
             } catch (error) {
@@ -108,7 +112,7 @@ export function UpcomingHealthcareDashboard() {
                             <Syringe className="h-5 w-5 mr-2 text-green-600" />
                             Upcoming Vaccinations
                         </CardTitle>
-                        <CardDescription>Stay on top of your pet's vaccination schedule</CardDescription>
+                        <CardDescription>Stay on top of your pet&apos;s vaccination schedule</CardDescription>
                     </div>
                     <Button variant="outline" size="sm" asChild>
                         <Link href="/user/pets" className="flex items-center gap-1">
@@ -157,7 +161,7 @@ export function UpcomingHealthcareDashboard() {
                             <Pill className="h-5 w-5 mr-2 text-purple-600" />
                             Medications & Prescriptions
                         </CardTitle>
-                        <CardDescription>Track your pet's medication schedule</CardDescription>
+                        <CardDescription>Track your pet&apos;s medication schedule</CardDescription>
                     </div>
                     <Button variant="outline" size="sm" asChild>
                         <Link href="/user/pets" className="flex items-center gap-1">

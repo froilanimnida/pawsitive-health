@@ -47,13 +47,13 @@ const UserDashboard = () => {
         <div className="container mx-auto py-6 space-y-8">
             <div>
                 <h1 className="text-3xl font-bold mb-2">Welcome to Your Dashboard</h1>
-                <p className="text-muted-foreground">Monitor your pet's health all in one place</p>
+                <p className="text-muted-foreground">Monitor your pet&apos;s health all in one place</p>
             </div>
 
             <Card>
                 <CardHeader>
                     <CardTitle>At a Glance</CardTitle>
-                    <CardDescription>Quick overview of your pet's upcoming healthcare needs</CardDescription>
+                    <CardDescription>Quick overview of your pet&apos;s upcoming healthcare needs</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Suspense fallback={<DashboardSkeleton />}>

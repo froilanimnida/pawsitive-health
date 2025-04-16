@@ -29,6 +29,7 @@ export { getVeterinaryAvailability } from "./veterinarian-availability";
 export { createVaccination, getPetVaccinations } from "./vaccination";
 //export {} from "./medical-records";
 //export {} from "./health-monitoring";
+export { getUpcomingVaccinations, getUpcomingPrescriptions, getDashboardHealthcare } from "./dashboard-healthcare";
 export { addHealthcareProcedure, getHealthcareProcedure, getHealthcareProcedures } from "./healthcare-procedures";
 export { getClinicSchedule } from "./clinic-schedule";
 export { createMedication, getMedicationsList } from "./medications";

@@ -5,12 +5,19 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 import { type ActionResponse } from "@/types/server-action-response";
+import {
+    UpcomingVaccination,
+    UpcomingVaccinationsResponse,
+    UpcomingPrescription,
+    UpcomingPrescriptionsResponse,
+    DashboardHealthcareResponse,
+} from "@/types/actions";
 
 /**
  * Gets upcoming vaccinations for the logged-in user's pets
  * Used for the dashboard "At a Glance" section
  */
-export async function getUpcomingVaccinations(limit = 5): Promise<ActionResponse<{ vaccinations: any[] }>> {
+export async function getUpcomingVaccinations(limit = 5): Promise<ActionResponse<UpcomingVaccinationsResponse>> {
     try {
         const session = await getServerSession(authOptions);
         if (!session?.user?.id) redirect("/signin");
@@ -58,16 +65,18 @@ export async function getUpcomingVaccinations(limit = 5): Promise<ActionResponse
                     select: {
                         name: true,
                         species: true,
-                        profile_picture_url: true,
                     },
                 },
             },
         });
+        if (!upcomingVaccinations.length) {
+            return { success: true, data: { vaccinations: [] } };
+        }
 
         return {
             success: true,
             data: {
-                vaccinations: upcomingVaccinations,
+                vaccinations: upcomingVaccinations as UpcomingVaccination[],
             },
         };
     } catch (error) {
@@ -82,7 +91,7 @@ export async function getUpcomingVaccinations(limit = 5): Promise<ActionResponse
  * Gets upcoming prescription end dates or refills needed for the logged-in user's pets
  * Used for the dashboard "At a Glance" section
  */
-export async function getUpcomingPrescriptions(limit = 5): Promise<ActionResponse<{ prescriptions: any[] }>> {
+export async function getUpcomingPrescriptions(limit = 5): Promise<ActionResponse<UpcomingPrescriptionsResponse>> {
     try {
         const session = await getServerSession(authOptions);
         if (!session?.user?.id) redirect("/signin");
@@ -155,11 +164,14 @@ export async function getUpcomingPrescriptions(limit = 5): Promise<ActionRespons
                 },
             },
         });
+        if (!upcomingPrescriptions.length) {
+            return { success: true, data: { prescriptions: [] } };
+        }
 
         return {
             success: true,
             data: {
-                prescriptions: upcomingPrescriptions,
+                prescriptions: upcomingPrescriptions as UpcomingPrescription[],
             },
         };
     } catch (error) {
@@ -174,12 +186,7 @@ export async function getUpcomingPrescriptions(limit = 5): Promise<ActionRespons
  * Gets all upcoming healthcare events (vaccinations and prescriptions) for the user's dashboard
  * Used for the dashboard "At a Glance" section
  */
-export async function getDashboardHealthcare(): Promise<
-    ActionResponse<{
-        vaccinations: any[];
-        prescriptions: any[];
-    }>
-> {
+export async function getDashboardHealthcare(): Promise<ActionResponse<DashboardHealthcareResponse>> {
     try {
         const [vaccinationsResponse, prescriptionsResponse] = await Promise.all([
             getUpcomingVaccinations(5),
