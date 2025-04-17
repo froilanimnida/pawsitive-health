@@ -67,7 +67,7 @@ export const authOptions: AuthOptions = {
             }
             return session;
         },
-        async signIn({ user, account, profile }) {
+        async signIn() {
             //if (!user || !account || !profile || !account.provider || !profile.email) {
             //    return false;
             //}

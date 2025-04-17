@@ -25,6 +25,7 @@ type GetUserAppointmentsResponse = {
 type AppointmentDetailsResponse = {
     appointment_uuid: string;
     appointment_date: Date;
+    appointment_id: number;
     appointment_type: appointment_type;
     created_at: Date;
     duration_minutes: number;
@@ -39,10 +40,10 @@ type AppointmentDetailsResponse = {
     } | null;
     veterinarians: {
         specialization: string | null;
+        vet_id: number;
         users: {
             first_name: string;
             last_name: string;
-            vet_id: number;
         } | null;
     } | null;
     clinics: {

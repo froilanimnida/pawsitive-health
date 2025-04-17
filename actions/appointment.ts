@@ -2,7 +2,14 @@
 import { prisma, toTitleCase } from "@/lib";
 import { getClinic, getPet, sendEmail } from "@/actions";
 import { AppointmentType } from "@/schemas";
-import type { appointment_status, Prisma, appointment_type } from "@prisma/client";
+import type {
+    appointment_status,
+    Prisma,
+    appointment_type,
+    vaccinations,
+    medical_records,
+    healthcare_procedures,
+} from "@prisma/client";
 import type { ActionResponse } from "@/types/server-action-response";
 import { endOfDay, startOfDay } from "date-fns";
 import { AppointmentDetailsResponse, GetUserAppointmentsResponse } from "@/types/actions/appointments";
@@ -13,6 +20,7 @@ import { updateGoogleCalendarEvent, deleteGoogleCalendarEvent, addToGoogleCalend
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
+import type { PrescriptionWithMedication } from "@/types/common-prisma-join-types";
 
 export type AppointmentWithRelations = Prisma.appointmentsGetPayload<{
     include: {
@@ -169,7 +177,6 @@ const createUserAppointment = async (
         if (conflictingUserAppointments.length > 0)
             return { success: false, error: "You already have another appointment at this time" };
 
-        // Continue with appointment creation
         const appointment = await prisma.appointments.create({
             data: {
                 pet_id: pet.pet_id,
@@ -335,6 +342,7 @@ const getAppointment = async (
                 veterinarians: {
                     select: {
                         specialization: true,
+                        vet_id: true,
                         users: {
                             select: {
                                 first_name: true,
@@ -645,10 +653,10 @@ const getAppointmentHistoricalData = async (
     appointment_uuid: string,
 ): Promise<
     ActionResponse<{
-        vaccinations: any[];
-        healthcareProcedures: any[];
-        prescriptions: any[];
-        medicalRecords: any[];
+        vaccinations: vaccinations[];
+        healthcareProcedures: healthcare_procedures[];
+        prescriptions: PrescriptionWithMedication[];
+        medicalRecords: medical_records[];
     }>
 > => {
     try {
@@ -683,22 +691,12 @@ const getAppointmentHistoricalData = async (
         const vaccinations = await prisma.vaccinations.findMany({
             where: { pet_id: petId },
             orderBy: { administered_date: "desc" },
-            include: {
-                veterinarians: {
-                    include: { users: true },
-                },
-            },
         });
 
         // Get healthcare procedures for the pet
         const healthcareProcedures = await prisma.healthcare_procedures.findMany({
             where: { pet_id: petId },
             orderBy: { procedure_date: "desc" },
-            include: {
-                veterinarians: {
-                    include: { users: true },
-                },
-            },
         });
 
         // Get prescriptions for the pet
@@ -707,9 +705,6 @@ const getAppointmentHistoricalData = async (
             orderBy: { created_at: "desc" },
             include: {
                 medications: true,
-                veterinarians: {
-                    include: { users: true },
-                },
             },
         });
 
@@ -717,11 +712,6 @@ const getAppointmentHistoricalData = async (
         const medicalRecords = await prisma.medical_records.findMany({
             where: { pet_id: petId },
             orderBy: { visit_date: "desc" },
-            include: {
-                veterinarians: {
-                    include: { users: true },
-                },
-            },
         });
 
         return {

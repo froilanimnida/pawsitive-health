@@ -23,13 +23,13 @@ export {
     getVeterinarianAppointments,
     changeAppointmentStatus,
     rescheduleAppointment,
+    getAppointmentHistoricalData,
 } from "./appointment";
 export { getUserId, updateCalendarIntegration, updateUserProfile } from "./user";
 export { getVeterinaryAvailability } from "./veterinarian-availability";
 export { createVaccination, getPetVaccinations } from "./vaccination";
 //export {} from "./medical-records";
 //export {} from "./health-monitoring";
-export { getUpcomingVaccinations, getUpcomingPrescriptions, getDashboardHealthcare } from "./dashboard-healthcare";
 export { addHealthcareProcedure, getHealthcareProcedure, getHealthcareProcedures } from "./healthcare-procedures";
 export { getClinicSchedule } from "./clinic-schedule";
 export { createMedication, getMedicationsList } from "./medications";
@@ -50,3 +50,10 @@ export {
     getCalendarSyncPreference,
     getThemePreference,
 } from "./preference";
+export {
+    getDashboardHealthcare,
+    getPetHistoricalHealthcareData,
+    getDashboardHealthcareData,
+    getUpcomingPrescriptions,
+    getUpcomingVaccinations,
+} from "./dashboard-healthcare";
