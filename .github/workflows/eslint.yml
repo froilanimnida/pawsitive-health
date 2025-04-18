@@ -38,11 +38,11 @@ jobs:
             - name: Install dependencies
               run: npm ci --legacy-peer-deps || npm install --legacy-peer-deps
 
-            - name: Install ESLint and formatter
-              run: |
-                  npm install eslint@8.57.0 --legacy-peer-deps
-                  npm install @typescript-eslint/parser @typescript-eslint/eslint-plugin --legacy-peer-deps
-                  npm install @microsoft/eslint-formatter-sarif@3.1.0 --legacy-peer-deps
+            - name: Install ESLint SARIF formatter
+              run: npm install @microsoft/eslint-formatter-sarif@3.1.0 --legacy-peer-deps
+
+            - name: Set ESLINT_USE_FLAT_CONFIG to false
+              run: echo "ESLINT_USE_FLAT_CONFIG=false" >> $GITHUB_ENV
 
             - name: Run ESLint
               env:
