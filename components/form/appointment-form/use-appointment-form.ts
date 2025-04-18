@@ -20,8 +20,8 @@ export interface TimeSlot {
 export function useAppointmentForm(uuid: string) {
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
     const [selectedClinicId, setSelectedClinicId] = useState<string>("");
-    const [selectedVetId, setSelectedVetId] = useState<number>(0);
-    const [veterinarians, setVeterinarians] = useState<{ label: string; value: number }[]>([]);
+    const [selectedVetId, setSelectedVetId] = useState<string>("");
+    const [veterinarians, setVeterinarians] = useState<{ label: string; value: string }[]>([]);
     const [isLoadingVets, setIsLoadingVets] = useState<boolean>(false);
     const [vetAvailability, setVetAvailability] = useState<vet_availability[]>([]);
     const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
@@ -32,7 +32,7 @@ export function useAppointmentForm(uuid: string) {
         defaultValues: {
             notes: "",
             appointment_type: appointment_type.behavioral_consultation,
-            vet_id: 0,
+            vet_id: "",
             pet_uuid: uuid,
             clinic_id: "",
             appointment_date: undefined,
@@ -56,7 +56,7 @@ export function useAppointmentForm(uuid: string) {
                 setVeterinarians(
                     vets.map((vet) => ({
                         label: `${vet.name} (${toTitleCase(vet.specialization)})`,
-                        value: vet.id,
+                        value: vet.id.toString(),
                     })),
                 );
             } catch {
@@ -198,7 +198,7 @@ export function useAppointmentForm(uuid: string) {
 
     const handleClinicChange = (value: string) => {
         form.setValue("clinic_id", value);
-        form.setValue("vet_id", 0);
+        form.setValue("vet_id", "");
         setSelectedClinicId(value);
     };
 
@@ -207,7 +207,7 @@ export function useAppointmentForm(uuid: string) {
         form.setValue("appointment_time", "");
     };
 
-    const handleVetChange = (value: number) => {
+    const handleVetChange = (value: string) => {
         form.setValue("vet_id", value);
         setSelectedVetId(value);
     };

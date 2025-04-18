@@ -31,7 +31,7 @@ export function getAppointmentSelectFields(
         handleVetChange,
         form,
     }: {
-        veterinarians: { label: string; value: number }[];
+        veterinarians: { label: string; value: string }[];
         isLoadingVets: boolean;
         handleClinicChange: (value: string) => void;
         handleVetChange: (value: string) => void;
