@@ -1,4 +1,4 @@
-/* global jest */
+/* global jest, beforeEach */
 
 // Add extended Jest matchers
 import '@testing-library/jest-dom';
