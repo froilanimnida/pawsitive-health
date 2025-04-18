@@ -2,12 +2,15 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { appointment_type, type vet_availability } from "@prisma/client";
-import { AppointmentSchema, AppointmentType } from "@/schemas/appointment-definition";
+import { AppointmentSchema, AppointmentType } from "@/schemas";
 import { addMinutes, format } from "date-fns";
-import { getVeterinariansByClinic } from "@/actions/veterinary";
-import { getVeterinaryAvailability } from "@/actions/veterinarian-availability";
-import { createUserAppointment, getExistingAppointments } from "@/actions";
-import { toTitleCase } from "@/lib/functions/text/title-case";
+import {
+    getVeterinariansByClinic,
+    getVeterinaryAvailability,
+    createUserAppointment,
+    getExistingAppointments,
+} from "@/actions";
+import { toTitleCase } from "@/lib";
 import { toast } from "sonner";
 
 export interface TimeSlot {

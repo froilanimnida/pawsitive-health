@@ -7,7 +7,7 @@ import {
     createClinicAccount,
     regenerateOTPToken,
     isEmailTaken,
-} from "../../actions/auth";
+} from "@/actions";
 import { prismaMock } from "../utils/mocks";
 import * as hashUtils from "../../lib/index";
 import jwt from "jsonwebtoken";

@@ -1,7 +1,17 @@
-/* global jest beforeEach */
+// Add polyfills for TextEncoder/TextDecoder for react-email/render
+import { TextEncoder, TextDecoder } from "util";
+global.TextEncoder = TextEncoder;
+global.TextDecoder = TextDecoder;
 
 // Add extended Jest matchers
-import '@testing-library/jest-dom';
+import { jest, beforeEach } from "@jest/globals";
+import { prismaMock } from "./utils/mocks"; // Adjust path if needed
+
+jest.mock("@/lib", () => ({
+    // Or jest.mock('@/lib/prisma', ...) depending on your import
+    __esModule: true,
+    prisma: prismaMock,
+}));
 
 // Mock Next.js router
 jest.mock("next/navigation", () => ({

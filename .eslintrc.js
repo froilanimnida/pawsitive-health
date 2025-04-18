@@ -19,4 +19,12 @@ module.exports = {
         ],
     },
     ignorePatterns: ["node_modules/", ".next/", "public/", "next.config.js"],
+    overrides: [
+        {
+            files: ["__tests__/**/*"],
+            env: {
+                jest: true,
+            },
+        },
+    ],
 };
