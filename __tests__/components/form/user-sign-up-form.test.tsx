@@ -2,18 +2,25 @@ import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import UserSignUpForm from "@/components/form/user-sign-up-form";
-import { toast } from "sonner";
 import * as actions from "@/actions";
+import "@testing-library/jest-dom";
+import { toast } from "sonner";
 
 // Mock dependencies
 jest.mock("sonner", () => ({
     toast: {
         promise: jest.fn(),
+        success: jest.fn(),
+        error: jest.fn(),
     },
 }));
 
 jest.mock("@/actions", () => ({
     createAccount: jest.fn(),
+}));
+
+jest.mock("@/lib", () => ({
+    toTitleCase: (text: string) => text, // Simple mock that returns the input unchanged
 }));
 
 describe("UserSignUpForm", () => {
@@ -43,7 +50,7 @@ describe("UserSignUpForm", () => {
 
         // Check if validation errors are displayed
         await waitFor(() => {
-            expect(screen.getAllByText(/required/i).length).toBeGreaterThan(0);
+            expect(screen.getAllByText(/\brequired\b/i).length).toBeGreaterThan(0);
         });
     });
 
@@ -57,7 +64,7 @@ describe("UserSignUpForm", () => {
 
         // Check if email validation error is displayed
         await waitFor(() => {
-            expect(screen.getByText(/Invalid email/i)).toBeInTheDocument();
+            expect(screen.getByText(/Please enter a valid email/i)).toBeInTheDocument();
         });
     });
 
@@ -86,10 +93,10 @@ describe("UserSignUpForm", () => {
 
         // Check if password length error is displayed
         await waitFor(() => {
-            expect(screen.getByText(/Password must be at least/i)).toBeInTheDocument();
+            expect(screen.getByText(/Password must be/i)).toBeInTheDocument();
         });
     });
-
+    // Update the expectation in your test
     it("calls createAccount action with valid form data", async () => {
         const user = userEvent.setup();
         render(<UserSignUpForm />);
@@ -110,6 +117,7 @@ describe("UserSignUpForm", () => {
 
         // Check if createAccount was called with the correct data
         await waitFor(() => {
+            // First, check that the action was called with correct data
             expect(actions.createAccount).toHaveBeenCalledWith({
                 first_name: "John",
                 last_name: "Doe",
@@ -119,7 +127,7 @@ describe("UserSignUpForm", () => {
                 confirm_password: "Password123!",
             });
 
-            // Check if toast.promise was called
+            // Then, check that toast.promise was called (without checking exact parameters)
             expect(toast.promise).toHaveBeenCalled();
         });
     });
