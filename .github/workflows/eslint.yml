@@ -30,9 +30,17 @@ jobs:
             - name: Checkout code
               uses: actions/checkout@v4
 
-            - name: Install ESLint
+            - name: Setup Node.js
+              uses: actions/setup-node@v3
+              with:
+                  node-version: "20"
+
+            - name: Install dependencies
+              run: npm ci --legacy-peer-deps || npm install --legacy-peer-deps
+
+            - name: Install ESLint and formatter
               run: |
-                  npm install eslint@latest --legacy-peer-deps
+                  npm install eslint@8.57.0 --legacy-peer-deps
                   npm install @typescript-eslint/parser @typescript-eslint/eslint-plugin --legacy-peer-deps
                   npm install @microsoft/eslint-formatter-sarif@3.1.0 --legacy-peer-deps
 
