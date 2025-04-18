@@ -2,7 +2,6 @@
 import { PrescriptionDefinition, type PrescriptionType } from "@/schemas";
 import { prisma } from "@/lib";
 import { ActionResponse } from "@/types/server-action-response";
-import { getPetId } from "@/actions";
 import type { prescriptions } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
@@ -19,20 +18,13 @@ const addPrescription = async (values: PrescriptionType): Promise<ActionResponse
                 error: "Invalid prescription data",
             };
         }
-        const petId = await getPetId(values.pet_uuid);
-        if (!petId.success) {
-            return {
-                success: false,
-                error: "Invalid pet UUID",
-            };
-        }
 
         const result = await prisma.prescriptions.create({
             data: {
                 dosage: formData.data.dosage,
                 frequency: formData.data.frequency,
                 start_date: formData.data.start_date,
-                pet_id: petId.data.pet_id,
+                pet_id: Number(formData.data.pet_id),
                 end_date: formData.data.end_date,
                 refills_remaining: formData.data.refills_remaining,
                 vet_id: Number(session.user.id),

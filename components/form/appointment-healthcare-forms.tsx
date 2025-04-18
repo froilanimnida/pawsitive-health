@@ -60,7 +60,7 @@ export function AppointmentHealthcareForms({
                             onSuccess={handleSuccess}
                         />
                     ) : (
-                        <PetVaccinationForm petUuid={petUuid} petId={petId} />
+                        <PetVaccinationForm petId={petId} />
                     )}
                 </TabsContent>
 

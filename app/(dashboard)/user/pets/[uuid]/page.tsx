@@ -96,7 +96,7 @@ export default async function PetDetails({ params }: { params: Promise<{ uuid: s
                                 <DialogTitle>Add Pet Healthcare Procedure</DialogTitle>
                                 <DialogDescription>Add historical pet procedure</DialogDescription>
                             </DialogHeader>
-                            <PetProcedureForm petUuid={pet.pet_uuid} />
+                            <PetProcedureForm petUuid={pet.pet_uuid} petId={pet.pet_id} />
                         </DialogContent>
                     </Dialog>
                     <Dialog>

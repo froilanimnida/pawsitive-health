@@ -24,7 +24,7 @@ import { Calendar as CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib";
 
-const PetVaccinationForm = ({ petUuid, petId }: { petUuid: string; petId: number }) => {
+const PetVaccinationForm = ({ petUuid, petId }: { petUuid?: string; petId: number }) => {
     const [isLoading, setIsLoading] = useState(false);
 
     const vaccinationForm = useForm({

@@ -13,7 +13,14 @@ export const ProcedureSchema = z.object({
     }),
     pet_id: z.number().optional(),
     appointment_id: z.number().optional(),
+    appointment_uuid: z
+        .string()
+        .uuid({
+            message: "Invalid appointment UUID",
+        })
+        .optional(),
     external_provider: z.string().max(100).optional(),
+    administered_by: z.number().optional(),
 });
 
 export const PetVaccinationSchema = z.object({
@@ -31,6 +38,7 @@ export const PetVaccinationSchema = z.object({
             message: "Invalid appointment UUID",
         })
         .optional(),
+    appointment_id: z.number().optional(),
     external_provider: z.string().max(100).optional(),
 });
 
