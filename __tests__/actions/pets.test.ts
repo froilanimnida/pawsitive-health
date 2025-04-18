@@ -340,7 +340,7 @@ describe("Pets Actions", () => {
         const mockUpdateData = {
             pet_uuid: mockPetUuid,
             name: "Fluffy Updated",
-            weight_kg: Decimal(27.3),
+            weight_kg: 27.3,
         };
 
         it("should update a pet successfully", async () => {
@@ -390,7 +390,7 @@ describe("Pets Actions", () => {
                 weight_kg: -1, // Invalid weight
             };
 
-            const result = await updatePet(invalidUpdateData as any);
+            const result = await updatePet(invalidUpdateData);
 
             // Verify the error response
             expect(result).toEqual({
@@ -418,7 +418,7 @@ describe("Pets Actions", () => {
 
         it("should handle pet not found", async () => {
             // Mock the Prisma update response (pet not found)
-            prismaMock.pets.update.mockResolvedValueOnce(null);
+            prismaMock.pets.update.mockResolvedValueOnce({ pet_id: 999999 });
 
             // Call the action
             const result = await updatePet(mockUpdateData);

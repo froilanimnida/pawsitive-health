@@ -584,6 +584,7 @@ describe("Authentication Actions", () => {
             last_name: "doe",
             email: "clinic@example.com",
             password: "Password123!",
+            confirm_password: "Password123!",
             phone_number: "1234567890",
             name: "pet clinic",
             address: "123 Main St",
@@ -591,6 +592,50 @@ describe("Authentication Actions", () => {
             state: "ST",
             postal_code: "12345",
             emergency_services: true,
+            operating_hours: [
+                {
+                    day_of_week: 0,
+                    opens_at: "08:00",
+                    closes_at: "17:00",
+                    is_closed: false,
+                },
+                {
+                    day_of_week: 1,
+                    opens_at: "08:00",
+                    closes_at: "17:00",
+                    is_closed: false,
+                },
+                {
+                    day_of_week: 2,
+                    opens_at: "08:00",
+                    closes_at: "17:00",
+                    is_closed: false,
+                },
+                {
+                    day_of_week: 3,
+                    opens_at: "08:00",
+                    closes_at: "17:00",
+                    is_closed: false,
+                },
+                {
+                    day_of_week: 4,
+                    opens_at: "08:00",
+                    closes_at: "17:00",
+                    is_closed: false,
+                },
+                {
+                    day_of_week: 5,
+                    opens_at: "08:00",
+                    closes_at: "17:00",
+                    is_closed: false,
+                },
+                {
+                    day_of_week: 6,
+                    opens_at: "08:00",
+                    closes_at: "17:00",
+                    is_closed: false,
+                },
+            ],
         };
 
         it("should create a new clinic account successfully", async () => {
@@ -625,7 +670,6 @@ describe("Authentication Actions", () => {
                 google_maps_url: "https://maps.google.com",
                 latitude: 12.345678,
                 longitude: 98.765432,
-                operating_hours: "",
                 website: "",
             });
 
@@ -677,7 +721,7 @@ describe("Authentication Actions", () => {
                 email: "not-an-email", // Invalid email format
             };
 
-            const result = await createClinicAccount(invalidClinicData as any);
+            const result = await createClinicAccount(invalidClinicData);
 
             expect(result).toEqual({
                 success: false,
@@ -704,7 +748,11 @@ describe("Authentication Actions", () => {
             });
 
             // Mock update to set new OTP
-            prismaMock.users.update.mockResolvedValueOnce({} as any);
+            prismaMock.users.update.mockResolvedValueOnce({
+                ...VALID_DATA,
+                otp_token: "123456",
+                otp_expires_at: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes in the future
+            });
 
             const result = await regenerateOTPToken(testEmail);
 

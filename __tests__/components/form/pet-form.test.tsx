@@ -4,7 +4,6 @@ import userEvent from "@testing-library/user-event";
 import AddPetForm from "@/components/form/pet-form";
 import { toast } from "sonner";
 import * as petsActions from "@/actions/pets";
-import { format } from "date-fns";
 
 // Mock dependencies
 jest.mock("sonner", () => ({

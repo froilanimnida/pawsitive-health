@@ -3,7 +3,7 @@ import {
     getHealthcareProcedures,
     getHealthcareProcedure,
 } from "../../actions/healthcare-procedures";
-import { prismaMock, mockSession, mockVetSession } from "../utils/mocks";
+import { prismaMock, mockVetSession } from "../utils/mocks";
 import { getServerSession } from "next-auth";
 
 // Mock dependencies
