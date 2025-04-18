@@ -211,11 +211,14 @@ describe("PrescriptionForm", () => {
         await user.type(screen.getByLabelText(/Frequency/i), "Monthly");
 
         // Submit the form
-        await user.click(screen.getByRole("button", { name: /Issue Prescription/i }));
+        const submitButton = screen.getByRole("button", { name: /Issue Prescription/i });
+        await user.click(submitButton);
 
         // Verify button is disabled during submission
         await waitFor(() => {
-            expect(screen.getByRole("button", { name: /Issuing/i })).toHaveAttribute("disabled");
+            const button = screen.getByRole("button", { name: /Issuing\.\.\./i });
+            expect(button).toBeInTheDocument();
+            expect(button).toHaveAttribute("disabled");
         });
 
         // Wait for submission to complete
@@ -223,4 +226,5 @@ describe("PrescriptionForm", () => {
             expect(toast.success).toHaveBeenCalledWith("Prescription issued successfully");
         });
     });
+    // ...existing code...
 });
