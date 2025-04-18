@@ -1,15 +1,16 @@
+// Import the specific functions to test directly
 import {
+    isEmailTaken,
     createAccount,
-    loginAccount,
-    nextAuthLogin,
     verifyEmail,
     verifyOTPToken,
+    loginAccount,
+    nextAuthLogin,
     createClinicAccount,
     regenerateOTPToken,
-    isEmailTaken,
-} from "@/actions";
+} from "@/actions/auth";
 import { prismaMock } from "../utils/mocks";
-import * as hashUtils from "../../lib/index";
+import * as hashUtils from "@/lib"; // Keep this alias if used in assertions
 import jwt from "jsonwebtoken";
 import { role_type } from "@prisma/client";
 
@@ -36,24 +37,35 @@ const VALID_DATA = {
     role: role_type.user,
 };
 
-// Mock dependencies
+// Mock external dependencies
 jest.mock("next-auth/react", () => ({
     signOut: jest.fn().mockResolvedValue(undefined),
 }));
 
-jest.mock("../../lib/index", () => ({
-    prisma: jest.requireMock("../utils/mocks").prismaMock,
-    hashPassword: jest.fn().mockResolvedValue("hashed_password_123"),
-    verifyPassword: jest.fn().mockResolvedValue(true),
-    generateOtp: jest.fn().mockReturnValue("123456"),
-    generateVerificationToken: jest.fn().mockReturnValue("test-verification-token"),
-    toTitleCase: jest.fn((text) => text.charAt(0).toUpperCase() + text.slice(1).toLowerCase()),
-}));
-
-jest.mock("../../actions", () => ({
+// Mock dependencies from within the project (lib, other actions)
+jest.mock("@/actions", () => ({
+    __esModule: true,
     createNewPreferenceDefault: jest.fn().mockResolvedValue(undefined),
     sendEmail: jest.fn().mockResolvedValue(true),
 }));
+
+// THIS IS THE KEY CHANGE - Use jest.doMock to ensure this mock is applied before the auth.ts file imports it
+// We also need to make sure we mock the REAL import path used in auth.ts
+jest.mock("@/lib", () => {
+    const originalModule = jest.requireActual("@/lib");
+    return {
+        __esModule: true,
+        ...originalModule,
+        // Replace prisma with our mock
+        prisma: prismaMock,
+        // Mock other utility functions used by auth.ts
+        hashPassword: jest.fn().mockResolvedValue("hashed_password_123"),
+        verifyPassword: jest.fn().mockResolvedValue(true),
+        generateOtp: jest.fn().mockReturnValue("123456"),
+        generateVerificationToken: jest.fn().mockReturnValue("test-verification-token"),
+        toTitleCase: jest.fn((text) => (text ? text.charAt(0).toUpperCase() + text.slice(1).toLowerCase() : "")),
+    };
+});
 
 jest.mock("jsonwebtoken", () => ({
     verify: jest.fn(),
@@ -62,15 +74,16 @@ jest.mock("jsonwebtoken", () => ({
 describe("Authentication Actions", () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        // Mock process.env
         process.env.EMAIL_VERIFICATION_SECRET = "test-secret";
         process.env.FRONTEND_URL = "http://localhost:3000";
+        // Reset JWT mock implementation if needed per test
+        (jwt.verify as jest.Mock).mockClear();
     });
 
     describe("isEmailTaken", () => {
         it("should return true if email is taken", async () => {
             prismaMock.users.findFirst.mockResolvedValueOnce(VALID_DATA);
-
+            // Call the imported function directly
             const result = await isEmailTaken("test@example.com");
             expect(result).toBe(true);
             expect(prismaMock.users.findFirst).toHaveBeenCalledWith({
@@ -80,7 +93,7 @@ describe("Authentication Actions", () => {
 
         it("should return false if email is not taken", async () => {
             prismaMock.users.findFirst.mockResolvedValueOnce(null);
-
+            // Call the imported function directly
             const result = await isEmailTaken("available@example.com");
             expect(result).toBe(false);
         });
@@ -96,15 +109,17 @@ describe("Authentication Actions", () => {
         };
 
         it("should create a new user account successfully", async () => {
-            // Mock email check
             prismaMock.users.findFirst.mockResolvedValueOnce(null);
-
-            // Mock user creation with VALID_DATA and only updating user_uuid
             prismaMock.users.create.mockResolvedValueOnce({
                 ...VALID_DATA,
+                user_id: 1, // Ensure user_id is present for createNewPreferenceDefault call
                 user_uuid: "new-user-uuid",
             });
 
+            // Dynamically require the mocked actions module to access the mocks
+            const mockedActions = jest.requireMock("@/actions");
+
+            // Call the imported function directly
             const result = await createAccount({ confirm_password: mockUserData.password, ...mockUserData });
 
             expect(result).toEqual({
@@ -112,18 +127,15 @@ describe("Authentication Actions", () => {
                 data: { user_uuid: "new-user-uuid" },
             });
 
-            // Verify interactions
             expect(hashUtils.hashPassword).toHaveBeenCalledWith(mockUserData.password);
             expect(hashUtils.generateVerificationToken).toHaveBeenCalledWith(mockUserData.email);
             expect(prismaMock.users.create).toHaveBeenCalled();
-            // Verify createNewPreferenceDefault was called with the new user ID
-            expect(jest.requireMock("../../actions").createNewPreferenceDefault).toHaveBeenCalledWith(1);
-            // Verify email was sent
-            expect(jest.requireMock("../../actions").sendEmail).toHaveBeenCalled();
+            // Access the mock function correctly
+            expect(mockedActions.createNewPreferenceDefault).toHaveBeenCalledWith(1);
+            expect(mockedActions.sendEmail).toHaveBeenCalled();
         });
 
         it("should handle email already taken", async () => {
-            // Mock email check - email exists
             prismaMock.users.findFirst.mockResolvedValueOnce({
                 ...VALID_DATA,
                 user_id: 2,
@@ -134,49 +146,41 @@ describe("Authentication Actions", () => {
                 phone_number: "0987654321",
             });
 
+            // Call the imported function directly
             const result = await createAccount({ confirm_password: mockUserData.password, ...mockUserData });
 
             expect(result).toEqual({
                 success: false,
                 error: "email_or_phone_number_already_exists",
             });
-
-            // Verify user was not created
             expect(prismaMock.users.create).not.toHaveBeenCalled();
         });
 
         it("should handle validation errors", async () => {
             const invalidUserData = {
                 ...mockUserData,
-                email: "not-an-email", // Invalid email format
+                email: "not-an-email",
             };
-
+            // Call the imported function directly
             const result = await createAccount({
                 confirm_password: invalidUserData.password,
                 ...invalidUserData,
             });
-
             expect(result).toEqual({
                 success: false,
                 error: "Invalid input",
             });
-
-            // Verify user was not created
             expect(prismaMock.users.create).not.toHaveBeenCalled();
         });
 
         it("should handle database errors", async () => {
-            // Mock email check
             prismaMock.users.findFirst.mockResolvedValueOnce(null);
-
-            // Mock database error
             prismaMock.users.create.mockRejectedValueOnce(new Error("Database error"));
-
+            // Call the imported function directly
             const result = await createAccount({
                 confirm_password: mockUserData.password,
                 ...mockUserData,
             });
-
             expect(result).toEqual({
                 success: false,
                 error: "Database error",
@@ -188,23 +192,15 @@ describe("Authentication Actions", () => {
         const testToken = "valid-verification-token";
 
         it("should verify email successfully", async () => {
-            // Mock jwt verification
             (jwt.verify as jest.Mock).mockReturnValueOnce({ email: "user@example.com" });
-
-            // Mock user update
             prismaMock.users.updateMany.mockResolvedValueOnce({ count: 1 });
-
+            // Call the imported function directly
             const result = await verifyEmail(testToken);
-
             expect(result).toEqual({
                 success: true,
                 data: { verified: true },
             });
-
-            // Verify jwt.verify was called with correct parameters
             expect(jwt.verify).toHaveBeenCalledWith(testToken, "test-secret");
-
-            // Verify user was updated
             expect(prismaMock.users.updateMany).toHaveBeenCalledWith({
                 where: { email: "user@example.com" },
                 data: {
@@ -216,14 +212,10 @@ describe("Authentication Actions", () => {
         });
 
         it("should handle user not found", async () => {
-            // Mock jwt verification
             (jwt.verify as jest.Mock).mockReturnValueOnce({ email: "nonexistent@example.com" });
-
-            // Mock user update - user not found
             prismaMock.users.updateMany.mockResolvedValueOnce({ count: 0 });
-
+            // Call the imported function directly
             const result = await verifyEmail(testToken);
-
             expect(result).toEqual({
                 success: false,
                 error: "User not found",
@@ -231,19 +223,15 @@ describe("Authentication Actions", () => {
         });
 
         it("should handle invalid token", async () => {
-            // Mock jwt verification failure
             (jwt.verify as jest.Mock).mockImplementationOnce(() => {
                 throw new Error("Invalid token");
             });
-
+            // Call the imported function directly
             const result = await verifyEmail("invalid-token");
-
             expect(result).toEqual({
                 success: false,
                 error: "Invalid token",
             });
-
-            // Verify user was not updated
             expect(prismaMock.users.updateMany).not.toHaveBeenCalled();
         });
     });
@@ -254,20 +242,15 @@ describe("Authentication Actions", () => {
 
         it("should verify valid OTP token successfully", async () => {
             const now = new Date();
-            const future = new Date(now.getTime() + 10 * 60 * 1000); // 10 minutes in the future
-
-            // Mock user lookup with VALID_DATA
+            const future = new Date(now.getTime() + 10 * 60 * 1000);
             prismaMock.users.findFirst.mockResolvedValueOnce({
                 ...VALID_DATA,
                 otp_token: validOtp,
                 otp_expires_at: future,
             });
-
-            // Mock update to clear OTP
             prismaMock.users.update.mockResolvedValueOnce({ ...VALID_DATA, otp_token: null, otp_expires_at: null });
-
+            // Call the imported function directly
             const result = await verifyOTPToken(testEmail, validOtp);
-
             expect(result).toEqual({
                 success: true,
                 data: {
@@ -275,8 +258,6 @@ describe("Authentication Actions", () => {
                     role: "user",
                 },
             });
-
-            // Verify OTP fields were cleared
             expect(prismaMock.users.update).toHaveBeenCalledWith({
                 where: { user_id: 1 },
                 data: {
@@ -288,58 +269,46 @@ describe("Authentication Actions", () => {
 
         it("should reject expired OTP token", async () => {
             const now = new Date();
-            const past = new Date(now.getTime() - 10 * 60 * 1000); // 10 minutes in the past
-
-            // Mock user lookup with expired token
+            const past = new Date(now.getTime() - 10 * 60 * 1000);
             prismaMock.users.findFirst.mockResolvedValueOnce({
                 ...VALID_DATA,
                 otp_token: validOtp,
                 otp_expires_at: past,
             });
-
+            // Call the imported function directly
             const result = await verifyOTPToken(testEmail, validOtp);
-
             expect(result).toEqual({
-                success: true,
+                success: true, // The action itself succeeds, but indicates incorrect OTP
                 data: {
                     correct: false,
                 },
             });
-
-            // Verify OTP fields were not cleared
             expect(prismaMock.users.update).not.toHaveBeenCalled();
         });
 
         it("should reject incorrect OTP token", async () => {
             const now = new Date();
             const future = new Date(now.getTime() + 10 * 60 * 1000);
-
-            // Mock user lookup
             prismaMock.users.findFirst.mockResolvedValueOnce({
                 ...VALID_DATA,
                 otp_token: validOtp,
                 otp_expires_at: future,
             });
-
+            // Call the imported function directly
             const result = await verifyOTPToken(testEmail, "wrong-otp");
-
             expect(result).toEqual({
-                success: true,
+                success: true, // The action itself succeeds, but indicates incorrect OTP
                 data: {
                     correct: false,
                 },
             });
-
-            // Verify OTP fields were not cleared
             expect(prismaMock.users.update).not.toHaveBeenCalled();
         });
 
         it("should handle user not found", async () => {
-            // Mock user not found
             prismaMock.users.findFirst.mockResolvedValueOnce(null);
-
+            // Call the imported function directly
             const result = await verifyOTPToken("nonexistent@example.com", validOtp);
-
             expect(result).toEqual({
                 success: false,
                 error: "User not found",
@@ -347,15 +316,13 @@ describe("Authentication Actions", () => {
         });
 
         it("should handle missing OTP", async () => {
-            // Mock user with no OTP
             prismaMock.users.findFirst.mockResolvedValueOnce({
                 ...VALID_DATA,
                 otp_token: null,
                 otp_expires_at: null,
             });
-
+            // Call the imported function directly
             const result = await verifyOTPToken(testEmail, validOtp);
-
             expect(result).toEqual({
                 success: false,
                 error: "OTP token not found or expired",
@@ -370,14 +337,11 @@ describe("Authentication Actions", () => {
         };
 
         it("should initiate login process successfully", async () => {
-            // Mock user lookup
             prismaMock.users.findFirst.mockResolvedValueOnce({
                 ...VALID_DATA,
                 email: loginData.email,
                 email_verified: true,
             });
-
-            // Mock update to set OTP
             prismaMock.users.update.mockResolvedValueOnce({
                 ...VALID_DATA,
                 user_id: 1,
@@ -387,18 +351,16 @@ describe("Authentication Actions", () => {
                 otp_token: "123456",
                 otp_expires_at: new Date(Date.now() + 10 * 60 * 1000),
             });
-
-            // Mock password verification
             (hashUtils.verifyPassword as jest.Mock).mockResolvedValueOnce(true);
 
+            const mockedActions = jest.requireMock("@/actions");
+            // Call the imported function directly
             const result = await loginAccount(loginData);
 
             expect(result).toEqual({
                 success: true,
-                data: { data: {} },
+                data: { data: {} }, // Original function returns empty data object on success
             });
-
-            // Verify OTP was generated and stored
             expect(hashUtils.generateOtp).toHaveBeenCalled();
             expect(prismaMock.users.update).toHaveBeenCalledWith({
                 where: { email: loginData.email },
@@ -407,85 +369,65 @@ describe("Authentication Actions", () => {
                     otp_token: "123456",
                 },
             });
-
-            // Verify email was sent
-            expect(jest.requireMock("../../actions").sendEmail).toHaveBeenCalled();
+            expect(mockedActions.sendEmail).toHaveBeenCalled();
         });
 
         it("should reject invalid password", async () => {
-            // Mock user lookup
             prismaMock.users.findFirst.mockResolvedValueOnce({
                 ...VALID_DATA,
                 email: loginData.email,
             });
-
-            // Mock password verification - invalid password
             (hashUtils.verifyPassword as jest.Mock).mockResolvedValueOnce(false);
-
+            const mockedActions = jest.requireMock("@/actions");
+            // Call the imported function directly
             const result = await loginAccount(loginData);
-
             expect(result).toEqual({
                 success: false,
                 error: "Invalid password",
             });
-
-            // Verify no OTP was generated
             expect(prismaMock.users.update).not.toHaveBeenCalled();
-            expect(jest.requireMock("../../actions").sendEmail).not.toHaveBeenCalled();
+            expect(mockedActions.sendEmail).not.toHaveBeenCalled();
         });
 
         it("should reject unverified email", async () => {
-            // Mock user lookup with unverified email
             prismaMock.users.findFirst.mockResolvedValueOnce({
                 ...VALID_DATA,
                 email: loginData.email,
                 email_verified: false,
             });
-
-            // Mock password verification
             (hashUtils.verifyPassword as jest.Mock).mockResolvedValueOnce(true);
-
+            const mockedActions = jest.requireMock("@/actions");
+            // Call the imported function directly
             const result = await loginAccount(loginData);
-
             expect(result).toEqual({
                 success: false,
                 error: "Email not verified",
             });
-
-            // Verify no OTP was generated
             expect(prismaMock.users.update).not.toHaveBeenCalled();
-            expect(jest.requireMock("../../actions").sendEmail).not.toHaveBeenCalled();
+            expect(mockedActions.sendEmail).not.toHaveBeenCalled();
         });
 
         it("should reject disabled account", async () => {
-            // Mock user lookup with disabled account
             prismaMock.users.findFirst.mockResolvedValueOnce({
                 ...VALID_DATA,
                 email: loginData.email,
                 disabled: true,
                 email_verified: true,
             });
-
-            // Mock password verification
             (hashUtils.verifyPassword as jest.Mock).mockResolvedValueOnce(true);
-
+            // Call the imported function directly
             const result = await loginAccount(loginData);
-
             expect(result).toEqual({
                 success: false,
                 error: "User account is disabled",
             });
-
-            // Verify no OTP was generated
             expect(prismaMock.users.update).not.toHaveBeenCalled();
         });
 
         it("should handle user not found", async () => {
-            // Mock user not found
             prismaMock.users.findFirst.mockResolvedValueOnce(null);
-
+            // Call the imported function directly
             const result = await loginAccount(loginData);
-
             expect(result).toEqual({
                 success: false,
                 error: "User not found",
@@ -505,15 +447,10 @@ describe("Authentication Actions", () => {
                 email: loginData.email,
                 email_verified: true,
             };
-
-            // Mock user lookup
             prismaMock.users.findFirst.mockResolvedValueOnce(mockUser);
-
-            // Mock password verification
             (hashUtils.verifyPassword as jest.Mock).mockResolvedValueOnce(true);
-
+            // Call the imported function directly
             const result = await nextAuthLogin(loginData.email, loginData.password);
-
             expect(result).toEqual({
                 success: true,
                 data: { user: mockUser },
@@ -521,17 +458,13 @@ describe("Authentication Actions", () => {
         });
 
         it("should reject invalid password", async () => {
-            // Mock user lookup
             prismaMock.users.findFirst.mockResolvedValueOnce({
                 ...VALID_DATA,
                 email: loginData.email,
             });
-
-            // Mock password verification - invalid password
             (hashUtils.verifyPassword as jest.Mock).mockResolvedValueOnce(false);
-
+            // Call the imported function directly
             const result = await nextAuthLogin(loginData.email, loginData.password);
-
             expect(result).toEqual({
                 success: false,
                 error: "Invalid password",
@@ -539,18 +472,14 @@ describe("Authentication Actions", () => {
         });
 
         it("should reject unverified email", async () => {
-            // Mock user lookup with unverified email
             prismaMock.users.findFirst.mockResolvedValueOnce({
                 ...VALID_DATA,
                 email: loginData.email,
                 email_verified: false,
             });
-
-            // Mock password verification
             (hashUtils.verifyPassword as jest.Mock).mockResolvedValueOnce(true);
-
+            // Call the imported function directly
             const result = await nextAuthLogin(loginData.email, loginData.password);
-
             expect(result).toEqual({
                 success: false,
                 error: "Email not verified",
@@ -558,19 +487,15 @@ describe("Authentication Actions", () => {
         });
 
         it("should reject disabled account", async () => {
-            // Mock user lookup with disabled account
             prismaMock.users.findFirst.mockResolvedValueOnce({
                 ...VALID_DATA,
                 email: loginData.email,
                 disabled: true,
                 email_verified: true,
             });
-
-            // Mock password verification
             (hashUtils.verifyPassword as jest.Mock).mockResolvedValueOnce(true);
-
+            // Call the imported function directly
             const result = await nextAuthLogin(loginData.email, loginData.password);
-
             expect(result).toEqual({
                 success: false,
                 error: "User account is disabled",
@@ -593,56 +518,18 @@ describe("Authentication Actions", () => {
             postal_code: "12345",
             emergency_services: true,
             operating_hours: [
-                {
-                    day_of_week: 0,
-                    opens_at: "08:00",
-                    closes_at: "17:00",
-                    is_closed: false,
-                },
-                {
-                    day_of_week: 1,
-                    opens_at: "08:00",
-                    closes_at: "17:00",
-                    is_closed: false,
-                },
-                {
-                    day_of_week: 2,
-                    opens_at: "08:00",
-                    closes_at: "17:00",
-                    is_closed: false,
-                },
-                {
-                    day_of_week: 3,
-                    opens_at: "08:00",
-                    closes_at: "17:00",
-                    is_closed: false,
-                },
-                {
-                    day_of_week: 4,
-                    opens_at: "08:00",
-                    closes_at: "17:00",
-                    is_closed: false,
-                },
-                {
-                    day_of_week: 5,
-                    opens_at: "08:00",
-                    closes_at: "17:00",
-                    is_closed: false,
-                },
-                {
-                    day_of_week: 6,
-                    opens_at: "08:00",
-                    closes_at: "17:00",
-                    is_closed: false,
-                },
+                { day_of_week: 0, opens_at: "08:00", closes_at: "17:00", is_closed: false },
+                { day_of_week: 1, opens_at: "08:00", closes_at: "17:00", is_closed: false },
+                { day_of_week: 2, opens_at: "08:00", closes_at: "17:00", is_closed: false },
+                { day_of_week: 3, opens_at: "08:00", closes_at: "17:00", is_closed: false },
+                { day_of_week: 4, opens_at: "08:00", closes_at: "17:00", is_closed: false },
+                { day_of_week: 5, opens_at: "08:00", closes_at: "17:00", is_closed: false },
+                { day_of_week: 6, opens_at: "08:00", closes_at: "17:00", is_closed: false },
             ],
         };
 
         it("should create a new clinic account successfully", async () => {
-            // Mock email check
             prismaMock.users.findFirst.mockResolvedValueOnce(null);
-
-            // Mock user creation
             prismaMock.users.create.mockResolvedValueOnce({
                 ...VALID_DATA,
                 user_id: 1,
@@ -653,8 +540,6 @@ describe("Authentication Actions", () => {
                 phone_number: mockClinicData.phone_number,
                 role: role_type.client,
             });
-
-            // Mock clinic creation
             prismaMock.clinics.create.mockResolvedValueOnce({
                 clinic_id: 1,
                 name: mockClinicData.name,
@@ -666,51 +551,41 @@ describe("Authentication Actions", () => {
                 emergency_services: mockClinicData.emergency_services,
                 user_id: 1,
                 created_at: new Date(),
-                clinic_uuid: "new-clinic-uuid",
+                clinic_uuid: "new-clinic-uuid", // Use the same UUID for consistency if needed
                 google_maps_url: "https://maps.google.com",
                 latitude: 12.345678,
                 longitude: 98.765432,
                 website: "",
             });
 
+            const mockedActions = jest.requireMock("@/actions");
+            // Call the imported function directly
             const result = await createClinicAccount(mockClinicData);
 
             expect(result).toEqual({
                 success: true,
                 data: { user_uuid: "new-clinic-uuid" },
             });
-
-            // Verify toTitleCase was called for name formatting
             expect(hashUtils.toTitleCase).toHaveBeenCalledWith(mockClinicData.first_name);
             expect(hashUtils.toTitleCase).toHaveBeenCalledWith(mockClinicData.last_name);
             expect(hashUtils.toTitleCase).toHaveBeenCalledWith(mockClinicData.name);
-
-            // Verify clinic was created with correct data
             expect(prismaMock.clinics.create).toHaveBeenCalled();
-
-            // Verify email was sent
-            expect(jest.requireMock("../../actions").sendEmail).toHaveBeenCalled();
-
-            // Verify preferences were created
-            expect(jest.requireMock("../../actions").createNewPreferenceDefault).toHaveBeenCalledWith(1);
+            expect(mockedActions.sendEmail).toHaveBeenCalled();
+            expect(mockedActions.createNewPreferenceDefault).toHaveBeenCalledWith(1);
         });
 
         it("should handle email already taken", async () => {
-            // Mock email check - email exists
             prismaMock.users.findFirst.mockResolvedValueOnce({
                 ...VALID_DATA,
                 user_id: 2,
                 email: mockClinicData.email,
             });
-
+            // Call the imported function directly
             const result = await createClinicAccount(mockClinicData);
-
             expect(result).toEqual({
                 success: false,
                 error: "email_or_phone_number_already_exists",
             });
-
-            // Verify user and clinic were not created
             expect(prismaMock.users.create).not.toHaveBeenCalled();
             expect(prismaMock.clinics.create).not.toHaveBeenCalled();
         });
@@ -718,17 +593,14 @@ describe("Authentication Actions", () => {
         it("should handle validation errors", async () => {
             const invalidClinicData = {
                 ...mockClinicData,
-                email: "not-an-email", // Invalid email format
+                email: "not-an-email",
             };
-
+            // Call the imported function directly
             const result = await createClinicAccount(invalidClinicData);
-
             expect(result).toEqual({
                 success: false,
                 error: "Invalid input",
             });
-
-            // Verify user and clinic were not created
             expect(prismaMock.users.create).not.toHaveBeenCalled();
             expect(prismaMock.clinics.create).not.toHaveBeenCalled();
         });
@@ -738,38 +610,28 @@ describe("Authentication Actions", () => {
         const testEmail = "user@example.com";
 
         it("should regenerate OTP successfully", async () => {
-            // Mock user lookup
-            prismaMock.users.findFirst.mockResolvedValueOnce({
+            const mockUser = {
                 ...VALID_DATA,
                 user_id: 1,
                 email: testEmail,
                 first_name: "John",
                 last_name: "Doe",
-            });
-
-            // Mock update to set new OTP
+            };
+            prismaMock.users.findFirst.mockResolvedValueOnce(mockUser);
             prismaMock.users.update.mockResolvedValueOnce({
-                ...VALID_DATA,
+                ...mockUser,
                 otp_token: "123456",
-                otp_expires_at: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes in the future
+                otp_expires_at: new Date(Date.now() + 10 * 60 * 1000),
             });
 
+            const mockedActions = jest.requireMock("@/actions");
+            // Call the imported function directly
             const result = await regenerateOTPToken(testEmail);
 
             expect(result).toEqual({
                 success: true,
-                data: {
-                    user: {
-                        ...VALID_DATA,
-                        user_id: 1,
-                        email: testEmail,
-                        first_name: "John",
-                        last_name: "Doe",
-                    },
-                },
+                data: { user: mockUser }, // Check if the structure matches the actual return type
             });
-
-            // Verify OTP was generated and stored
             expect(hashUtils.generateOtp).toHaveBeenCalledWith(testEmail);
             expect(prismaMock.users.update).toHaveBeenCalledWith({
                 where: { email: testEmail },
@@ -778,25 +640,20 @@ describe("Authentication Actions", () => {
                     otp_token: "123456",
                 },
             });
-
-            // Verify email was sent
-            expect(jest.requireMock("../../actions").sendEmail).toHaveBeenCalled();
+            expect(mockedActions.sendEmail).toHaveBeenCalled();
         });
 
         it("should handle user not found", async () => {
-            // Mock user not found
             prismaMock.users.findFirst.mockResolvedValueOnce(null);
-
+            const mockedActions = jest.requireMock("@/actions");
+            // Call the imported function directly
             const result = await regenerateOTPToken("nonexistent@example.com");
-
             expect(result).toEqual({
                 success: false,
                 error: "User not found",
             });
-
-            // Verify no actions were taken
             expect(prismaMock.users.update).not.toHaveBeenCalled();
-            expect(jest.requireMock("../../actions").sendEmail).not.toHaveBeenCalled();
+            expect(mockedActions.sendEmail).not.toHaveBeenCalled();
         });
     });
 });

@@ -4,6 +4,27 @@ import userEvent from "@testing-library/user-event";
 import PetVaccinationForm from "@/components/form/pet-vaccination-form";
 import { toast } from "sonner";
 import * as actions from "@/actions";
+// Add this import for DOM testing matchers
+import "@testing-library/jest-dom";
+
+// Add missing DOM APIs needed by Radix UI (if used in this component)
+beforeAll(() => {
+    if (!HTMLElement.prototype.hasPointerCapture) {
+        HTMLElement.prototype.hasPointerCapture = jest.fn(() => false);
+    }
+
+    if (!HTMLElement.prototype.setPointerCapture) {
+        HTMLElement.prototype.setPointerCapture = jest.fn();
+    }
+
+    if (!HTMLElement.prototype.releasePointerCapture) {
+        HTMLElement.prototype.releasePointerCapture = jest.fn();
+    }
+
+    if (!Element.prototype.scrollIntoView) {
+        Element.prototype.scrollIntoView = jest.fn();
+    }
+});
 
 // Mock dependencies
 jest.mock("sonner", () => ({
@@ -16,6 +37,17 @@ jest.mock("sonner", () => ({
 jest.mock("@/actions", () => ({
     createVaccination: jest.fn(),
 }));
+
+jest.mock("@/lib", () => {
+    const originalModule = jest.requireActual("@/lib");
+    return {
+        __esModule: true,
+        ...originalModule,
+        generateVerificationToken: jest.fn().mockReturnValue("test-verification-token"),
+        toTitleCase: jest.fn((text) => (text ? text.charAt(0).toUpperCase() + text.slice(1).toLowerCase() : "")),
+        cn: (...inputs: string[]) => inputs.filter(Boolean).join(" "),
+    };
+});
 
 describe("PetVaccinationForm", () => {
     const mockPetUuid = "test-pet-uuid-123";
@@ -63,7 +95,7 @@ describe("PetVaccinationForm", () => {
 
         // Click on the 15th of next month
         const futureDateElements = screen.getAllByRole("button", {
-            name: (text) => /^\d+$/.test(text) && parseInt(text) === 15,
+            name: (text: string) => /^\d+$/.test(text) && parseInt(text) === 15,
         });
         // Choose the one that's not disabled
         for (const dateElem of futureDateElements) {
@@ -190,9 +222,9 @@ describe("PetVaccinationForm", () => {
 
         // Verify inputs and button are disabled during submission
         await waitFor(() => {
-            expect(screen.getByLabelText(/Vaccine Name/i)).toHaveAttribute("disabled");
-            expect(screen.getByLabelText(/Batch Number/i)).toHaveAttribute("disabled");
-            expect(screen.getByRole("button", { name: /Saving/i })).toHaveAttribute("disabled");
+            expect(screen.getByLabelText(/Vaccine Name/i)).toBeDisabled();
+            expect(screen.getByLabelText(/Batch Number/i)).toBeDisabled();
+            expect(screen.getByRole("button", { name: /Saving/i })).toBeDisabled();
         });
     });
 

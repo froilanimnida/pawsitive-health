@@ -1,9 +1,43 @@
 import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import PrescriptionForm from "@/components/form/prescription-form";
 import { toast } from "sonner";
 import * as actions from "@/actions";
+import userEvent from "@testing-library/user-event";
+import "@testing-library/jest-dom";
+
+// Add missing DOM APIs needed by Radix UI
+beforeAll(() => {
+    // Mock hasPointerCapture
+    if (!HTMLElement.prototype.hasPointerCapture) {
+        HTMLElement.prototype.hasPointerCapture = jest.fn(() => false);
+    }
+
+    // Mock setPointerCapture
+    if (!HTMLElement.prototype.setPointerCapture) {
+        HTMLElement.prototype.setPointerCapture = jest.fn();
+    }
+
+    // Mock releasePointerCapture
+    if (!HTMLElement.prototype.releasePointerCapture) {
+        HTMLElement.prototype.releasePointerCapture = jest.fn();
+    }
+
+    // Mock the function that Radix UI is trying to access
+    if (!Element.prototype.scrollIntoView) {
+        Element.prototype.scrollIntoView = jest.fn();
+    }
+});
+
+// Mock the cn utility from @/lib
+jest.mock("@/lib", () => {
+    const originalModule = jest.requireActual("@/lib");
+    return {
+        __esModule: true,
+        ...originalModule,
+        cn: (...inputs: string[]) => inputs.filter(Boolean).join(" "),
+    };
+});
 
 // Mock dependencies
 jest.mock("sonner", () => ({
@@ -226,5 +260,4 @@ describe("PrescriptionForm", () => {
             expect(toast.success).toHaveBeenCalledWith("Prescription issued successfully");
         });
     });
-    // ...existing code...
 });

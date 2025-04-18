@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import AddPetForm from "@/components/form/pet-form";
 import { toast } from "sonner";
 import * as petsActions from "@/actions/pets";
+import { prismaMock } from "@/__tests__/utils/mocks";
 
 // Mock dependencies
 jest.mock("sonner", () => ({
@@ -18,6 +19,18 @@ jest.mock("sonner", () => ({
 jest.mock("@/actions/pets", () => ({
     addPet: jest.fn(),
 }));
+
+jest.mock("@/lib", () => {
+    const originalModule = jest.requireActual("@/lib");
+    return {
+        __esModule: true,
+        ...originalModule,
+        // Replace prisma with our mock
+        prisma: prismaMock,
+        // Mock other utility functions used by auth.ts
+        toTitleCase: jest.fn((text) => (text ? text.charAt(0).toUpperCase() + text.slice(1).toLowerCase() : "")),
+    };
+});
 
 describe("AddPetForm", () => {
     beforeEach(() => {

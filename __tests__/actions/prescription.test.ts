@@ -35,6 +35,7 @@ describe("Prescription Actions", () => {
     describe("addPrescription", () => {
         const mockPrescriptionData = {
             pet_uuid: "test-pet-uuid",
+            pet_id: 1,
             dosage: "10mg daily",
             frequency: "ONCE_DAILY",
             start_date: new Date("2025-04-14"),
@@ -56,7 +57,7 @@ describe("Prescription Actions", () => {
                 end_date: mockPrescriptionData.end_date,
                 refills_remaining: mockPrescriptionData.refills_remaining,
                 created_at: new Date(),
-                updated_at: new Date(),
+                medication_id: 1,
             });
 
             // Call the action
@@ -171,6 +172,7 @@ describe("Prescription Actions", () => {
                 refills_remaining: 3,
                 created_at: new Date(),
                 updated_at: new Date(),
+                medication_id: 1,
             };
 
             prismaMock.prescriptions.findUnique.mockResolvedValueOnce(mockPrescription);
