@@ -25,7 +25,7 @@ const config: Config = {
         "^types/(.*)$": "<rootDir>/types/$1",
     },
     testPathIgnorePatterns: ["<rootDir>/node_modules/", "<rootDir>/.next/"],
-    transformIgnorePatterns: ["/node_modules/", "^.+\.module\.(css|sass|scss)$"],
+    transformIgnorePatterns: ["/node_modules/", "^.+.module.(css|sass|scss)$"],
 };
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async

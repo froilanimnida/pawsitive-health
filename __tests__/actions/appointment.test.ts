@@ -29,8 +29,8 @@ type MockAppointmentPayload = Prisma.appointmentsGetPayload<{
 }>;
 type MockPetPayload = Prisma.petsGetPayload<{ include: { users: true } }>;
 type MockVetPayload = Prisma.veterinariansGetPayload<{ include: { users: true } }>;
-type MockClinicPayload = Prisma.clinicsGetPayload<{}>; // Adjust include as needed
-type MockUserPayload = Prisma.usersGetPayload<{}>; // Adjust include as needed
+type MockClinicPayload = Prisma.clinicsGetPayload<undefined>; // Adjust include as needed
+type MockUserPayload = Prisma.usersGetPayload<undefined>; // Adjust include as needed
 
 // Mock dependencies
 jest.mock("next-auth");
