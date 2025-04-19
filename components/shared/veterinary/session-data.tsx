@@ -1,4 +1,4 @@
-import { getAppointmentRecordedServices } from "@/actions/appointment";
+import { getAppointmentRecordedServices } from "@/actions";
 import {
     Card,
     CardContent,
@@ -15,6 +15,7 @@ import { format } from "date-fns";
 import { Pill, Stethoscope, Syringe } from "lucide-react";
 import { Suspense } from "react";
 import { toTitleCase } from "@/lib";
+import { DeleteRecordButton } from "./ongoing-record-delete-buttons";
 
 async function RecordedServices({ appointmentUuid }: { appointmentUuid: string }) {
     const servicesResponse = await getAppointmentRecordedServices(appointmentUuid);
@@ -79,7 +80,13 @@ async function RecordedServices({ appointmentUuid }: { appointmentUuid: string }
                 {vaccinations.length > 0 ? (
                     <div className="space-y-4">
                         {vaccinations.map((vax) => (
-                            <Card key={vax.vaccination_id} className="overflow-hidden">
+                            <Card key={vax.vaccination_id} className="overflow-hidden relative">
+                                <DeleteRecordButton
+                                    id={vax.vaccination_id}
+                                    appointmentId={vax.appointment_id || 0}
+                                    appointmentUuid={appointmentUuid}
+                                    recordType="vaccination"
+                                />
                                 <CardHeader className="pb-2">
                                     <CardTitle className="text-base">{vax.vaccine_name || "Unknown Vaccine"}</CardTitle>
                                     <CardDescription>
@@ -111,7 +118,13 @@ async function RecordedServices({ appointmentUuid }: { appointmentUuid: string }
                 {healthcareProcedures.length > 0 ? (
                     <div className="space-y-4">
                         {healthcareProcedures.map((proc) => (
-                            <Card key={proc.procedure_id} className="overflow-hidden">
+                            <Card key={proc.procedure_id} className="overflow-hidden relative">
+                                <DeleteRecordButton
+                                    id={proc.procedure_id}
+                                    appointmentId={proc.appointment_id || 0}
+                                    appointmentUuid={appointmentUuid}
+                                    recordType="procedure"
+                                />
                                 <CardHeader className="pb-2">
                                     <CardTitle className="text-base">
                                         {toTitleCase(proc.procedure_type.replace(/_/g, " "))}
@@ -153,7 +166,13 @@ async function RecordedServices({ appointmentUuid }: { appointmentUuid: string }
                 {prescriptions.length > 0 ? (
                     <div className="space-y-4">
                         {prescriptions.map((rx) => (
-                            <Card key={rx.prescription_id} className="overflow-hidden">
+                            <Card key={rx.prescription_id} className="overflow-hidden relative">
+                                <DeleteRecordButton
+                                    id={rx.prescription_id}
+                                    appointmentId={rx.appointment_id || 0}
+                                    appointmentUuid={appointmentUuid}
+                                    recordType="prescription"
+                                />
                                 <CardHeader className="pb-2">
                                     <CardTitle className="text-base">
                                         {rx.medications?.name || "Prescription"}
@@ -207,11 +226,13 @@ function SkeletonCard() {
 function CurrentAppointmentRecordedService({ appointmentUuid }: { appointmentUuid: string }) {
     return (
         <Card>
-            <CardHeader>
-                <CardTitle className="text-lg font-semibold">Current Appointment Services</CardTitle>
-                <CardDescription className="text-muted-foreground">
-                    Services recorded during this appointment session
-                </CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                    <CardTitle className="text-lg font-semibold">Current Appointment Services</CardTitle>
+                    <CardDescription className="text-muted-foreground">
+                        Services recorded during this appointment session
+                    </CardDescription>
+                </div>
             </CardHeader>
             <CardContent>
                 <Suspense fallback={<SkeletonCard />}>

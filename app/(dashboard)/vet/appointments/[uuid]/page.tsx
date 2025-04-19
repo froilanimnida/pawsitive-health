@@ -41,6 +41,7 @@ const ViewAppointment = async ({ params }: { params: Promise<{ uuid: string }> }
                         {appointment.pets && (
                             <AppointmentHealthcareForms
                                 isVetView
+                                petUuid={appointment.pets.pet_uuid}
                                 petId={appointment.pets.pet_id}
                                 appointmentId={appointment.appointment_id}
                                 appointmentUuid={appointment.appointment_uuid}

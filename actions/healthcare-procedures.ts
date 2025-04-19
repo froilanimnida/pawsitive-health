@@ -105,4 +105,18 @@ const getHealthcareProcedure = async (
     }
 };
 
-export { addHealthcareProcedure, getHealthcareProcedures, getHealthcareProcedure };
+const deleteHealthcareProcedure = async (procedure_id: number): Promise<ActionResponse<{ success: boolean }>> => {
+    try {
+        const procedure = await prisma.healthcare_procedures.delete({
+            where: {
+                procedure_id: procedure_id,
+            },
+        });
+        if (!procedure) return { success: false, error: "Failed to delete the healthcare procedure" };
+        return { success: true, data: { success: true } };
+    } catch (error) {
+        return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
+    }
+};
+
+export { addHealthcareProcedure, getHealthcareProcedures, getHealthcareProcedure, deleteHealthcareProcedure };

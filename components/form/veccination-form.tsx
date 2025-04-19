@@ -25,7 +25,7 @@ import { toast } from "sonner";
 import { PetVaccinationSchema, type PetVaccinationType } from "@/schemas";
 
 interface VaccinationFormProps {
-    petUuid?: string;
+    petUuid: string;
     petId: number;
     appointmentId?: number;
     appointmentUuid?: string;
@@ -44,6 +44,7 @@ export function VaccinationForm({
     const form = useForm({
         resolver: zodResolver(PetVaccinationSchema),
         defaultValues: {
+            external_provider: "",
             vaccine_name: "",
             administered_date: new Date(),
             batch_number: "",
@@ -203,7 +204,14 @@ export function VaccinationForm({
                     )}
                 />
 
-                <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto">
+                <Button
+                    onClick={() => {
+                        console.log(form.formState.errors);
+                    }}
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full md:w-auto"
+                >
                     {isSubmitting ? "Recording..." : isUserView ? "Add Vaccination Record" : "Record Vaccination"}
                 </Button>
             </form>

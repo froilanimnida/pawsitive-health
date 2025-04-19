@@ -7,7 +7,7 @@ import { VaccinationForm } from "./veccination-form";
 
 interface AppointmentHealthcareFormsProps {
     petId: number;
-    petUuid?: string;
+    petUuid: string;
     appointmentUuid?: string;
     appointmentId?: number;
     vetId?: number;

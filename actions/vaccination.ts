@@ -9,6 +9,13 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
+/**
+ * This function creates a new vaccination record in the database.
+ * It first validates the input data, then checks if the pet exists.
+ * If the pet exists, it creates a new vaccination record.
+ * @param {PetVaccinationType} values - The vaccination data to be created.
+ * @returns {Promise<ActionResponse | void>} - An object indicating success or failure.
+ */
 const createVaccination = async (values: PetVaccinationType): Promise<ActionResponse | void> => {
     try {
         const session = await getServerSession(authOptions);
@@ -36,6 +43,7 @@ const createVaccination = async (values: PetVaccinationType): Promise<ActionResp
                 batch_number: data.data.batch_number || undefined,
                 pet_id: pet.pet_id,
                 administered_by: veterinarian_id,
+                appointment_id: data.data.appointment_id,
             },
         });
 
@@ -49,6 +57,12 @@ const createVaccination = async (values: PetVaccinationType): Promise<ActionResp
     }
 };
 
+/**
+ * This function retrieves a specific vaccination record from the database.
+ * It first checks if the vaccination exists, and if it does, it fetches it.
+ * @param {string} vaccination_uuid - The UUID of the vaccination.
+ * @returns {Promise<ActionResponse<{ vaccination: vaccinations }>>} - An object containing the vaccination or an error message.
+ */
 const getVaccination = async (vaccination_uuid: string): Promise<ActionResponse<{ vaccination: vaccinations }>> => {
     try {
         const vaccination = await prisma.vaccinations.findFirst({
@@ -63,6 +77,12 @@ const getVaccination = async (vaccination_uuid: string): Promise<ActionResponse<
     }
 };
 
+/**
+ * This function retrieves all vaccinations for a specific pet.
+ * It first checks if the pet exists, and if it does, it fetches the vaccinations.
+ * @param {string} pet_uuid - The UUID of the pet.
+ * @returns {Promise<ActionResponse<{ vaccinations: vaccinations[] }>>} - An object containing the vaccinations or an error message.
+ */
 const getPetVaccinations = async (pet_uuid: string): Promise<ActionResponse<{ vaccinations: vaccinations[] }>> => {
     try {
         const pet = await getPet(pet_uuid);
@@ -76,4 +96,32 @@ const getPetVaccinations = async (pet_uuid: string): Promise<ActionResponse<{ va
     }
 };
 
-export { createVaccination, getPetVaccinations, getVaccination };
+/**
+ * This function deletes a vaccination record from the database. It only applies on appointment check-in.
+ * It first checks if the vaccination exists, and if it does, it deletes it.
+ * If the deletion is successful, it revalidates the path for the pet's page.
+ * @param {number} vaccination_id - The id of the vaccination to delete.
+ * @param {number} appointment_id - The id of the appointment.
+ * @param {string} appointment_uuid - The uuid of the appointment.
+ * @returns {Promise<ActionResponse>} - An object indicating success or failure.
+ */
+const deleteVaccination = async (
+    vaccination_id: number,
+    appointment_id: number,
+    appointment_uuid: string,
+): Promise<ActionResponse | void> => {
+    try {
+        const vaccination = await prisma.vaccinations.findFirst({
+            where: { vaccination_id: vaccination_id, appointment_id: appointment_id },
+        });
+        if (!vaccination) return { success: false, error: "Vaccination not found" };
+        const result = await prisma.vaccinations.delete({
+            where: { vaccination_uuid: vaccination.vaccination_uuid, appointment_id: appointment_id },
+        });
+        if (!result) return { success: false, error: "Failed to delete vaccination" };
+        revalidatePath(`/vet/appointments/${appointment_uuid}`);
+    } catch (error) {
+        return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
+    }
+};
+export { createVaccination, getPetVaccinations, getVaccination, deleteVaccination };

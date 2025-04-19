@@ -74,4 +74,29 @@ const viewPrescription = async (
     }
 };
 
-export { addPrescription, viewPrescription };
+const deletePrescription = async (prescription_id: number, apppointment_uuid: string) => {
+    try {
+        const session = await getServerSession();
+        if (!session || !session.user || !session.user.id) redirect("/signin");
+        const result = await prisma.prescriptions.delete({
+            where: {
+                prescription_id: prescription_id,
+            },
+        });
+        if (!result) {
+            return {
+                success: false,
+                error: "Failed to delete prescription",
+            };
+        }
+        revalidatePath(`/vet/appointments/${apppointment_uuid}`);
+    } catch (error) {
+        console.error(error);
+        return {
+            success: false,
+            error: "Failed to delete prescription",
+        };
+    }
+};
+
+export { addPrescription, viewPrescription, deletePrescription };

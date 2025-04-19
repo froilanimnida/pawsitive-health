@@ -329,16 +329,16 @@ const getAppointment = async (
                 duration_minutes: true,
                 notes: true,
                 status: true,
-                pets: is_user
-                    ? {
-                          select: {
-                              name: true,
-                              species: true,
-                              breed: true,
-                              pet_id: true,
-                          },
-                      }
-                    : undefined,
+                pets: {
+                    select: {
+                        name: true,
+                        species: true,
+                        breed: true,
+                        pet_id: true,
+                        pet_uuid: true,
+                        weight_kg: true,
+                    },
+                },
                 veterinarians: {
                     select: {
                         specialization: true,
@@ -739,6 +739,7 @@ const getAppointmentRecordedServices = async (
         vaccinations: vaccinations[];
         healthcareProcedures: healthcare_procedures[];
         prescriptions: PrescriptionWithMedication[];
+        appointment_id: number;
     }>
 > => {
     try {
@@ -789,6 +790,7 @@ const getAppointmentRecordedServices = async (
                 vaccinations,
                 healthcareProcedures,
                 prescriptions,
+                appointment_id: appointment.appointment_id,
             },
         };
     } catch (error) {

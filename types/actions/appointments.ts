@@ -37,6 +37,7 @@ type AppointmentDetailsResponse = {
         breed: string;
         weight_kg: Decimal;
         pet_id: number;
+        pet_uuid: string;
     } | null;
     veterinarians: {
         specialization: string | null;
