@@ -5,6 +5,7 @@ import { type Metadata } from "next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui";
 import { AppointmentHealthcareForms } from "@/components/form/appointment-healthcare-forms";
 import AppointmentHistoricalData from "@/components/shared/appointment-historical-data";
+import CurrentAppointmentRecordedService from "@/components/shared/veterinary/session-data";
 
 export const metadata: Metadata = {
     title: "View Appointment | PawsitiveHealth",
@@ -17,7 +18,7 @@ const ViewAppointment = async ({ params }: { params: Promise<{ uuid: string }> }
     if (!appointmentResponse.success || !appointmentResponse.data?.appointment) notFound();
     const { appointment } = appointmentResponse.data;
     return (
-        <>
+        <section className="grid grid-cols-1 gap-4 2xl:grid-cols-2">
             <AppointmentCard appointment={appointment} viewerType="vet" />
             {(appointmentResponse.data.appointment.status === "checked_in" ||
                 appointmentResponse.data.appointment.status === "confirmed") && (
@@ -29,7 +30,7 @@ const ViewAppointment = async ({ params }: { params: Promise<{ uuid: string }> }
                 />
             )}
             {appointmentResponse.data.appointment.status === "confirmed" && (
-                <Card className="mt-6">
+                <Card>
                     <CardHeader>
                         <CardTitle>Record Services</CardTitle>
                         <CardDescription>
@@ -47,7 +48,8 @@ const ViewAppointment = async ({ params }: { params: Promise<{ uuid: string }> }
                     </CardContent>
                 </Card>
             )}
-        </>
+            <CurrentAppointmentRecordedService appointmentUuid={appointment.appointment_uuid} />
+        </section>
     );
 };
 

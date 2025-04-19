@@ -728,6 +728,74 @@ const getAppointmentHistoricalData = async (
     }
 };
 
+/**
+ * Get all recorded services for a specific appointment
+ * This includes vaccinations, healthcare procedures, and prescriptions
+ */
+const getAppointmentRecordedServices = async (
+    appointment_uuid: string,
+): Promise<
+    ActionResponse<{
+        vaccinations: vaccinations[];
+        healthcareProcedures: healthcare_procedures[];
+        prescriptions: PrescriptionWithMedication[];
+    }>
+> => {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.id) redirect("/signin");
+
+        // Find the appointment first
+        const appointment = await prisma.appointments.findUnique({
+            where: { appointment_uuid },
+        });
+
+        if (!appointment) return { success: false, error: "Appointment not found" };
+
+        // Get vaccinations recorded for this appointment
+        const vaccinations = await prisma.vaccinations.findMany({
+            where: { appointment_id: appointment.appointment_id },
+            orderBy: { created_at: "desc" },
+        });
+
+        // Get healthcare procedures recorded for this appointment
+        const healthcareProcedures = await prisma.healthcare_procedures.findMany({
+            where: { appointment_id: appointment.appointment_id },
+            orderBy: { created_at: "desc" },
+        });
+
+        // Get prescriptions recorded for this appointment
+        const prescriptions = await prisma.prescriptions.findMany({
+            where: {
+                AND: [
+                    { pet_id: appointment.pet_id },
+                    {
+                        created_at: {
+                            gte: appointment.appointment_date,
+                            lte: new Date(new Date(appointment.appointment_date).getTime() + 24 * 60 * 60 * 1000),
+                        },
+                    },
+                ],
+            },
+            orderBy: { created_at: "desc" },
+            include: {
+                medications: true,
+            },
+        });
+
+        return {
+            success: true,
+            data: {
+                vaccinations,
+                healthcareProcedures,
+                prescriptions,
+            },
+        };
+    } catch (error) {
+        return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
+    }
+};
+
 export {
     getUserAppointments,
     createUserAppointment,
@@ -740,4 +808,5 @@ export {
     changeAppointmentStatus,
     rescheduleAppointment,
     getAppointmentHistoricalData,
+    getAppointmentRecordedServices,
 };
