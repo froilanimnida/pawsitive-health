@@ -26,10 +26,6 @@ export function AppointmentHealthcareForms({
 }: AppointmentHealthcareFormsProps) {
     const [activeTab, setActiveTab] = useState("vaccination");
 
-    const handleSuccess = () => {
-        // Could handle success actions here, such as refreshing data
-    };
-
     return (
         <div className="mt-6 space-y-4">
             <Tabs defaultValue="vaccination" value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -90,7 +86,6 @@ export function AppointmentHealthcareForms({
                         appointmentId={appointmentId}
                         appointmentUuid={appointmentUuid}
                         vetId={vetId}
-                        onSuccess={handleSuccess}
                         isCheckIn={isCheckedIn}
                     />
                 </TabsContent>

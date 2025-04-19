@@ -27,14 +27,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { format, addDays } from "date-fns";
-import { z } from "zod";
 import { addPrescription, getMedicationsList } from "@/actions";
-
-const PrescriptionFormSchema = PrescriptionDefinition.extend({
-    appointment_uuid: z.string().uuid().optional(),
-    appointment_id: z.number().optional(),
-    medication_id: z.number(),
-});
 
 interface PrescriptionFormProps {
     petId: number;
@@ -42,8 +35,6 @@ interface PrescriptionFormProps {
     appointmentUuid?: string;
     appointmentId?: number;
     vetId?: number;
-    onSuccess?: () => void;
-    onCancel?: () => void;
     isCheckIn?: boolean; // Flag to determine if the patient has checked in
 }
 
@@ -53,8 +44,6 @@ const PrescriptionForm = ({
     appointmentUuid,
     appointmentId,
     vetId,
-    onSuccess,
-    onCancel,
     isCheckIn = true,
 }: PrescriptionFormProps) => {
     const [isLoading, setIsLoading] = useState(false);
@@ -86,7 +75,7 @@ const PrescriptionForm = ({
     }, []);
 
     const form = useForm({
-        resolver: zodResolver(PrescriptionFormSchema),
+        resolver: zodResolver(PrescriptionDefinition),
         defaultValues: {
             pet_id: petId,
             pet_uuid: petUuid,
@@ -105,41 +94,30 @@ const PrescriptionForm = ({
     const onSubmit = async (data: PrescriptionType) => {
         setIsLoading(true);
         toast.loading("Issuing prescription...");
-
-        try {
-            const response = await addPrescription({
-                ...data,
-                pet_id: petId,
-                appointment_id: appointmentId,
-            });
-
-            if (response && response.success) {
-                toast.dismiss();
-                toast.success("Prescription issued successfully");
-                form.reset({
-                    ...form.getValues(),
-                    medication_id: undefined,
-                    dosage: "",
-                    frequency: "",
-                    start_date: new Date(),
-                    end_date: addDays(new Date(), 7),
-                    refills_remaining: 0,
-                });
-
-                if (onSuccess) {
-                    onSuccess();
-                }
-            } else {
-                toast.dismiss();
-                toast.error(response?.error || "Failed to issue prescription");
-            }
-        } catch (error) {
+        const response = await addPrescription(data);
+        if (response === undefined) {
             toast.dismiss();
-            toast.error("An unexpected error occurred");
-            console.error("Error issuing prescription:", error);
-        } finally {
-            setIsLoading(false);
+            toast.success("Prescription issued successfully");
+            form.reset({
+                ...form.getValues(),
+                medication_id: undefined,
+                dosage: "",
+                frequency: "",
+                start_date: new Date(),
+                end_date: addDays(new Date(), 7),
+                refills_remaining: 0,
+            });
+            return;
         }
+        if (response.success === false) {
+            toast.dismiss();
+            toast.error(response.error || "Failed to issue prescription");
+            return;
+        }
+        toast.dismiss();
+        toast.error("An unexpected error occurred");
+        toast.dismiss();
+        setIsLoading(false);
     };
 
     if (!isCheckIn) {
@@ -324,11 +302,6 @@ const PrescriptionForm = ({
                 />
 
                 <div className="flex justify-end space-x-4">
-                    {onCancel && (
-                        <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
-                            Cancel
-                        </Button>
-                    )}
                     <Button type="submit" disabled={isLoading}>
                         {isLoading ? "Issuing..." : "Issue Prescription"}
                     </Button>

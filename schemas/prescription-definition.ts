@@ -15,6 +15,8 @@ export const PrescriptionDefinition = z.object({
     pet_id: z.number(),
     appointment_id: z.number().optional(),
     vet_id: z.number().optional(),
+    appointment_uuid: z.string().uuid().optional(),
+    medication_id: z.number(),
 });
 
 export type PrescriptionType = z.infer<typeof PrescriptionDefinition>;
