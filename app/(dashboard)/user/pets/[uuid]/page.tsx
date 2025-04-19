@@ -20,7 +20,7 @@ import Link from "next/link";
 import { toTitleCase } from "@/lib";
 import EditPetForm from "@/components/form/edit-pet-form";
 import PetProcedureForm from "@/components/form/pet-healthcare-procedure-form";
-import PetVaccinationForm from "@/components/form/pet-vaccination-form";
+import { VaccinationForm } from "@/components/form/veccination-form";
 
 export async function generateMetadata({ params }: { params: Promise<{ uuid: string }> }): Promise<Metadata> {
     const { uuid } = await params;
@@ -108,7 +108,7 @@ export default async function PetDetails({ params }: { params: Promise<{ uuid: s
                                 <DialogTitle>Add Pet Vaccination</DialogTitle>
                                 <DialogDescription>Add historical pet vaccination</DialogDescription>
                             </DialogHeader>
-                            <PetVaccinationForm petUuid={pet.pet_uuid} petId={pet.pet_id} />
+                            <VaccinationForm petUuid={pet.pet_uuid} petId={pet.pet_id} isUserView={true} />
                         </DialogContent>
                     </Dialog>
 

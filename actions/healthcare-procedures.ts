@@ -14,11 +14,16 @@ const addHealthcareProcedure = async (values: ProcedureType | ProcedureType[]): 
         const session = await getServerSession(authOptions);
         if (!session || !session.user || !session.user.id || !session.user.role) redirect("/signin");
         const proceduresArray = Array.isArray(values) ? values : [values];
-        const veterinarian = await prisma.veterinarians.findFirst({
-            where: {
-                user_id: Number(session.user.id),
-            },
-        });
+        let veterinarian_id = undefined;
+
+        if (session.user.role === "veterinarian") {
+            const veterinarian = await prisma.veterinarians.findFirst({
+                where: {
+                    user_id: Number(session.user.id),
+                },
+            });
+            veterinarian_id = veterinarian?.vet_id;
+        }
 
         type ResultType = { success: false; error: string } | (healthcare_procedures & { success?: true });
 
@@ -42,7 +47,7 @@ const addHealthcareProcedure = async (values: ProcedureType | ProcedureType[]): 
                         dosage: data.data.dosage,
                         notes: data.data.notes,
                         pet_id: pet.pet_id,
-                        administered_by: veterinarian?.vet_id,
+                        administered_by: veterinarian_id,
                         appointment_id: data.data.appointment_id,
                     },
                 });

@@ -79,6 +79,15 @@ const PetProcedureForm = ({
             toast.dismiss();
             toast.success("Healthcare procedure added successfully");
             setIsLoading(false);
+            petProcedureForm.reset({
+                ...petProcedureForm.getValues(),
+                procedure_type: procedure_type.deworming,
+                procedure_date: new Date(),
+                next_due_date: undefined,
+                product_used: "",
+                dosage: "",
+                notes: "",
+            });
             return;
         }
         if (result && !result.success && result.error) {
@@ -95,8 +104,6 @@ const PetProcedureForm = ({
     return (
         <Form {...petProcedureForm}>
             <form onSubmit={petProcedureForm.handleSubmit(onSubmit)} className="space-y-6">
-                <h1>Form was loaded from components form pet-healthcare-procedure-form</h1>
-                {/* we're correctly loading the right form */}
                 <div className="flex flex-col gap-6">
                     <FormField
                         control={petProcedureForm.control}

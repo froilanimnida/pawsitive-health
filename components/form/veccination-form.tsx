@@ -30,7 +30,6 @@ interface VaccinationFormProps {
     appointmentId?: number;
     appointmentUuid?: string;
     isUserView?: boolean; // Flag to determine if it's user view (for historical data) or vet view
-    onSuccess?: () => void;
 }
 
 export function VaccinationForm({
@@ -39,9 +38,8 @@ export function VaccinationForm({
     appointmentId,
     appointmentUuid,
     isUserView = false,
-    onSuccess,
 }: VaccinationFormProps) {
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isSubmitting, setIsLoading] = useState(false);
 
     const form = useForm({
         resolver: zodResolver(PetVaccinationSchema),
@@ -58,37 +56,30 @@ export function VaccinationForm({
     });
 
     async function onSubmit(data: PetVaccinationType) {
-        setIsSubmitting(true);
-
-        try {
-            const result = await createVaccination({
-                ...data,
-                pet_id: petId,
-                appointment_id: appointmentId,
+        setIsLoading(true);
+        toast.loading("Recording vaccination...");
+        const result = await createVaccination(data);
+        if (result === undefined) {
+            toast.success("Vaccination recorded successfully");
+            form.reset({
+                ...form.getValues(),
+                vaccine_name: "",
+                administered_date: new Date(),
+                batch_number: "",
+                next_due_date: undefined,
             });
-
-            if (result.success) {
-                toast.success("Vaccination recorded successfully");
-                form.reset({
-                    ...form.getValues(),
-                    vaccine_name: "",
-                    administered_date: new Date(),
-                    batch_number: "",
-                    next_due_date: undefined,
-                });
-
-                if (onSuccess) {
-                    onSuccess();
-                }
-            } else {
-                toast.error(result.error || "Failed to record vaccination");
-            }
-        } catch (error) {
-            console.error("Error recording vaccination:", error);
-            toast.error("An unexpected error occurred");
-        } finally {
-            setIsSubmitting(false);
+            setIsLoading(false);
+            return;
         }
+        if (result && !result.success && result.error) {
+            toast.dismiss();
+            toast.error(result.error || "An error occurred while recording vaccination");
+            setIsLoading(false);
+            return;
+        }
+        toast.dismiss();
+        toast.error("An error occurred while recording vaccination");
+        setIsLoading(false);
     }
 
     return (

@@ -8,12 +8,9 @@ export const ProcedureSchema = z.object({
     product_used: z.string().max(100).optional(),
     dosage: z.string().max(50).optional(),
     notes: z.string().optional(),
-    pet_uuid: z
-        .string()
-        .uuid({
-            message: "Invalid pet UUID",
-        })
-        .optional(),
+    pet_uuid: z.string().uuid({
+        message: "Invalid pet UUID",
+    }),
     pet_id: z.number(),
     appointment_id: z.number().optional(),
     appointment_uuid: z
@@ -30,7 +27,7 @@ export const PetVaccinationSchema = z.object({
     pet_uuid: z.string().uuid({
         message: "Invalid pet UUID",
     }),
-    pet_id: z.number().optional(),
+    pet_id: z.number(),
     vaccine_name: z.string().min(1).max(100),
     administered_date: z.date().optional(),
     next_due_date: z.date().optional(),

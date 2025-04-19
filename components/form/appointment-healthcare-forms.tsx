@@ -2,7 +2,6 @@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui";
 import PrescriptionForm from "../form/prescription-form";
 import { useState } from "react";
-import PetVaccinationForm from "./pet-vaccination-form";
 import PetProcedureForm from "./pet-healthcare-procedure-form";
 import { VaccinationForm } from "./veccination-form";
 
@@ -50,18 +49,13 @@ export function AppointmentHealthcareForms({
                         </p>
                     </div>
 
-                    {isVetView ? (
-                        <VaccinationForm
-                            petId={petId}
-                            petUuid={petUuid}
-                            appointmentId={appointmentId}
-                            appointmentUuid={appointmentUuid}
-                            isUserView={false}
-                            onSuccess={handleSuccess}
-                        />
-                    ) : (
-                        <PetVaccinationForm petId={petId} />
-                    )}
+                    <VaccinationForm
+                        petId={petId}
+                        petUuid={petUuid}
+                        appointmentId={appointmentId}
+                        appointmentUuid={appointmentUuid}
+                        isUserView={false}
+                    />
                 </TabsContent>
 
                 <TabsContent value="procedure" className="p-4 border rounded-md bg-card">
