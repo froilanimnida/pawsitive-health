@@ -8,10 +8,13 @@ export const ProcedureSchema = z.object({
     product_used: z.string().max(100).optional(),
     dosage: z.string().max(50).optional(),
     notes: z.string().optional(),
-    pet_uuid: z.string().uuid({
-        message: "Invalid pet UUID",
-    }),
-    pet_id: z.number().optional(),
+    pet_uuid: z
+        .string()
+        .uuid({
+            message: "Invalid pet UUID",
+        })
+        .optional(),
+    pet_id: z.number(),
     appointment_id: z.number().optional(),
     appointment_uuid: z
         .string()

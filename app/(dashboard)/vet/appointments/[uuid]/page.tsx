@@ -29,7 +29,7 @@ const ViewAppointment = async ({ params }: { params: Promise<{ uuid: string }> }
                     key={appointmentResponse.data.appointment.status}
                 />
             )}
-            {appointmentResponse.data.appointment.status === "confirmed" && (
+            {appointmentResponse.data.appointment.status === "checked_in" && (
                 <Card>
                     <CardHeader>
                         <CardTitle>Record Services</CardTitle>
@@ -40,6 +40,7 @@ const ViewAppointment = async ({ params }: { params: Promise<{ uuid: string }> }
                     <CardContent>
                         {appointment.pets && (
                             <AppointmentHealthcareForms
+                                isVetView
                                 petId={appointment.pets.pet_id}
                                 appointmentId={appointment.appointment_id}
                                 appointmentUuid={appointment.appointment_uuid}

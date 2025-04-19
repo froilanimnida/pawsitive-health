@@ -81,7 +81,6 @@ export function AppointmentHealthcareForms({
                         appointmentUuid={appointmentUuid}
                         isUserView={!isVetView}
                         vetId={vetId}
-                        onSuccess={handleSuccess}
                     />
                 </TabsContent>
 
