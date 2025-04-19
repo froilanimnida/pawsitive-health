@@ -13,10 +13,11 @@ interface DeleteButtonProps {
     id: number;
     appointmentId: number;
     appointmentUuid: string;
+    petUuid: string;
     recordType: RecordType;
 }
 
-export function DeleteRecordButton({ id, appointmentId, appointmentUuid, recordType }: DeleteButtonProps) {
+export function DeleteRecordButton({ id, appointmentId, appointmentUuid, recordType, petUuid }: DeleteButtonProps) {
     const [isPending, startTransition] = useTransition();
     const [isDeleting, setIsDeleting] = useState(false);
 
@@ -29,10 +30,10 @@ export function DeleteRecordButton({ id, appointmentId, appointmentUuid, recordT
 
                 switch (recordType) {
                     case "vaccination":
-                        result = await deleteVaccination(id, appointmentId, appointmentUuid);
+                        result = await deleteVaccination(id, appointmentId, appointmentUuid, petUuid);
                         break;
                     case "procedure":
-                        result = await deleteHealthcareProcedure(id);
+                        result = await deleteHealthcareProcedure(id, appointmentUuid, petUuid);
                         break;
                     case "prescription":
                         result = await deletePrescription(id, appointmentUuid);

@@ -740,6 +740,7 @@ const getAppointmentRecordedServices = async (
         healthcareProcedures: healthcare_procedures[];
         prescriptions: PrescriptionWithMedication[];
         appointment_id: number;
+        petUuid: string;
     }>
 > => {
     try {
@@ -749,6 +750,13 @@ const getAppointmentRecordedServices = async (
         // Find the appointment first
         const appointment = await prisma.appointments.findUnique({
             where: { appointment_uuid },
+            include: {
+                pets: {
+                    select: {
+                        pet_uuid: true,
+                    },
+                },
+            },
         });
 
         if (!appointment) return { success: false, error: "Appointment not found" };
@@ -791,6 +799,7 @@ const getAppointmentRecordedServices = async (
                 healthcareProcedures,
                 prescriptions,
                 appointment_id: appointment.appointment_id,
+                petUuid: appointment.pets?.pet_uuid || "",
             },
         };
     } catch (error) {

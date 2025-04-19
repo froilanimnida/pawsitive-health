@@ -110,8 +110,11 @@ const deleteVaccination = async (
     vaccination_id: number,
     appointment_id: number,
     appointment_uuid: string,
+    petUuid: string,
 ): Promise<ActionResponse | void> => {
     try {
+        const session = await getServerSession(authOptions);
+        if (!session || !session.user || !session.user.id) redirect("/signin");
         const vaccination = await prisma.vaccinations.findFirst({
             where: { vaccination_id: vaccination_id, appointment_id: appointment_id },
         });
@@ -120,7 +123,10 @@ const deleteVaccination = async (
             where: { vaccination_uuid: vaccination.vaccination_uuid, appointment_id: appointment_id },
         });
         if (!result) return { success: false, error: "Failed to delete vaccination" };
-        revalidatePath(`/vet/appointments/${appointment_uuid}`);
+        if (session.user.role === "veterinarian") {
+            revalidatePath(`/vet/appointments/${appointment_uuid}`);
+        }
+        revalidatePath(`/user/pets/${petUuid}`);
     } catch (error) {
         return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
     }

@@ -105,15 +105,24 @@ const getHealthcareProcedure = async (
     }
 };
 
-const deleteHealthcareProcedure = async (procedure_id: number): Promise<ActionResponse<{ success: boolean }>> => {
+const deleteHealthcareProcedure = async (
+    procedure_id: number,
+    appointment_uuid: string,
+    petUuid: string,
+): Promise<ActionResponse | void> => {
     try {
+        const session = await getServerSession(authOptions);
+        if (!session || !session.user || !session.user.id) redirect("/signin");
         const procedure = await prisma.healthcare_procedures.delete({
             where: {
                 procedure_id: procedure_id,
             },
         });
         if (!procedure) return { success: false, error: "Failed to delete the healthcare procedure" };
-        return { success: true, data: { success: true } };
+        if (session.user.role === "veterinarian") {
+            revalidatePath(`/vet/appointments/${appointment_uuid}`);
+        }
+        revalidatePath(`/user/pet/${petUuid}`);
     } catch (error) {
         return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
     }

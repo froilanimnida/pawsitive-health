@@ -28,7 +28,7 @@ async function RecordedServices({ appointmentUuid }: { appointmentUuid: string }
         );
     }
 
-    const { vaccinations, healthcareProcedures, prescriptions } = servicesResponse.data;
+    const { vaccinations, healthcareProcedures, prescriptions, appointment_id, petUuid } = servicesResponse.data;
     const hasRecordedServices = vaccinations.length > 0 || healthcareProcedures.length > 0 || prescriptions.length > 0;
 
     if (!hasRecordedServices) {
@@ -83,8 +83,9 @@ async function RecordedServices({ appointmentUuid }: { appointmentUuid: string }
                             <Card key={vax.vaccination_id} className="overflow-hidden relative">
                                 <DeleteRecordButton
                                     id={vax.vaccination_id}
-                                    appointmentId={vax.appointment_id || 0}
+                                    appointmentId={appointment_id}
                                     appointmentUuid={appointmentUuid}
+                                    petUuid={petUuid}
                                     recordType="vaccination"
                                 />
                                 <CardHeader className="pb-2">
@@ -121,8 +122,9 @@ async function RecordedServices({ appointmentUuid }: { appointmentUuid: string }
                             <Card key={proc.procedure_id} className="overflow-hidden relative">
                                 <DeleteRecordButton
                                     id={proc.procedure_id}
-                                    appointmentId={proc.appointment_id || 0}
+                                    appointmentId={appointment_id}
                                     appointmentUuid={appointmentUuid}
+                                    petUuid={petUuid}
                                     recordType="procedure"
                                 />
                                 <CardHeader className="pb-2">
@@ -169,8 +171,9 @@ async function RecordedServices({ appointmentUuid }: { appointmentUuid: string }
                             <Card key={rx.prescription_id} className="overflow-hidden relative">
                                 <DeleteRecordButton
                                     id={rx.prescription_id}
-                                    appointmentId={rx.appointment_id || 0}
+                                    appointmentId={appointment_id}
                                     appointmentUuid={appointmentUuid}
+                                    petUuid={petUuid}
                                     recordType="prescription"
                                 />
                                 <CardHeader className="pb-2">
