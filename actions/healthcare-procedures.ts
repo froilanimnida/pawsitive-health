@@ -49,21 +49,13 @@ const addHealthcareProcedure = async (
             }),
         );
 
-        //const failures = results.filter((result) => result.success === false);
-        //if (failures.length > 0) {
-        //    return {
-        //        success: false,
-        //        error: failures.map((f) => f.error).join("; "),
-        //    };
-        //}
+        // Fix: Filter out any results that have a 'success: false' property
+        // These are our error objects, not valid procedure objects
+        const validResults = results.filter((result) => !("success" in result && result.success === false));
 
-        //return {
-        //    success: true,
-        //    data: { data: results.filter((r) => r.success !== false) },
-        //};
         return {
             success: true,
-            data: { data: results.filter((r) => typeof r !== "object") },
+            data: { data: validResults },
         };
     } catch (error) {
         return {
