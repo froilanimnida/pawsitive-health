@@ -300,7 +300,6 @@ model clinics {
     postal_code          String                 @db.VarChar(20)
     phone_number         String                 @db.VarChar(20)
     emergency_services   Boolean?               @default(false)
-    operating_hours      String?
     created_at           DateTime?              @default(now()) @db.Timestamptz(6)
     user_id              Int?
     latitude             Float                  @default(0)
