@@ -108,7 +108,7 @@ const AppointmentCard = ({ appointment }: { appointment: VetAppointmentWithRelat
     </Card>
 );
 
-const Appointments = async () => {
+export const Appointments = async () => {
     const appointmentsResponse = await getVeterinarianAppointments();
     const appointments = appointmentsResponse.success ? (appointmentsResponse.data?.appointments ?? []) : [];
 
