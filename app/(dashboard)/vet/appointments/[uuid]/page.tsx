@@ -1,6 +1,6 @@
 import { AppointmentCard } from "@/components/shared/appointment-card";
 import { notFound } from "next/navigation";
-import { getAppointment } from "@/actions";
+import { getAppointment, getMedicationsList } from "@/actions";
 import { type Metadata } from "next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui";
 import { AppointmentHealthcareForms } from "@/components/form/appointment-healthcare-forms";
@@ -15,6 +15,7 @@ export const metadata: Metadata = {
 const ViewAppointment = async ({ params }: { params: Promise<{ uuid: string }> }) => {
     const { uuid } = await params;
     const appointmentResponse = await getAppointment(uuid, true);
+    const medicationResponse = await getMedicationsList();
     if (!appointmentResponse.success || !appointmentResponse.data?.appointment) notFound();
     const { appointment } = appointmentResponse.data;
     return (
@@ -41,6 +42,7 @@ const ViewAppointment = async ({ params }: { params: Promise<{ uuid: string }> }
                         {appointment.pets && (
                             <AppointmentHealthcareForms
                                 isVetView
+                                medicationList={medicationResponse.success ? medicationResponse.data.medication : []}
                                 petUuid={appointment.pets.pet_uuid}
                                 petId={appointment.pets.pet_id}
                                 appointmentId={appointment.appointment_id}

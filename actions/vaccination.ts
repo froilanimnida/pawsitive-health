@@ -25,10 +25,11 @@ const createVaccination = async (values: PetVaccinationType): Promise<ActionResp
         const pet = await prisma.pets.findFirst({
             where: { pet_uuid: data.data.pet_uuid },
         });
-        let veterinarian_id = undefined;
+        let veterinarian_id = null;
         if (session.user.role === "veterinarian") {
             const veterinatian = await prisma.veterinarians.findFirst({
                 where: { user_id: Number(session.user.id) },
+                select: { vet_id: true },
             });
             veterinarian_id = veterinatian?.vet_id;
         }

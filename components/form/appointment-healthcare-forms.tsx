@@ -4,6 +4,7 @@ import PrescriptionForm from "../form/prescription-form";
 import { useState } from "react";
 import PetProcedureForm from "./pet-healthcare-procedure-form";
 import { VaccinationForm } from "./veccination-form";
+import type { medications } from "@prisma/client";
 
 interface AppointmentHealthcareFormsProps {
     petId: number;
@@ -13,6 +14,7 @@ interface AppointmentHealthcareFormsProps {
     vetId?: number;
     isVetView?: boolean;
     isCheckedIn?: boolean;
+    medicationList: medications[] | [];
 }
 
 export function AppointmentHealthcareForms({
@@ -23,6 +25,7 @@ export function AppointmentHealthcareForms({
     vetId,
     isVetView = false,
     isCheckedIn = true,
+    medicationList,
 }: AppointmentHealthcareFormsProps) {
     const [activeTab, setActiveTab] = useState("vaccination");
 
@@ -81,6 +84,7 @@ export function AppointmentHealthcareForms({
                     </div>
 
                     <PrescriptionForm
+                        medicationList={medicationList}
                         petId={petId}
                         petUuid={petUuid}
                         appointmentId={appointmentId}

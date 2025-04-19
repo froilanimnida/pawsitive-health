@@ -309,6 +309,7 @@ export async function getDashboardHealthcareData(petId?: number): Promise<
                     refills_remaining: rx.refills_remaining,
                     pets: rx.pets,
                     medications: rx.medications,
+                    appointment_id: rx.appointment_id,
                 })) as UpcomingPrescription[],
             },
         };

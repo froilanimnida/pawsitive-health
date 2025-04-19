@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -27,7 +27,8 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { format, addDays } from "date-fns";
-import { addPrescription, getMedicationsList } from "@/actions";
+import { addPrescription } from "@/actions";
+import type { medications } from "@prisma/client";
 
 interface PrescriptionFormProps {
     petId: number;
@@ -36,6 +37,7 @@ interface PrescriptionFormProps {
     appointmentId?: number;
     vetId?: number;
     isCheckIn?: boolean; // Flag to determine if the patient has checked in
+    medicationList: medications[] | [];
 }
 
 const PrescriptionForm = ({
@@ -45,35 +47,9 @@ const PrescriptionForm = ({
     appointmentId,
     vetId,
     isCheckIn = true,
+    medicationList,
 }: PrescriptionFormProps) => {
     const [isLoading, setIsLoading] = useState(false);
-    const [medications, setMedications] = useState<{ id: number; name: string }[]>([]);
-
-    useEffect(() => {
-        const fetchMedications = async () => {
-            try {
-                const response = await getMedicationsList();
-                if (!response.success) {
-                    throw new Error(response.error || "Failed to fetch medications");
-                }
-
-                setMedications(
-                    response.data.medication.map((med) => {
-                        return {
-                            id: med.medication_id,
-                            name: med.name,
-                        };
-                    }),
-                );
-            } catch (error) {
-                console.error("Error fetching medications:", error);
-                toast.error("Could not load medications list. Please try again.");
-            }
-        };
-
-        fetchMedications();
-    }, []);
-
     const form = useForm({
         resolver: zodResolver(PrescriptionDefinition),
         defaultValues: {
@@ -107,11 +83,13 @@ const PrescriptionForm = ({
                 end_date: addDays(new Date(), 7),
                 refills_remaining: 0,
             });
+            setIsLoading(false);
             return;
         }
         if (response.success === false) {
             toast.dismiss();
             toast.error(response.error || "Failed to issue prescription");
+            setIsLoading(false);
             return;
         }
         toast.dismiss();
@@ -152,8 +130,8 @@ const PrescriptionForm = ({
                                     </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                    {medications.map((med) => (
-                                        <SelectItem key={med.id} value={med.id.toString()}>
+                                    {medicationList.map((med) => (
+                                        <SelectItem key={med.medication_id} value={med.medication_id.toString()}>
                                             {med.name}
                                         </SelectItem>
                                     ))}
