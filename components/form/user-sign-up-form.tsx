@@ -16,6 +16,7 @@ import { SignUpSchema, SignUpType } from "@/schemas";
 import { createAccount } from "@/actions";
 import { toast } from "sonner";
 import type { TextFormField } from "@/types/forms/text-form-field";
+import { createFormConfig } from "@/lib";
 
 function UserSignUpForm() {
     const signUpFormField: TextFormField[] = [
@@ -74,20 +75,19 @@ function UserSignUpForm() {
             type: "password",
         },
     ];
-    const signUpForm = useForm({
-        defaultValues: {
-            first_name: "",
-            last_name: "",
-            email: "",
-            password: "",
-            confirm_password: "",
-            phone_number: "",
-        },
-        resolver: zodResolver(SignUpSchema),
-        shouldFocusError: true,
-        progressive: true,
-        mode: "onChange",
-    });
+    const signUpForm = useForm<SignUpType>(
+        createFormConfig({
+            defaultValues: {
+                first_name: "",
+                last_name: "",
+                email: "",
+                password: "",
+                confirm_password: "",
+                phone_number: "",
+            },
+            resolver: zodResolver(SignUpSchema),
+        }),
+    );
 
     const onSubmit = async (values: SignUpType) => {
         toast.promise(createAccount(values), {
@@ -109,7 +109,7 @@ function UserSignUpForm() {
     };
     return (
         <Form {...signUpForm}>
-            <form onSubmit={signUpForm.handleSubmit(onSubmit)} className="space-y-8">
+            <form onSubmit={signUpForm.handleSubmit(onSubmit)} className="space-y-8" noValidate>
                 {signUpFormField.map((signUpFormField) => (
                     <FormField
                         key={signUpFormField.name}
@@ -129,7 +129,6 @@ function UserSignUpForm() {
                                 <FormControl>
                                     <Input
                                         id={field.name}
-                                        required={signUpFormField.required}
                                         type={signUpFormField.type}
                                         autoComplete={signUpFormField.autoComplete}
                                         placeholder={signUpFormField.placeholder}

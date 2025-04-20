@@ -3,9 +3,25 @@ import { prismaMock, mockVetSession } from "../utils/mocks";
 import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { testPrescriptions } from "../utils/testData";
 
-// Mock dependencies
+// Mock NextAuth and dependencies first
 jest.mock("next-auth");
+jest.mock("next-auth/next", () => ({
+    getServerSession: jest.fn(),
+}));
+
+// Mock NextAuth.js directly
+jest.mock("@/app/api/auth/[...nextauth]/route", () => {
+    return {
+        authOptions: {
+            providers: [],
+            callbacks: {},
+        },
+    };
+});
+
+// Mock revalidatePath
 jest.mock("next/cache", () => ({
     revalidatePath: jest.fn(),
 }));
@@ -41,7 +57,7 @@ describe("Prescription Actions", () => {
             start_date: new Date("2025-04-14"),
             end_date: new Date("2025-05-14"),
             refills_remaining: 3,
-            medication_ids: [1, 2],
+            medication_id: 1,
         };
 
         it("should create a new prescription successfully", async () => {
@@ -58,6 +74,7 @@ describe("Prescription Actions", () => {
                 refills_remaining: mockPrescriptionData.refills_remaining,
                 created_at: new Date(),
                 medication_id: 1,
+                appointment_id: null,
             });
 
             // Call the action
@@ -159,31 +176,15 @@ describe("Prescription Actions", () => {
         const mockPrescriptionUuid = "test-prescription-uuid";
 
         it("should get a prescription by UUID successfully", async () => {
-            // Mock finding the prescription
-            const mockPrescription = {
-                prescription_id: 1,
-                prescription_uuid: mockPrescriptionUuid,
-                pet_id: 1,
-                vet_id: 1,
-                dosage: "10mg daily",
-                frequency: "ONCE_DAILY",
-                start_date: new Date("2025-04-14"),
-                end_date: new Date("2025-05-14"),
-                refills_remaining: 3,
-                created_at: new Date(),
-                updated_at: new Date(),
-                medication_id: 1,
-            };
-
-            prismaMock.prescriptions.findUnique.mockResolvedValueOnce(mockPrescription);
+            prismaMock.prescriptions.findUnique.mockResolvedValueOnce(testPrescriptions.validPrescription);
 
             // Call the action
-            const result = await viewPrescription(mockPrescriptionUuid);
+            const result = await viewPrescription(testPrescriptions.validPrescription.prescription_uuid);
 
             // Verify the result
             expect(result).toEqual({
                 success: true,
-                data: { prescription: mockPrescription },
+                data: { prescription: testPrescriptions.validPrescription },
             });
 
             // Verify Prisma was called correctly
@@ -216,7 +217,7 @@ describe("Prescription Actions", () => {
             // Verify the error response
             expect(result).toEqual({
                 success: false,
-                error: "Failed to view prescription",
+                error: "Failed to fetch prescription",
             });
 
             // Verify console error was called

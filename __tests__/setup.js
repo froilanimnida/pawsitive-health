@@ -2,6 +2,7 @@
 import { TextEncoder, TextDecoder } from "util";
 global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder;
+global.IS_REACT_ACT_ENVIRONMENT = true
 
 // Import jest-dom matchers
 import "@testing-library/jest-dom";
@@ -9,6 +10,8 @@ import "@testing-library/jest-dom";
 // Add extended Jest matchers
 import { jest, beforeEach, beforeAll } from "@jest/globals";
 import { prismaMock } from "./utils/mocks"; // Adjust path if needed
+
+// Configure React testing environment for act() support
 
 jest.mock("@/lib", () => ({
     // Or jest.mock('@/lib/prisma', ...) depending on your import
@@ -48,6 +51,18 @@ jest.mock("@/lib/utils", () => ({
 
 // Global mocks for fetch
 global.fetch = jest.fn();
+
+// Mock global objects that Next.js expects
+global.Request = class Request {
+  constructor() {}
+};
+
+// Mock ResizeObserver which is often used by UI components
+global.ResizeObserver = class ResizeObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
 
 // Mock DOM APIs needed by Radix UI components for all tests
 beforeAll(() => {

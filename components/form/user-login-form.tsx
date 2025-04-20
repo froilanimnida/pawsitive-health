@@ -32,6 +32,7 @@ import {
     Input,
 } from "@/components/ui";
 import { NotificationPermissionDialog } from "@/components/shared/notification-permission-dialog";
+import { createFormConfig } from "@/lib";
 
 const UserLoginForm = () => {
     const [isLoading, setIsLoading] = useState(false);
@@ -90,14 +91,15 @@ const UserLoginForm = () => {
         shouldFocusError: true,
     });
 
-    const loginForm = useForm({
-        defaultValues: {
-            email: "",
-            password: "",
-        },
-        resolver: zodResolver(LoginSchema),
-        shouldFocusError: true,
-    });
+    const loginForm = useForm<LoginType>(
+        createFormConfig({
+            defaultValues: {
+                email: "",
+                password: "",
+            },
+            resolver: zodResolver(LoginSchema),
+        }),
+    );
 
     const handleLogin = async (values: LoginType) => {
         setIsLoading(true);
