@@ -51,40 +51,54 @@ jest.mock("sonner", () => ({
 
 jest.mock("@/actions", () => ({
     addPrescription: jest.fn(),
-    getMedicationsList: jest.fn(),
 }));
+
+const medicationList = [
+    {
+        medication_id: 1,
+        name: "Frontline",
+        description: "Flea and tick treatment",
+        usage_instructions: "Apply monthly to back of neck",
+        side_effects: "None known",
+        created_at: new Date(),
+        medication_uuid: "med-uuid-1",
+    },
+    {
+        medication_id: 2,
+        name: "Advantage",
+        description: "Flea treatment",
+        usage_instructions: "Apply monthly to back of neck",
+        side_effects: "May cause skin irritation",
+        created_at: new Date(),
+        medication_uuid: "med-uuid-2",
+    },
+    {
+        medication_id: 3,
+        name: "Revolution",
+        description: "Parasite prevention",
+        usage_instructions: "Apply monthly to back of neck",
+        side_effects: "Temporary hair loss at application site",
+        created_at: new Date(),
+        medication_uuid: "med-uuid-3",
+    },
+];
 
 describe("PrescriptionForm", () => {
     const mockPetId = 123;
     const mockAppointmentUuid = "appointment-uuid-123";
-    const mockMedications = [
-        { id: 1, name: "Amoxicillin" },
-        { id: 2, name: "Metacam" },
-        { id: 3, name: "Frontline" },
-    ];
 
     beforeEach(() => {
         jest.clearAllMocks();
-
-        // Mock successful medication list fetch
-        (actions.getMedicationsList as jest.Mock).mockResolvedValue({
-            success: true,
-            data: {
-                medication: mockMedications.map((med) => ({
-                    medication_id: med.id,
-                    name: med.name,
-                })),
-            },
-        });
     });
 
     it("renders all form fields correctly", async () => {
-        render(<PrescriptionForm petId={mockPetId} appointmentUuid={mockAppointmentUuid} />);
-
-        // Wait for medications to load
-        await waitFor(() => {
-            expect(actions.getMedicationsList).toHaveBeenCalled();
-        });
+        render(
+            <PrescriptionForm
+                petId={mockPetId}
+                appointmentUuid={mockAppointmentUuid}
+                medicationList={medicationList}
+            />,
+        );
 
         // Check if all form fields are rendered
         expect(screen.getByLabelText(/Medication/i)).toBeInTheDocument();
@@ -96,62 +110,42 @@ describe("PrescriptionForm", () => {
         expect(screen.getByRole("button", { name: /Issue Prescription/i })).toBeInTheDocument();
     });
 
-    it("loads and displays medications in the dropdown", async () => {
-        render(<PrescriptionForm petId={mockPetId} appointmentUuid={mockAppointmentUuid} />);
-
-        // Wait for medications to load
-        await waitFor(() => {
-            expect(actions.getMedicationsList).toHaveBeenCalled();
-        });
+    it("displays medications in the dropdown", async () => {
+        render(
+            <PrescriptionForm
+                petId={mockPetId}
+                appointmentUuid={mockAppointmentUuid}
+                medicationList={medicationList}
+            />,
+        );
 
         // Open the medication dropdown
         const user = userEvent.setup();
         await user.click(screen.getByRole("combobox", { name: /Medication/i }));
 
         // Check if all medications are listed
-        await waitFor(() => {
-            mockMedications.forEach((med) => {
-                expect(screen.getByRole("option", { name: med.name })).toBeInTheDocument();
-            });
+        medicationList.forEach((med) => {
+            expect(screen.getByRole("option", { name: med.name })).toBeInTheDocument();
         });
-    });
-
-    it("shows error when medication list fails to load", async () => {
-        // Mock failed medication list fetch
-        (actions.getMedicationsList as jest.Mock).mockResolvedValue({
-            success: false,
-            error: "Failed to load medications",
-        });
-
-        // Spy on console.error
-        const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
-
-        render(<PrescriptionForm petId={mockPetId} appointmentUuid={mockAppointmentUuid} />);
-
-        // Check if error was logged
-        await waitFor(() => {
-            expect(consoleSpy).toHaveBeenCalledWith("Error fetching medications:", expect.any(Error));
-        });
-
-        consoleSpy.mockRestore();
     });
 
     it("submits form with valid prescription data", async () => {
         // Mock successful prescription submission
         (actions.addPrescription as jest.Mock).mockResolvedValue(undefined);
 
-        render(<PrescriptionForm petId={mockPetId} appointmentUuid={mockAppointmentUuid} />);
+        render(
+            <PrescriptionForm
+                petId={mockPetId}
+                appointmentUuid={mockAppointmentUuid}
+                medicationList={medicationList}
+            />,
+        );
         const user = userEvent.setup();
-
-        // Wait for medications to load
-        await waitFor(() => {
-            expect(actions.getMedicationsList).toHaveBeenCalled();
-        });
 
         // Fill the form
         // Select medication
         await user.click(screen.getByRole("combobox", { name: /Medication/i }));
-        await user.click(screen.getByRole("option", { name: "Amoxicillin" }));
+        await user.click(screen.getByRole("option", { name: "Frontline" }));
 
         // Enter dosage
         await user.type(screen.getByLabelText(/Dosage/i), "10mg twice daily");
@@ -197,17 +191,18 @@ describe("PrescriptionForm", () => {
             error: "Failed to issue prescription",
         });
 
-        render(<PrescriptionForm petId={mockPetId} appointmentUuid={mockAppointmentUuid} />);
+        render(
+            <PrescriptionForm
+                petId={mockPetId}
+                appointmentUuid={mockAppointmentUuid}
+                medicationList={medicationList}
+            />,
+        );
         const user = userEvent.setup();
-
-        // Wait for medications to load
-        await waitFor(() => {
-            expect(actions.getMedicationsList).toHaveBeenCalled();
-        });
 
         // Fill the form with minimal required data
         await user.click(screen.getByRole("combobox", { name: /Medication/i }));
-        await user.click(screen.getByRole("option", { name: "Metacam" }));
+        await user.click(screen.getByRole("option", { name: "Advantage" }));
 
         await user.type(screen.getByLabelText(/Dosage/i), "5ml");
         await user.type(screen.getByLabelText(/Frequency/i), "Once daily");
@@ -229,13 +224,14 @@ describe("PrescriptionForm", () => {
             () => new Promise((resolve) => setTimeout(() => resolve(undefined), 100)),
         );
 
-        render(<PrescriptionForm petId={mockPetId} appointmentUuid={mockAppointmentUuid} />);
+        render(
+            <PrescriptionForm
+                petId={mockPetId}
+                appointmentUuid={mockAppointmentUuid}
+                medicationList={medicationList}
+            />,
+        );
         const user = userEvent.setup();
-
-        // Wait for medications to load
-        await waitFor(() => {
-            expect(actions.getMedicationsList).toHaveBeenCalled();
-        });
 
         // Fill the form with minimal required data
         await user.click(screen.getByRole("combobox", { name: /Medication/i }));

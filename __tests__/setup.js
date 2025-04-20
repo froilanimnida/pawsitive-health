@@ -49,6 +49,18 @@ jest.mock("@/lib/utils", () => ({
 // Global mocks for fetch
 global.fetch = jest.fn();
 
+// Mock global objects that Next.js expects
+global.Request = class Request {
+  constructor() {}
+};
+
+// Mock ResizeObserver which is often used by UI components
+global.ResizeObserver = class ResizeObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
+
 // Mock DOM APIs needed by Radix UI components for all tests
 beforeAll(() => {
     // Mock hasPointerCapture

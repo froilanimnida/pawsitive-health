@@ -1,12 +1,12 @@
 import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import AddPetForm from "@/components/form/pet-form";
 import { toast } from "sonner";
 import * as petsActions from "@/actions/pets";
 import { prismaMock } from "@/__tests__/utils/mocks";
+import { breed_type } from "@prisma/client";
 
-// Mock dependencies
+// Mock dependencies first
 jest.mock("sonner", () => ({
     toast: {
         loading: jest.fn(),
@@ -20,17 +20,37 @@ jest.mock("@/actions/pets", () => ({
     addPet: jest.fn(),
 }));
 
+// Mock the breed data to ensure test consistency
+jest.mock("@/types/breed-types", () => ({
+    DogBreeds: {
+        LABRADOR_RETRIEVER: breed_type.labrador_retriever,
+        GERMAN_SHEPHERD: breed_type.german_shepherd,
+        GOLDEN_RETRIEVER: breed_type.golden_retriever,
+    },
+    CatBreeds: {
+        PERSIAN: breed_type.persian,
+        NORWEGIAN_FOREST_CAT: breed_type.norwegian_forest_cat,
+        MAINE_COON: breed_type.maine_coon,
+    },
+}));
+
+// Mock lib before importing AddPetForm
 jest.mock("@/lib", () => {
-    const originalModule = jest.requireActual("@/lib");
     return {
         __esModule: true,
-        ...originalModule,
-        // Replace prisma with our mock
+        toTitleCase: jest.fn((text) => {
+            // Implement a simple toTitleCase for predictable test behavior
+            if (!text) return "";
+            const words = text.toLowerCase().split("_");
+            return words.map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
+        }),
         prisma: prismaMock,
-        // Mock other utility functions used by auth.ts
-        toTitleCase: jest.fn((text) => (text ? text.charAt(0).toUpperCase() + text.slice(1).toLowerCase() : "")),
+        cn: (...inputs: string[]) => inputs.filter(Boolean).join(" "),
     };
 });
+
+// Import after mocks to avoid circular references
+import AddPetForm from "@/components/form/pet-form";
 
 describe("AddPetForm", () => {
     beforeEach(() => {

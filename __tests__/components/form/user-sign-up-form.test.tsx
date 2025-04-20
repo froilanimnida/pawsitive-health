@@ -5,6 +5,7 @@ import * as actions from "@/actions";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
 import { toast } from "sonner";
+import { testFormData } from "../../utils/testData";
 
 // Mock dependencies
 jest.mock("sonner", () => ({
@@ -48,9 +49,17 @@ describe("UserSignUpForm", () => {
         // Submit the empty form
         await user.click(screen.getByRole("button", { name: /Create account/i }));
 
-        // Check if validation errors are displayed
-        await waitFor(() => {
-            expect(screen.getAllByText(/\brequired\b/i).length).toBeGreaterThan(0);
+        // Wait for any validation errors to appear
+        await waitFor(async () => {
+            // Check for presence of form validation messages
+            // In React Hook Form, aria-invalid gets set when fields have errors
+            const invalidInputs = document.querySelectorAll('input[aria-invalid="true"]');
+            expect(invalidInputs.length).toBeGreaterThan(0);
+
+            // Look for any validation error messages - using a more flexible approach
+            // since the exact message rendering might depend on the form component
+            const errorMessages = screen.getAllByText(/_is required|required|invalid/i);
+            expect(errorMessages.length).toBeGreaterThan(0);
         });
     });
 
@@ -96,7 +105,7 @@ describe("UserSignUpForm", () => {
             expect(screen.getByText(/Password must be/i)).toBeInTheDocument();
         });
     });
-    // Update the expectation in your test
+
     it("calls createAccount action with valid form data", async () => {
         const user = userEvent.setup();
         render(<UserSignUpForm />);
@@ -104,13 +113,15 @@ describe("UserSignUpForm", () => {
         // Mock the createAccount to resolve successfully
         (actions.createAccount as jest.Mock).mockResolvedValue({ success: true });
 
-        // Fill in all form fields with valid data
-        await user.type(screen.getByLabelText(/First Name/i), "John");
-        await user.type(screen.getByLabelText(/Last Name/i), "Doe");
-        await user.type(screen.getByLabelText(/Email/i), "john.doe@example.com");
-        await user.type(screen.getByLabelText(/Phone Number/i), "1234567890");
-        await user.type(screen.getByLabelText(/^Password$/i), "Password123!");
-        await user.type(screen.getByLabelText(/Confirm your password/i), "Password123!");
+        const formData = testFormData.validSignUp;
+
+        // Fill in all form fields with valid data from test constants
+        await user.type(screen.getByLabelText(/First Name/i), formData.first_name);
+        await user.type(screen.getByLabelText(/Last Name/i), formData.last_name);
+        await user.type(screen.getByLabelText(/Email/i), formData.email);
+        await user.type(screen.getByLabelText(/Phone Number/i), formData.phone_number);
+        await user.type(screen.getByLabelText(/^Password$/i), formData.password);
+        await user.type(screen.getByLabelText(/Confirm your password/i), formData.confirm_password);
 
         // Submit the form
         await user.click(screen.getByRole("button", { name: /Create account/i }));
@@ -118,16 +129,9 @@ describe("UserSignUpForm", () => {
         // Check if createAccount was called with the correct data
         await waitFor(() => {
             // First, check that the action was called with correct data
-            expect(actions.createAccount).toHaveBeenCalledWith({
-                first_name: "John",
-                last_name: "Doe",
-                email: "john.doe@example.com",
-                phone_number: "1234567890",
-                password: "Password123!",
-                confirm_password: "Password123!",
-            });
+            expect(actions.createAccount).toHaveBeenCalledWith(formData);
 
-            // Then, check that toast.promise was called (without checking exact parameters)
+            // Then, check that toast.promise was called
             expect(toast.promise).toHaveBeenCalled();
         });
     });

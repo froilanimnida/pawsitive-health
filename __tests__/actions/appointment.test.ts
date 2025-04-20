@@ -1,13 +1,4 @@
-import {
-    getUserAppointments,
-    createUserAppointment,
-    getClinicAppointments,
-    getVeterinarianAppointments,
-    cancelAppointment,
-    confirmAppointment,
-    rescheduleAppointment,
-    getExistingAppointments,
-} from "@/actions/appointment"; // Use alias
+// Mock dependencies first
 import { prismaMock, mockSession, mockVetSession } from "../utils/mocks";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
@@ -23,16 +14,7 @@ import {
     breed_type,
 } from "@prisma/client"; // Import Prisma namespace and enums
 
-// Define types for mocks based on Prisma generated types
-type MockAppointmentPayload = Prisma.appointmentsGetPayload<{
-    include: { pets: { include: { users: true } }; veterinarians: { include: { users: true } }; clinics: true };
-}>;
-type MockPetPayload = Prisma.petsGetPayload<{ include: { users: true } }>;
-type MockVetPayload = Prisma.veterinariansGetPayload<{ include: { users: true } }>;
-type MockClinicPayload = Prisma.clinicsGetPayload<undefined>; // Adjust include as needed
-type MockUserPayload = Prisma.usersGetPayload<undefined>; // Adjust include as needed
-
-// Mock dependencies
+// Mock external dependencies first
 jest.mock("next-auth");
 jest.mock("next/navigation", () => ({
     redirect: jest.fn(),
@@ -40,14 +22,23 @@ jest.mock("next/navigation", () => ({
 jest.mock("next/cache", () => ({
     revalidatePath: jest.fn(),
 }));
-jest.mock("../../actions/calendar-sync", () => ({
+jest.mock("@/actions/calendar-sync", () => ({
     addToGoogleCalendar: jest.fn(),
     updateGoogleCalendarEvent: jest.fn(),
     deleteGoogleCalendarEvent: jest.fn(),
 }));
-jest.mock("../../actions/notification", () => ({
+jest.mock("@/actions/notification", () => ({
     createNotification: jest.fn(),
 }));
+
+// Define types for mocks based on Prisma generated types
+type MockAppointmentPayload = Prisma.appointmentsGetPayload<{
+    include: { pets: { include: { users: true } }; veterinarians: { include: { users: true } }; clinics: true };
+}>;
+type MockPetPayload = Prisma.petsGetPayload<{ include: { users: true } }>;
+type MockVetPayload = Prisma.veterinariansGetPayload<{ include: { users: true } }>;
+type MockClinicPayload = Prisma.clinicsGetPayload<undefined>;
+type MockUserPayload = Prisma.usersGetPayload<undefined>;
 
 // Base mock user
 const baseMockUser: MockUserPayload = {
@@ -82,11 +73,11 @@ const baseMockPet: MockPetPayload = {
     pet_uuid: "test-pet-uuid",
     name: "Fluffy",
     user_id: Number(mockSession.user.id),
-    species: species_type.dog, // Use enum
+    species: species_type.dog,
     breed: breed_type.labrador_retriever,
     date_of_birth: new Date("2020-01-01"),
-    sex: pet_sex_type.male, // Use enum
-    weight_kg: new Prisma.Decimal("25.50"), // Use Prisma.Decimal
+    sex: pet_sex_type.male,
+    weight_kg: new Prisma.Decimal("25.50"),
     created_at: new Date(),
     updated_at: new Date(),
     deleted: false,
@@ -110,7 +101,7 @@ const baseMockVet: MockVetPayload = {
     vet_uuid: "test-vet-uuid",
     user_id: 3,
     license_number: "VET123",
-    specialization: veterinary_specialization.general_practitioner, // Correct enum
+    specialization: veterinary_specialization.general_practitioner,
     created_at: new Date(),
     users: baseMockVetUser,
 };
@@ -126,36 +117,13 @@ const baseMockClinic: MockClinicPayload = {
     postal_code: "12345",
     phone_number: "123-456-7890",
     emergency_services: false,
-    user_id: 4, // Clinic owner/admin user ID
+    user_id: 4,
     created_at: new Date(),
     latitude: 12.345,
     longitude: 12.345,
     google_maps_url: null,
     website: null,
 };
-
-// Mock actions AFTER base mocks are defined
-jest.mock("@/actions", () => ({
-    // Use alias
-    getPet: jest.fn().mockResolvedValue({
-        success: true,
-        data: {
-            pet: {
-                // Return a structure matching getPet's expected output
-                ...baseMockPet,
-                weight_kg: baseMockPet.weight_kg.toString(), // Convert Decimal back to string if needed by the action
-                users: undefined, // Exclude nested user if getPet doesn't return it
-            },
-        },
-    }),
-    getClinic: jest.fn().mockResolvedValue({
-        success: true,
-        data: {
-            clinic: baseMockClinic, // Return a structure matching getClinic's expected output
-        },
-    }),
-    sendEmail: jest.fn().mockResolvedValue(true),
-}));
 
 // Helper function to create a valid mock appointment structure
 const createMockAppointment = (overrides: Partial<MockAppointmentPayload> = {}): MockAppointmentPayload => ({
@@ -167,21 +135,54 @@ const createMockAppointment = (overrides: Partial<MockAppointmentPayload> = {}):
     appointment_date: new Date("2025-05-01T10:00:00"),
     notes: "Regular checkup",
     created_at: new Date(),
-    appointment_type: appointment_type.wellness_exam, // Correct enum
+    appointment_type: appointment_type.wellness_exam,
     duration_minutes: 30,
-    status: appointment_status.confirmed, // Use enum
-    metadata: {}, // Add metadata field
+    status: appointment_status.confirmed,
+    metadata: {},
     pets: baseMockPet,
     veterinarians: baseMockVet,
     clinics: baseMockClinic,
     ...overrides,
 });
 
+// Mock actions API after base mocks are defined
+jest.mock("@/actions", () => ({
+    getPet: jest.fn().mockResolvedValue({
+        success: true,
+        data: {
+            pet: {
+                ...testPets,
+                weight_kg: baseMockPet.weight_kg.toString(),
+                users: undefined,
+            },
+        },
+    }),
+    getClinic: jest.fn().mockResolvedValue({
+        success: true,
+        data: {
+            clinic: testClinics.validClinic,
+        },
+    }),
+    sendEmail: jest.fn().mockResolvedValue(true),
+}));
+
+// Import the actual functions after all mocks are set up
+import {
+    getUserAppointments,
+    createUserAppointment,
+    getClinicAppointments,
+    getVeterinarianAppointments,
+    cancelAppointment,
+    confirmAppointment,
+    rescheduleAppointment,
+    getExistingAppointments,
+} from "@/actions/appointment";
+import { testClinics, testPets } from "../utils/testData";
+
 describe("Appointment Actions", () => {
     beforeEach(() => {
         jest.clearAllMocks();
         (getServerSession as jest.Mock).mockResolvedValue(mockSession);
-        // Reset mocks for actions that might change between tests
         jest.requireMock("@/actions").getPet.mockResolvedValue({
             success: true,
             data: {
@@ -194,7 +195,6 @@ describe("Appointment Actions", () => {
 
     describe("getUserAppointments", () => {
         it("should get all appointments for the current user", async () => {
-            // Define the expected structure based on the actual `select` in getUserAppointments
             type SelectedAppointment = {
                 appointment_id: number;
                 appointment_uuid: string;
@@ -262,7 +262,6 @@ describe("Appointment Actions", () => {
             });
         });
 
-        // ... existing tests for redirect and database error ...
         it("should redirect when user is not authenticated", async () => {
             (getServerSession as jest.Mock).mockResolvedValueOnce(null);
 
@@ -287,17 +286,17 @@ describe("Appointment Actions", () => {
     describe("createUserAppointment", () => {
         const mockAppointmentData = {
             pet_uuid: "test-pet-uuid",
-            vet_id: "test-vet-uuid", // Function expects UUID string
-            clinic_id: "test-clinic-uuid", // Function expects UUID string
+            vet_id: "test-vet-uuid",
+            clinic_id: "test-clinic-uuid",
             appointment_date: new Date("2025-05-01T10:00:00"),
-            appointment_time: "10:00", // Ensure format matches function expectation
-            appointment_type: appointment_type.wellness_exam, // Correct enum
+            appointment_time: "10:00",
+            appointment_type: appointment_type.wellness_exam,
             notes: "Regular checkup",
             duration_minutes: 30,
         };
 
         it("should create a new appointment successfully", async () => {
-            prismaMock.appointments.findMany.mockResolvedValue([]); // Both vet and user checks
+            prismaMock.appointments.findMany.mockResolvedValue([]);
 
             const createdAppointment = createMockAppointment({
                 appointment_uuid: "new-appointment-uuid",
@@ -334,7 +333,7 @@ describe("Appointment Actions", () => {
             });
 
             expect(jest.requireMock("@/actions").sendEmail).toHaveBeenCalled();
-            expect(jest.requireMock("../../actions/notification").createNotification).toHaveBeenCalled();
+            expect(jest.requireMock("@/actions/notification").createNotification).toHaveBeenCalled();
         });
 
         it("should detect veterinarian scheduling conflicts", async () => {
@@ -358,17 +357,17 @@ describe("Appointment Actions", () => {
         });
 
         it("should detect user scheduling conflicts", async () => {
-            prismaMock.appointments.findMany.mockResolvedValueOnce([]); // Vet check passes
+            prismaMock.appointments.findMany.mockResolvedValue([]);
 
             const conflictingAppointment = createMockAppointment({
                 appointment_id: 4,
                 appointment_uuid: "existing-user-appointment",
                 pet_id: baseMockPet.pet_id,
-                vet_id: 2, // Different vet
+                vet_id: 2,
                 appointment_date: mockAppointmentData.appointment_date,
                 status: appointment_status.confirmed,
             });
-            prismaMock.appointments.findMany.mockResolvedValueOnce([conflictingAppointment]); // User check finds conflict
+            prismaMock.appointments.findMany.mockResolvedValueOnce([conflictingAppointment]);
 
             const result = await createUserAppointment(mockAppointmentData);
 
@@ -423,10 +422,10 @@ describe("Appointment Actions", () => {
 
     describe("getClinicAppointments", () => {
         beforeEach(() => {
-            (getServerSession as jest.Mock).mockResolvedValue(mockVetSession); // Assume clinic admin/vet session
+            (getServerSession as jest.Mock).mockResolvedValue(mockVetSession);
             prismaMock.clinics.findFirst.mockResolvedValue({
                 ...baseMockClinic,
-                user_id: Number(mockVetSession.user.id), // Link clinic to session user
+                user_id: Number(mockVetSession.user.id),
             });
         });
 
@@ -456,7 +455,6 @@ describe("Appointment Actions", () => {
                 include: {
                     pets: { include: { users: true } },
                     veterinarians: { include: { users: true } },
-                    // No clinics needed here
                 },
             });
         });
@@ -492,7 +490,7 @@ describe("Appointment Actions", () => {
             (getServerSession as jest.Mock).mockResolvedValue(mockVetSession);
             prismaMock.veterinarians.findFirst.mockResolvedValue({
                 ...baseMockVet,
-                user_id: Number(mockVetSession.user.id), // Link vet to session user
+                user_id: Number(mockVetSession.user.id),
             });
         });
 
@@ -520,7 +518,6 @@ describe("Appointment Actions", () => {
                 include: {
                     pets: { include: { users: true } },
                     clinics: true,
-                    // No veterinarians needed here
                 },
             });
         });
@@ -579,8 +576,8 @@ describe("Appointment Actions", () => {
             });
 
             expect(jest.requireMock("@/actions").sendEmail).toHaveBeenCalledTimes(2);
-            expect(jest.requireMock("../../actions/notification").createNotification).toHaveBeenCalledTimes(1);
-            expect(jest.requireMock("../../actions/calendar-sync").deleteGoogleCalendarEvent).toHaveBeenCalledWith(
+            expect(jest.requireMock("@/actions/notification").createNotification).toHaveBeenCalledTimes(1);
+            expect(jest.requireMock("@/actions/calendar-sync").deleteGoogleCalendarEvent).toHaveBeenCalledWith(
                 appointmentUuid,
             );
         });
@@ -646,8 +643,8 @@ describe("Appointment Actions", () => {
             });
 
             expect(jest.requireMock("@/actions").sendEmail).toHaveBeenCalledTimes(1);
-            expect(jest.requireMock("../../actions/notification").createNotification).toHaveBeenCalledTimes(1);
-            expect(jest.requireMock("../../actions/calendar-sync").addToGoogleCalendar).toHaveBeenCalled();
+            expect(jest.requireMock("@/actions/notification").createNotification).toHaveBeenCalledTimes(1);
+            expect(jest.requireMock("@/actions/calendar-sync").addToGoogleCalendar).toHaveBeenCalled();
         });
 
         it("should handle appointment not found during update", async () => {
@@ -667,13 +664,12 @@ describe("Appointment Actions", () => {
         });
 
         it("should handle missing pet data for notification", async () => {
-            // Simulate update returning data without pet relation
             const appointmentMissingPet = {
                 ...createMockAppointment({
                     appointment_uuid: appointmentUuid,
                     status: appointment_status.confirmed,
                 }),
-                pets: null, // Explicitly set pets to null
+                pets: null,
             };
             prismaMock.appointments.update.mockResolvedValueOnce(appointmentMissingPet);
 
@@ -695,30 +691,28 @@ describe("Appointment Actions", () => {
             const currentAppointment = createMockAppointment({
                 appointment_uuid: appointmentUuid,
                 status: appointment_status.confirmed,
-                pets: { ...baseMockPet, user_id: Number(mockSession.user.id) }, // Ensure pet belongs to session user
+                pets: { ...baseMockPet, user_id: Number(mockSession.user.id) },
             });
             prismaMock.appointments.findUnique.mockResolvedValueOnce(currentAppointment);
 
-            prismaMock.appointments.findMany.mockResolvedValue([]); // No conflicts
+            prismaMock.appointments.findMany.mockResolvedValue([]);
 
             const updatedAppointment = {
                 ...currentAppointment,
                 appointment_date: newDate,
                 notes: newNotes,
-                // status might reset or stay confirmed depending on logic
             };
             prismaMock.appointments.update.mockResolvedValueOnce(updatedAppointment);
 
             const result = await rescheduleAppointment(appointmentUuid, newDate, newNotes);
 
-            expect(result).toBeUndefined(); // Function returns void on success
+            expect(result).toBeUndefined();
 
             expect(prismaMock.appointments.update).toHaveBeenCalledWith({
                 where: { appointment_uuid: appointmentUuid },
                 data: {
                     appointment_date: newDate,
                     notes: newNotes,
-                    // status: appointment_status.requested, // Check if status should reset
                 },
                 include: {
                     pets: { include: { users: true } },
@@ -729,8 +723,8 @@ describe("Appointment Actions", () => {
 
             expect(revalidatePath).toHaveBeenCalled();
             expect(jest.requireMock("@/actions").sendEmail).toHaveBeenCalledTimes(2);
-            expect(jest.requireMock("../../actions/notification").createNotification).toHaveBeenCalledTimes(1);
-            expect(jest.requireMock("../../actions/calendar-sync").updateGoogleCalendarEvent).toHaveBeenCalled();
+            expect(jest.requireMock("@/actions/notification").createNotification).toHaveBeenCalledTimes(1);
+            expect(jest.requireMock("@/actions/calendar-sync").updateGoogleCalendarEvent).toHaveBeenCalled();
         });
 
         it("should handle scheduling conflicts", async () => {
@@ -744,11 +738,11 @@ describe("Appointment Actions", () => {
             const conflictingAppointment = createMockAppointment({
                 appointment_id: 2,
                 appointment_uuid: "another-appointment",
-                vet_id: currentAppointment.vet_id ?? undefined, // Use vet_id from current appointment
+                vet_id: currentAppointment.vet_id ?? undefined,
                 appointment_date: newDate,
                 status: appointment_status.confirmed,
             });
-            prismaMock.appointments.findMany.mockResolvedValueOnce([conflictingAppointment]); // Vet conflict
+            prismaMock.appointments.findMany.mockResolvedValueOnce([conflictingAppointment]);
 
             const result = await rescheduleAppointment(appointmentUuid, newDate, newNotes);
 
@@ -794,7 +788,7 @@ describe("Appointment Actions", () => {
             const appointmentOtherUser = createMockAppointment({
                 appointment_uuid: appointmentUuid,
                 status: appointment_status.confirmed,
-                pets: { ...baseMockPet, user_id: 999 }, // Pet belongs to another user
+                pets: { ...baseMockPet, user_id: 999 },
             });
             prismaMock.appointments.findUnique.mockResolvedValueOnce(appointmentOtherUser);
 
@@ -811,9 +805,8 @@ describe("Appointment Actions", () => {
     describe("getExistingAppointments", () => {
         it("should get existing appointments for a veterinarian on a specific date", async () => {
             const date = new Date("2025-05-01");
-            const vetId = baseMockVet.vet_id; // Use vet ID (number)
+            const vetId = baseMockVet.vet_id;
 
-            // Define the specific type returned by the select
             type ExistingAppointmentSelect = {
                 appointment_date: Date;
                 duration_minutes: number;
@@ -857,7 +850,7 @@ describe("Appointment Actions", () => {
                         gte: startOfDay,
                         lte: endOfDay,
                     },
-                    status: { notIn: [appointment_status.cancelled, appointment_status.no_show] }, // Correct enum
+                    status: { notIn: [appointment_status.cancelled, appointment_status.no_show] },
                 },
                 select: {
                     appointment_date: true,

@@ -1,20 +1,41 @@
-import { breed_type, pet_sex_type, species_type } from "@prisma/client";
+// Mock dependencies first
+import { prismaMock, mockSession } from "../utils/mocks";
+import { getServerSession } from "next-auth";
+
+// Mock external dependencies
+jest.mock("next-auth");
+jest.mock("next/cache", () => ({
+    revalidatePath: jest.fn(),
+}));
+jest.mock("next/navigation", () => ({
+    redirect: jest.fn(),
+}));
+
+// Mock EmailService before importing the module that uses it
+jest.mock("@/lib/email-service", () => {
+    return {
+        EmailService: jest.fn().mockImplementation(() => {
+            return {
+                sendEmail: jest.fn().mockResolvedValue(true),
+            };
+        }),
+    };
+});
+
+// Now import the healthcare procedures actions after mocking dependencies
 import {
     addHealthcareProcedure,
     getHealthcareProcedures,
     getHealthcareProcedure,
-} from "../../actions/healthcare-procedures";
-import { prismaMock, mockVetSession } from "../utils/mocks";
-import { getServerSession } from "next-auth";
-import { Decimal } from "@prisma/client/runtime/library";
+} from "@/actions/healthcare-procedures";
 
-// Mock dependencies
-jest.mock("next-auth");
+import { breed_type, pet_sex_type, species_type } from "@prisma/client";
 
+// Continue with test implementation
 describe("Healthcare Procedures Actions", () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        (getServerSession as jest.Mock).mockResolvedValue(mockVetSession);
+        (getServerSession as jest.Mock).mockResolvedValue(mockSession);
     });
 
     describe("addHealthcareProcedure", () => {
@@ -61,7 +82,7 @@ describe("Healthcare Procedures Actions", () => {
             });
 
             // Call the action
-            const result = await addHealthcareProcedure(mockProcedureData);
+            const result = await createHealthcareProcedure(mockProcedureData);
 
             // Verify the result - updated to match the actual behavior
             expect(result).toEqual({
@@ -155,7 +176,7 @@ describe("Healthcare Procedures Actions", () => {
             });
 
             // Call the action with array of procedures
-            const result = await addHealthcareProcedure([mockProcedureData, secondProcedure]);
+            const result = await createHealthcareProcedure([mockProcedureData, secondProcedure]);
 
             // Verify the result - updated to match the actual behavior
             expect(result).toEqual({
@@ -175,7 +196,7 @@ describe("Healthcare Procedures Actions", () => {
             };
 
             // Call the action with invalid data
-            const result = await addHealthcareProcedure(invalidProcedureData);
+            const result = await createHealthcareProcedure(invalidProcedureData);
 
             // Even with invalid data, the function currently returns success with empty data
             // This is based on how the function filters results
@@ -190,7 +211,7 @@ describe("Healthcare Procedures Actions", () => {
             prismaMock.pets.findFirst.mockResolvedValueOnce(null);
 
             // Call the action
-            const result = await addHealthcareProcedure(mockProcedureData);
+            const result = await createHealthcareProcedure(mockProcedureData);
 
             // Based on current implementation, it still returns success
             // with filtered results (excluding failures)
@@ -224,7 +245,7 @@ describe("Healthcare Procedures Actions", () => {
             prismaMock.healthcare_procedures.create.mockRejectedValueOnce(new Error("Database error"));
 
             // Call the action
-            const result = await addHealthcareProcedure(mockProcedureData);
+            const result = await createHealthcareProcedure(mockProcedureData);
 
             // Verify error response - actual implementation returns success:false with error message
             expect(result).toEqual({
@@ -288,7 +309,7 @@ describe("Healthcare Procedures Actions", () => {
             prismaMock.healthcare_procedures.findMany.mockResolvedValueOnce(mockProcedures);
 
             // Call the action
-            const result = await getHealthcareProcedures(petUuid);
+            const result = await getPetHealthcareProcedures(petUuid);
 
             // Verify the result
             expect(result).toEqual({
@@ -312,7 +333,7 @@ describe("Healthcare Procedures Actions", () => {
             prismaMock.pets.findFirst.mockResolvedValueOnce(null);
 
             // Call the action
-            const result = await getHealthcareProcedures(petUuid);
+            const result = await getPetHealthcareProcedures(petUuid);
 
             // Verify the error response
             expect(result).toEqual({
@@ -344,7 +365,7 @@ describe("Healthcare Procedures Actions", () => {
             prismaMock.healthcare_procedures.findMany.mockRejectedValueOnce(new Error("Database error"));
 
             // Call the action
-            const result = await getHealthcareProcedures(petUuid);
+            const result = await getPetHealthcareProcedures(petUuid);
 
             // Verify the error response
             expect(result).toEqual({

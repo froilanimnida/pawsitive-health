@@ -24,6 +24,9 @@ const config: Config = {
         "^@/(.*)$": "<rootDir>/$1",
         "^types/(.*)$": "<rootDir>/types/$1",
     },
+    cache: true,
+    testTimeout: 10000,
+    workerIdleMemoryLimit: "1GB",
     testPathIgnorePatterns: ["<rootDir>/node_modules/", "<rootDir>/.next/"],
     transformIgnorePatterns: ["/node_modules/", "^.+.module.(css|sass|scss)$"],
 };

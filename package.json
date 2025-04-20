@@ -10,10 +10,12 @@
         "postinstall": "prisma generate",
         "format": "prettier --write .",
         "format:check": "prettier --check .",
-        "test": "jest --passWithNoTests --detectOpenHandles --forceExit --runInBand",
-        "test:watch": "jest --passWithNoTests --detectOpenHandles --forceExit --runInBand --watch",
-        "test:coverage": "jest --passWithNoTests --detectOpenHandles --forceExit --runInBand --coverage",
-        "test:coverage:watch": "jest --passWithNoTests --detectOpenHandles --forceExit --runInBand --coverage --watch"
+        "test": "jest --passWithNoTests --detectOpenHandles --forceExit",
+        "test:watch": "jest --passWithNoTests --detectOpenHandles --watch",
+        "test:coverage": "jest --passWithNoTests --detectOpenHandles --coverage",
+        "test:coverage:watch": "jest --passWithNoTests --detectOpenHandles --coverage --watch",
+        "test:parallel": "jest --passWithNoTests --detectOpenHandles --maxWorkers=50%",
+        "test:ci": "jest --passWithNoTests --detectOpenHandles --runInBand"
     },
     "dependencies": {
         "@aws-sdk/client-s3": "^3.782.0",
@@ -74,6 +76,7 @@
     "devDependencies": {
         "@eslint/eslintrc": "^3",
         "@tailwindcss/postcss": "^4",
+        "@types/jest": "^29.5.14",
         "@types/jsonwebtoken": "^9.0.9",
         "@types/lodash": "^4.17.16",
         "@types/node": "^20",
