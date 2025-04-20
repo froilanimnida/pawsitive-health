@@ -1,9 +1,10 @@
 "use server";
-import { getUserId } from "@/actions";
-import { auth } from "@/auth";
 import { type vet_availability } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import type { ActionResponse } from "@/types/server-action-response";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { redirect } from "next/navigation";
 
 function getVeterinaryAvailability(): Promise<ActionResponse<{ availability: vet_availability[] }>>; // Logic for the veterinary role itself
 function getVeterinaryAvailability(
@@ -15,33 +16,16 @@ async function getVeterinaryAvailability(
 ): Promise<ActionResponse<{ availability: vet_availability[] }>> {
     if (veterinarian_id !== undefined) {
         const availability = await prisma.vet_availability.findMany({
-            where: {
-                vet_id: veterinarian_id,
-            },
+            where: { vet_id: veterinarian_id },
         });
-        return {
-            success: true,
-            data: {
-                availability,
-            },
-        };
+        return { success: true, data: { availability } };
     } else {
-        const session = await auth();
-        if (!session || !session.user || !session.user.email) {
-            return Promise.reject("Not authorized to view clinic veterinarians");
-        }
-        const user_id = await getUserId(session?.user?.email);
+        const session = await getServerSession(authOptions);
+        if (!session || !session.user || !session.user.id) redirect("/signin");
         const availability = await prisma.vet_availability.findMany({
-            where: {
-                vet_id: user_id,
-            },
+            where: { vet_id: Number(session.user.id) },
         });
-        return {
-            success: true,
-            data: {
-                availability,
-            },
-        };
+        return { success: true, data: { availability } };
     }
 }
 

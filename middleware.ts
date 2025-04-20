@@ -1,16 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export default async function middleware(request: NextRequest) {
-    const PROTECTED_ROUTES = ["/u", "/a", "/d", "/c", "/v"];
+    const PROTECTED_ROUTES = ["/user", "/admin", "/d", "/clinic", "/vet"];
     const environment = process.env.ENVIRONMENT || "production";
     const cookieName = environment === "development" ? "next-auth.session-token" : "__Secure-next-auth.session-token";
     const token = request.cookies.get(cookieName);
     const isAuthPage = request.nextUrl.pathname.startsWith("/auth");
+    const headers: Headers = new Headers(request.headers);
+    headers.set("x-pathname", request.nextUrl.pathname);
 
     if (!token && !isAuthPage) {
         const url = request.nextUrl.clone();
         const returnTo = request.nextUrl.pathname + request.nextUrl.search;
-        url.pathname = "/auth/login";
+        url.pathname = "/signin";
         url.searchParams.set("next", returnTo);
         return NextResponse.redirect(url);
     }
@@ -18,9 +20,13 @@ export default async function middleware(request: NextRequest) {
     const isProtected = PROTECTED_ROUTES.some((route) => request.nextUrl.pathname.startsWith(route));
     console.log(isProtected);
 
-    return NextResponse.next();
+    return NextResponse.next({
+        request: {
+            headers: headers,
+        },
+    });
 }
 
 export const config = {
-    matcher: ["/u/:path*", "/a/:path*", "/d/:path*", "/c/:path*", "/v/:path*"],
+    matcher: ["/user/:path*", "/admin/:path*", "/d/:path*", "/clinic/:path*", "/vet/:path*"],
 };

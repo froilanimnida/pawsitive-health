@@ -2,39 +2,32 @@
 import { VeterinarianSchema, VeterinarianType } from "@/schemas";
 import { generateVerificationToken, hashPassword } from "@/lib";
 import { prisma } from "@/lib";
-import { getUserId } from "@/actions";
+import { createNewPreferenceDefault } from "@/actions";
 import { role_type, type users, type veterinarians } from "@prisma/client";
 import { type veterinary_specialization } from "@prisma/client";
-import { auth } from "@/auth";
-import { ActionResponse } from "@/types/server-action-response";
+import type { ActionResponse } from "@/types/server-action-response";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { redirect } from "next/navigation";
 
 const newVeterinarian = async (
     values: VeterinarianType,
 ): Promise<ActionResponse<{ user_uuid: string; veterinarian_uuid: string }>> => {
     try {
         const formData = VeterinarianSchema.safeParse(values);
-        if (!formData.success) {
-            return Promise.reject("Invalid input");
-        }
-        const session = await auth();
-        if (!session || !session.user || !session.user.email) {
-            return Promise.reject("Not authorized to create a veterinarian");
-        }
-        const user_id = await getUserId(session?.user?.email);
+        if (!formData.success) return { success: false, error: "Invalid input data" };
+        const session = await getServerSession(authOptions);
+        if (!session || !session.user || !session.user.id) redirect("/signin");
 
         const user = await prisma.users.findFirst({
             where: {
                 OR: [{ email: formData.data.email }, { phone_number: formData.data.phone_number }],
             },
         });
-
-        if (user !== null) {
-            return Promise.reject("User already exists");
-        }
-
+        if (user !== null) return { success: false, error: "Email or phone number already exists" };
         const clinic = await prisma.clinics.findFirst({
             where: {
-                user_id: user_id,
+                user_id: Number(session.user.id),
             },
         });
 
@@ -56,9 +49,7 @@ const newVeterinarian = async (
             },
         });
 
-        if (result.user_id === null) {
-            return Promise.reject("Failed to create account");
-        }
+        if (result.user_id === null) return { success: false, error: "Failed to create user" };
 
         const veterinarian = await prisma.veterinarians.create({
             data: {
@@ -94,8 +85,8 @@ const newVeterinarian = async (
                 },
             }),
         );
-
         await Promise.all(availabilityPromises);
+        await createNewPreferenceDefault(result.user_id);
 
         return {
             success: true,
@@ -116,15 +107,11 @@ const getClinicVeterinarians = async (): Promise<
     ActionResponse<{ veterinarians: (veterinarians & { users: users | null })[] }>
 > => {
     try {
-        const session = await auth();
-        if (!session || !session.user || !session.user.email) {
-            return { success: false, error: "Not authorized to view clinic veterinarians" };
-        }
-        const user_id = await getUserId(session?.user?.email);
+        const session = await getServerSession(authOptions);
+        if (!session || !session.user || !session.user.id) redirect("/signin");
+
         const clinic = await prisma.clinics.findFirst({
-            where: {
-                user_id: user_id,
-            },
+            where: { user_id: Number(session.user.id) },
         });
 
         if (!clinic) return { success: false, error: "Clinic not found" };
@@ -153,17 +140,14 @@ const getClinicVeterinarians = async (): Promise<
             },
         };
     } catch (error) {
-        return {
-            success: false,
-            error: error instanceof Error ? error.message : "An unexpected error occurred",
-        };
+        return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
     }
 };
 
 const getVeterinariansByClinic = async (
     clinicId: string,
 ): Promise<
-    ActionResponse<{ veterinarians: { id: string; name: string; specialization: veterinary_specialization }[] }>
+    ActionResponse<{ veterinarians: { id: number; name: string; specialization: veterinary_specialization }[] }>
 > => {
     try {
         if (!clinicId) return { success: false, error: "Clinic ID is required" };
@@ -187,7 +171,7 @@ const getVeterinariansByClinic = async (
             success: true,
             data: {
                 veterinarians: clinicVeterinarians.map((cv) => ({
-                    id: cv.veterinarians.vet_id.toString(),
+                    id: cv.veterinarians.vet_id,
                     name: cv.veterinarians.users
                         ? `${cv.veterinarians.users.first_name} ${cv.veterinarians.users.last_name}`
                         : "Unknown",

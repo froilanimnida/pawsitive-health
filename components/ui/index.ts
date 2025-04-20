@@ -17,6 +17,8 @@ export {
     SelectScrollUpButton,
     SelectSeparator,
 } from "./select";
+export { RadioGroup, RadioGroupItem } from "./radio-group";
+export { Alert, AlertDescription, AlertTitle } from "./alert";
 export { Tabs, TabsContent, TabsList, TabsTrigger } from "./tabs";
 export { Textarea } from "./textarea";
 export { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./tooltip";

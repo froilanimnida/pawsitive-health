@@ -15,7 +15,7 @@ import {
     Button,
 } from "@/components/ui";
 import { Navbar } from "@/components/shared/home-navbar";
-import { Heart, Activity, Calendar, Bell, Shield, Star, ArrowRight, CheckCircle2 } from "lucide-react";
+import { PawPrint, Activity, Calendar, Bell, Shield, Star, ArrowRight, CheckCircle2 } from "lucide-react";
 
 export default function LandingPage() {
     return (
@@ -145,7 +145,7 @@ export default function LandingPage() {
                             <Card className="border-2 border-transparent transition-all hover:border-teal-500/20 hover:shadow-md">
                                 <CardHeader className="pb-2">
                                     <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-lg bg-teal-100">
-                                        <Heart className="h-6 w-6 text-teal-600" />
+                                        <PawPrint className="h-6 w-6 text-teal-600" />
                                     </div>
                                     <CardTitle>Wellness Programs</CardTitle>
                                 </CardHeader>
@@ -584,7 +584,7 @@ export default function LandingPage() {
                     <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
                         <div className="space-y-4">
                             <div className="flex gap-2 items-center">
-                                <Heart className="h-6 w-6 text-teal-500" />
+                                <PawPrint className="h-6 w-6 text-teal-500" />
                                 <span className="font-bold text-xl">PetCare</span>
                             </div>
                             <p className="text-sm text-muted-foreground">

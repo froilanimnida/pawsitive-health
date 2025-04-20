@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import { Html, Head, Body, Container, Section, Heading, Text, Button, Hr, Link } from "@react-email/components";
 
 function generateGoogleCalendarUrl({
@@ -59,7 +60,9 @@ export default function AppointmentConfirmed({
 }: AppointmentConfirmedEmailProps) {
     const googleCalendarUrl = generateGoogleCalendarUrl({
         title: `Vet Appointment for ${petName}`,
-        description: `Appointment with Dr. ${vetName} for ${petName}.\n\nType: ${appointmentType}\n\nClinic: ${clinicName}\nPhone: ${clinicPhone}\n${instructions ? `\nSpecial Instructions: ${instructions}` : ""}`,
+        description: `Appointment with Dr. ${vetName} for ${petName}.\n\nType: ${appointmentType}\n\nClinic: ${clinicName}\nPhone: ${clinicPhone}\n${
+            instructions ? `\nSpecial Instructions: ${instructions}` : ""
+        }`,
         location: clinicAddress,
         startDateTime: appointmentDateTime,
         endDateTime: appointmentEndDateTime,
@@ -148,7 +151,7 @@ export default function AppointmentConfirmed({
                         <Section style={styles.buttonContainer}>
                             <Button
                                 style={styles.button}
-                                href={`${process.env.FRONTEND_URL}/u/appointments/view/${appointmentId}`}
+                                href={`${process.env.FRONTEND_URL}/user/appointments/view/${appointmentId}`}
                             >
                                 View Appointment
                             </Button>
@@ -156,7 +159,7 @@ export default function AppointmentConfirmed({
                     </Section>
 
                     <Text style={styles.footer}>
-                        Thank you for choosing PawsitiveHealth for your pet's healthcare needs.
+                        Thank you for choosing PawsitiveHealth for your pet&apos;s healthcare needs.
                     </Text>
                 </Container>
             </Body>

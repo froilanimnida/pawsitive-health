@@ -2,21 +2,20 @@
 import { formatDecimal, prisma, toTitleCase } from "@/lib";
 import { PetOnboardingSchema, UpdatePetSchema, type UpdatePetType, OnboardingPetSchema } from "@/schemas";
 import { procedure_type, type breed_type, type pet_sex_type, type species_type } from "@prisma/client";
-import { getUserId } from "@/actions";
-import { auth } from "@/auth";
 import { type ActionResponse } from "@/types/server-action-response";
 import type { Pets } from "@/types/pets";
 import { revalidatePath } from "next/cache";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { redirect } from "next/navigation";
 
 const addPet = async (values: PetOnboardingSchema): Promise<ActionResponse | void> => {
     try {
-        const session = await auth();
+        const session = await getServerSession(authOptions);
         const newPetData = OnboardingPetSchema.safeParse(values);
-        if (!newPetData.success) {
-            return { success: false, error: "Please check the form inputs" };
-        }
-        if (!session || !session.user || !session.user.email) return { success: false, error: "User not found" };
-        const user_id = await getUserId(session?.user?.email);
+        if (!newPetData.success) return { success: false, error: "Please check the form inputs" };
+
+        if (!session || !session.user || !session.user.id) redirect("/signin");
         const pet = await prisma.pets.create({
             data: {
                 name: newPetData.data.name,
@@ -25,7 +24,7 @@ const addPet = async (values: PetOnboardingSchema): Promise<ActionResponse | voi
                 species: newPetData.data.species as species_type,
                 date_of_birth: newPetData.data.date_of_birth,
                 weight_kg: newPetData.data.weight_kg,
-                user_id: user_id,
+                user_id: Number(session.user.id),
             },
         });
 
@@ -58,7 +57,7 @@ const addPet = async (values: PetOnboardingSchema): Promise<ActionResponse | voi
                 });
             }
         }
-        revalidatePath("/u/pets");
+        revalidatePath("/user/pets");
     } catch (error) {
         return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
     }
@@ -211,7 +210,7 @@ const updatePet = async (values: UpdatePetType): Promise<ActionResponse | void> 
             },
         });
         if (!pet) return { success: false, error: "Failed to update pet" };
-        revalidatePath(`/u/pets/${pet.pet_uuid}`);
+        revalidatePath(`/user/pets/${pet.pet_uuid}`);
     } catch (error) {
         return {
             success: false,
@@ -222,24 +221,53 @@ const updatePet = async (values: UpdatePetType): Promise<ActionResponse | void> 
 
 const getPets = async (): Promise<ActionResponse<{ pets: Pets[] }>> => {
     try {
-        const session = await auth();
-        if (!session || !session.user || !session.user.email) {
-            throw new Error("User not found");
-        }
-
-        const userId = await getUserId(session?.user?.email);
+        const session = await getServerSession(authOptions);
+        if (!session || !session.user || !session.user.id) redirect("/signin");
         const petsData = await prisma.pets.findMany({
             where: {
-                user_id: userId,
+                user_id: Number(session.user.id),
+                deleted: false,
             },
-            orderBy: {
-                date_of_birth: "desc",
+            orderBy: { created_at: "desc" },
+            include: {
+                vaccinations: {
+                    where: {
+                        next_due_date: {
+                            gte: new Date(),
+                        },
+                    },
+                    orderBy: {
+                        next_due_date: "asc",
+                    },
+                    take: 5,
+                },
+                prescriptions: {
+                    where: {
+                        OR: [
+                            {
+                                end_date: {
+                                    gte: new Date(),
+                                },
+                            },
+                            {
+                                refills_remaining: {
+                                    gt: 0,
+                                },
+                            },
+                        ],
+                    },
+                    orderBy: {
+                        end_date: "asc",
+                    },
+                    include: {
+                        medications: true,
+                    },
+                    take: 5,
+                },
             },
         });
 
-        if (!petsData || petsData.length === 0) {
-            return { success: true, data: { pets: [] } };
-        }
+        if (!petsData || petsData.length === 0) return { success: true, data: { pets: [] } };
 
         const pets = petsData.map((pet) => ({
             ...pet,
@@ -247,10 +275,7 @@ const getPets = async (): Promise<ActionResponse<{ pets: Pets[] }>> => {
         }));
         return { success: true, data: { pets } };
     } catch (error) {
-        return {
-            success: false,
-            error: error instanceof Error ? error.message : "An unexpected error occurred",
-        };
+        return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
     }
 };
 
@@ -258,19 +283,14 @@ const getPetId = async (pet_uuid: string): Promise<ActionResponse<{ pet_id: numb
     try {
         const pet = await prisma.pets.findUnique({
             where: { pet_uuid },
-            select: {
-                pet_id: true,
-            },
+            select: { pet_id: true },
         });
 
         if (!pet) return { success: false, error: "Pet not found" };
 
         return { success: true, data: { pet_id: pet.pet_id } };
     } catch (error) {
-        return {
-            success: false,
-            error: error instanceof Error ? error.message : "An unexpected error occurred",
-        };
+        return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
     }
 };
 

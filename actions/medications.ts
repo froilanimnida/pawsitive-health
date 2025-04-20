@@ -7,20 +7,12 @@ import type { medications } from "@prisma/client";
 const getMedicationsList = async (): Promise<ActionResponse<{ medication: medications[] }>> => {
     try {
         const medicationsList = await prisma.medications.findMany({
-            orderBy: {
-                created_at: "desc",
-            },
+            orderBy: { created_at: "desc" },
         });
 
-        return {
-            success: true,
-            data: { medication: medicationsList },
-        };
+        return { success: true, data: { medication: medicationsList } };
     } catch (error) {
-        return {
-            success: false,
-            error: error instanceof Error ? error.message : "An unexpected error occurred",
-        };
+        return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
     }
 };
 
@@ -38,10 +30,7 @@ const createMedication = async (values: MedicineType): Promise<ActionResponse<{ 
             return { success: false, error: "Failed adding new medicine" };
         return { success: true, data: { medication_uuid: medications.medication_uuid } };
     } catch (error) {
-        return {
-            success: false,
-            error: error instanceof Error ? error.message : "An unexpected error occurred",
-        };
+        return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
     }
 };
 
