@@ -9,6 +9,7 @@ import type {
     vaccinations,
     medical_records,
     healthcare_procedures,
+    Prisma
 } from "@prisma/client";
 import type { ActionResponse } from "@/types/server-action-response";
 import { endOfDay, startOfDay } from "date-fns";
@@ -807,6 +808,25 @@ const getAppointmentRecordedServices = async (
     }
 };
 
+const getAppointmentId = async (appointment_uuid: string): Promise<ActionResponse<{ appointment_id: number }>> => {
+    try {
+        const appointment = await prisma.appointments.findFirst({
+            where: {
+                appointment_uuid: appointment_uuid,
+            },
+            select: {
+                appointment_id: true,
+            },
+        });
+
+        if (!appointment) return { success: false, error: "Appointment not found" };
+
+        return { success: true, data: { appointment_id: appointment.appointment_id } };
+    } catch (error) {
+        return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
+    }
+};
+
 export {
     getUserAppointments,
     createUserAppointment,
@@ -820,4 +840,5 @@ export {
     rescheduleAppointment,
     getAppointmentHistoricalData,
     getAppointmentRecordedServices,
+    getAppointmentId,
 };

@@ -21,6 +21,7 @@ export {
     getAppointment,
     getClinicAppointments,
     getVeterinarianAppointments,
+    getAppointmentId,
     changeAppointmentStatus,
     rescheduleAppointment,
     getAppointmentHistoricalData,
