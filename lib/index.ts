@@ -8,3 +8,4 @@ export { prisma } from "./prisma";
 export { cn } from "./utils";
 export { deleteFileFromR2, getPresignedDownloadUrl, uploadFileToR2 } from "./r2-service";
 export { toTitleCase } from "./functions/text/title-case";
+export { baseFormConfig, createFormConfig } from "./config/hook-form-config";

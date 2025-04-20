@@ -5,7 +5,7 @@ export const PrescriptionDefinition = z.object({
     frequency: z.string(),
     start_date: z.date(),
     end_date: z.date(),
-    refills_remaining: z.number(),
+    refills_remaining: z.coerce.number(),
     pet_uuid: z
         .string()
         .uuid({
@@ -16,7 +16,7 @@ export const PrescriptionDefinition = z.object({
     appointment_id: z.number().optional(),
     vet_id: z.number().optional(),
     appointment_uuid: z.string().uuid().optional(),
-    medication_id: z.number(),
+    medication_id: z.union([z.string().transform((val) => parseInt(val, 10)), z.number()]),
 });
 
 export type PrescriptionType = z.infer<typeof PrescriptionDefinition>;

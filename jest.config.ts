@@ -14,6 +14,7 @@ const createJestConfig = nextJest({
 // Add any custom config to be passed to Jest
 const config: Config = {
     clearMocks: true,
+
     collectCoverage: true,
     coverageDirectory: "coverage",
     coverageProvider: "v8", // or 'babel' if you prefer
