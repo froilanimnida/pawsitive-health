@@ -4,12 +4,11 @@ import { getClinic, getPet, sendEmail } from "@/actions";
 import { AppointmentType } from "@/schemas";
 import type {
     appointment_status,
-    Prisma,
     appointment_type,
     vaccinations,
     medical_records,
     healthcare_procedures,
-    Prisma
+    Prisma,
 } from "@prisma/client";
 import type { ActionResponse } from "@/types/server-action-response";
 import { endOfDay, startOfDay } from "date-fns";

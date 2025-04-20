@@ -1,748 +1,725 @@
 generator client {
-    provider = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-    provider = "postgresql"
-    url      = env("NEON_DB_CONNECTION_STRING")
+  provider = "postgresql"
+  url      = env("NEON_DB_CONNECTION_STRING")
 }
 
 model appointments {
-    appointment_id        Int                     @id @default(autoincrement())
-    appointment_uuid      String                  @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-    pet_id                Int?
-    vet_id                Int?
-    appointment_date      DateTime                @db.Timestamptz(6)
-    notes                 String?
-    created_at            DateTime                @default(now()) @db.Timestamptz(6)
-    appointment_type      appointment_type
-    clinic_id             Int?
-    duration_minutes      Int                     @default(30)
-    status                appointment_status
-    metadata              Json?                   @default("{}")
-    clinics               clinics?                @relation(fields: [clinic_id], references: [clinic_id], onDelete: NoAction, onUpdate: NoAction)
-    pets                  pets?                   @relation(fields: [pet_id], references: [pet_id], onDelete: NoAction, onUpdate: NoAction)
-    veterinarians         veterinarians?          @relation(fields: [vet_id], references: [vet_id], onDelete: NoAction, onUpdate: NoAction)
-    vaccinations          vaccinations[]
-    healthcare_procedures healthcare_procedures[]
-    notifications         notifications[]
-    prescriptions         prescriptions[]
-    messages              messages[]
+  appointment_id        Int                     @id @default(autoincrement())
+  appointment_uuid      String                  @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  pet_id                Int?
+  vet_id                Int?
+  appointment_date      DateTime                @db.Timestamptz(6)
+  notes                 String?
+  created_at            DateTime                @default(now()) @db.Timestamptz(6)
+  appointment_type      appointment_type
+  clinic_id             Int?
+  duration_minutes      Int                     @default(30)
+  status                appointment_status
+  metadata              Json?                   @default("{}")
+  clinics               clinics?                @relation(fields: [clinic_id], references: [clinic_id], onDelete: NoAction, onUpdate: NoAction)
+  pets                  pets?                   @relation(fields: [pet_id], references: [pet_id], onDelete: NoAction, onUpdate: NoAction)
+  veterinarians         veterinarians?          @relation(fields: [vet_id], references: [vet_id], onDelete: NoAction, onUpdate: NoAction)
+  healthcare_procedures healthcare_procedures[]
+  notifications         notifications[]
+  prescriptions         prescriptions[]
+  vaccinations          vaccinations[]
 }
 
 model documents {
-    document_id     Int              @id @default(autoincrement())
-    document_uuid   String           @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-    file_name       String
-    file_key        String           @unique
-    file_url        String
-    file_type       String
-    file_size       Int
-    uploaded_at     DateTime         @default(now()) @db.Timestamptz(6)
-    pet_id          Int?
-    user_id         Int?
-    record_id       Int?
-    pets            pets?            @relation(fields: [pet_id], references: [pet_id], onDelete: SetNull, onUpdate: NoAction)
-    users           users?           @relation(fields: [user_id], references: [user_id], onDelete: SetNull, onUpdate: NoAction)
-    medical_records medical_records? @relation(fields: [record_id], references: [record_id], onDelete: SetNull, onUpdate: NoAction)
+  document_id     Int              @id @default(autoincrement())
+  document_uuid   String           @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  file_name       String
+  file_key        String           @unique
+  file_url        String
+  file_type       String
+  file_size       Int
+  uploaded_at     DateTime         @default(now()) @db.Timestamptz(6)
+  pet_id          Int?
+  user_id         Int?
+  record_id       Int?
+  pets            pets?            @relation(fields: [pet_id], references: [pet_id], onUpdate: NoAction)
+  medical_records medical_records? @relation(fields: [record_id], references: [record_id], onUpdate: NoAction)
+  users           users?           @relation(fields: [user_id], references: [user_id], onUpdate: NoAction)
 }
 
 model educational_content {
-    content_id   Int      @id @default(autoincrement())
-    title        String   @db.VarChar(255)
-    content      String
-    category     String   @db.VarChar(50)
-    tags         String[]
-    author_id    Int?
-    published_at DateTime @default(now()) @db.Timestamptz(6)
-    updated_at   DateTime @default(now()) @db.Timestamptz(6)
-    content_uuid String   @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-    users        users?   @relation(fields: [author_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+  content_id   Int      @id @default(autoincrement())
+  title        String   @db.VarChar(255)
+  content      String
+  category     String   @db.VarChar(50)
+  tags         String[]
+  author_id    Int?
+  published_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime @default(now()) @db.Timestamptz(6)
+  content_uuid String   @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  users        users?   @relation(fields: [author_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model emergency_contacts {
-    contact_id   Int      @id @default(autoincrement())
-    user_id      Int?
-    name         String   @db.VarChar(100)
-    relationship String   @db.VarChar(50)
-    phone_number String   @db.VarChar(20)
-    is_primary   Boolean? @default(false)
-    created_at   DateTime @default(now()) @db.Timestamptz(6)
-    users        users?   @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+  contact_id   Int      @id @default(autoincrement())
+  user_id      Int?
+  name         String   @db.VarChar(100)
+  relationship String   @db.VarChar(50)
+  phone_number String   @db.VarChar(20)
+  is_primary   Boolean? @default(false)
+  created_at   DateTime @default(now()) @db.Timestamptz(6)
+  users        users?   @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model forum_comments {
-    comment_id  Int          @id @default(autoincrement())
-    post_id     Int?
-    user_id     Int?
-    content     String
-    created_at  DateTime     @default(now()) @db.Timestamptz(6)
-    updated_at  DateTime     @default(now()) @db.Timestamptz(6)
-    forum_posts forum_posts? @relation(fields: [post_id], references: [post_id], onDelete: NoAction, onUpdate: NoAction)
-    users       users?       @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+  comment_id  Int          @id @default(autoincrement())
+  post_id     Int?
+  user_id     Int?
+  content     String
+  created_at  DateTime     @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime     @default(now()) @db.Timestamptz(6)
+  forum_posts forum_posts? @relation(fields: [post_id], references: [post_id], onDelete: NoAction, onUpdate: NoAction)
+  users       users?       @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model forum_posts {
-    post_id        Int              @id @default(autoincrement())
-    post_uuid      String           @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-    user_id        Int?
-    title          String           @db.VarChar(255)
-    content        String
-    category       String           @db.VarChar(50)
-    created_at     DateTime         @default(now()) @db.Timestamptz(6)
-    updated_at     DateTime         @default(now()) @db.Timestamptz(6)
-    forum_comments forum_comments[]
-    users          users?           @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
-    tags           String[]
-    notifications  notifications[]
+  post_id        Int              @id @default(autoincrement())
+  post_uuid      String           @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id        Int?
+  title          String           @db.VarChar(255)
+  content        String
+  category       String           @db.VarChar(50)
+  created_at     DateTime         @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime         @default(now()) @db.Timestamptz(6)
+  tags           String[]
+  forum_comments forum_comments[]
+  users          users?           @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+  notifications  notifications[]
 }
 
 model health_monitoring {
-    monitoring_id       Int       @id @default(autoincrement())
-    monitoring_uuid     String    @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-    pet_id              Int?
-    activity_level      String    @db.VarChar(20)
-    weight_kg           Decimal   @db.Decimal(5, 2)
-    temperature_celsius Decimal   @db.Decimal(4, 2)
-    symptoms            String
-    notes               String?
-    recorded_at         DateTime? @default(now()) @db.Timestamptz(6)
-    pets                pets?     @relation(fields: [pet_id], references: [pet_id], onDelete: NoAction, onUpdate: NoAction)
+  monitoring_id       Int       @id @default(autoincrement())
+  monitoring_uuid     String    @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  pet_id              Int?
+  activity_level      String    @db.VarChar(20)
+  weight_kg           Decimal   @db.Decimal(5, 2)
+  temperature_celsius Decimal   @db.Decimal(4, 2)
+  symptoms            String
+  notes               String?
+  recorded_at         DateTime? @default(now()) @db.Timestamptz(6)
+  pets                pets?     @relation(fields: [pet_id], references: [pet_id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model medical_records {
-    record_id     Int            @id @default(autoincrement())
-    record_uuid   String         @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-    pet_id        Int?
-    vet_id        Int?
-    visit_date    DateTime       @db.Timestamptz(6)
-    diagnosis     String
-    treatment     String
-    notes         String?
-    created_at    DateTime       @default(now()) @db.Timestamptz(6)
-    pets          pets?          @relation(fields: [pet_id], references: [pet_id], onDelete: NoAction, onUpdate: NoAction)
-    veterinarians veterinarians? @relation(fields: [vet_id], references: [vet_id], onDelete: NoAction, onUpdate: NoAction)
-    documents     documents[]
+  record_id     Int            @id @default(autoincrement())
+  record_uuid   String         @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  pet_id        Int?
+  vet_id        Int?
+  visit_date    DateTime       @db.Timestamptz(6)
+  diagnosis     String
+  treatment     String
+  notes         String?
+  created_at    DateTime       @default(now()) @db.Timestamptz(6)
+  documents     documents[]
+  pets          pets?          @relation(fields: [pet_id], references: [pet_id], onDelete: NoAction, onUpdate: NoAction)
+  veterinarians veterinarians? @relation(fields: [vet_id], references: [vet_id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model medications {
-    medication_id      Int             @id @default(autoincrement())
-    name               String          @db.VarChar(100)
-    description        String
-    usage_instructions String
-    side_effects       String
-    created_at         DateTime        @default(now()) @db.Timestamptz(6)
-    medication_uuid    String          @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-    prescriptions      prescriptions[]
+  medication_id      Int             @id @default(autoincrement())
+  name               String          @db.VarChar(100)
+  description        String
+  usage_instructions String
+  side_effects       String
+  created_at         DateTime        @default(now()) @db.Timestamptz(6)
+  medication_uuid    String          @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  prescriptions      prescriptions[]
 }
 
 model notifications {
-    notification_id   Int                   @id @default(autoincrement())
-    notification_uuid String                @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-    user_id           Int?
-    title             String                @db.VarChar(255)
-    content           String
-    type              notification_type
-    is_read           Boolean?              @default(false)
-    created_at        DateTime?             @default(now()) @db.Timestamptz(6)
-    pet_id            Int?
-    appointment_id    Int?
-    forum_post_id     Int?
-    expires_at        DateTime?             @db.Timestamptz(6)
-    action_url        String?               @db.VarChar(255)
-    priority          notification_priority @default(normal)
-    users             users?                @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
-    pets              pets?                 @relation(fields: [pet_id], references: [pet_id], onDelete: SetNull, onUpdate: NoAction)
-    appointments      appointments?         @relation(fields: [appointment_id], references: [appointment_id], onDelete: SetNull, onUpdate: NoAction)
-    forum_posts       forum_posts?          @relation(fields: [forum_post_id], references: [post_id], onDelete: SetNull, onUpdate: NoAction)
+  notification_id   Int                   @id @default(autoincrement())
+  user_id           Int?
+  title             String                @db.VarChar(255)
+  content           String
+  is_read           Boolean?              @default(false)
+  created_at        DateTime?             @default(now()) @db.Timestamptz(6)
+  notification_uuid String                @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  type              notification_type
+  action_url        String?               @db.VarChar(255)
+  appointment_id    Int?
+  expires_at        DateTime?             @db.Timestamptz(6)
+  forum_post_id     Int?
+  pet_id            Int?
+  priority          notification_priority @default(normal)
+  appointments      appointments?         @relation(fields: [appointment_id], references: [appointment_id], onUpdate: NoAction)
+  forum_posts       forum_posts?          @relation(fields: [forum_post_id], references: [post_id], onUpdate: NoAction)
+  pets              pets?                 @relation(fields: [pet_id], references: [pet_id], onUpdate: NoAction)
+  users             users?                @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model pets {
-    pet_id                Int                     @id @default(autoincrement())
-    user_id               Int?
-    pet_uuid              String                  @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-    name                  String                  @db.VarChar(100)
-    species               species_type
-    breed                 breed_type
-    date_of_birth         DateTime                @db.Date
-    weight_kg             Decimal                 @db.Decimal(5, 2)
-    sex                   pet_sex_type
-    created_at            DateTime                @default(now()) @db.Timestamptz(6)
-    updated_at            DateTime                @default(now()) @db.Timestamptz(6)
-    private               Boolean                 @default(false)
-    deleted_at            DateTime?               @db.Timestamptz(6)
-    deleted               Boolean?                @default(false)
-    profile_picture_url   String?                 @db.VarChar(255)
-    appointments          appointments[]
-    health_monitoring     health_monitoring[]
-    healthcare_procedures healthcare_procedures[]
-    medical_records       medical_records[]
-    users                 users?                  @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
-    prescriptions         prescriptions[]
-    vaccinations          vaccinations[]
-    documents             documents[]
-    notifications         notifications[]
+  pet_id                Int                     @id @default(autoincrement())
+  user_id               Int?
+  pet_uuid              String                  @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name                  String                  @db.VarChar(100)
+  species               species_type
+  breed                 breed_type
+  date_of_birth         DateTime                @db.Date
+  weight_kg             Decimal                 @db.Decimal(5, 2)
+  sex                   pet_sex_type
+  created_at            DateTime                @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime                @default(now()) @db.Timestamptz(6)
+  private               Boolean                 @default(false)
+  deleted               Boolean?                @default(false)
+  deleted_at            DateTime?               @db.Timestamptz(6)
+  profile_picture_url   String?                 @db.VarChar(255)
+  appointments          appointments[]
+  documents             documents[]
+  health_monitoring     health_monitoring[]
+  healthcare_procedures healthcare_procedures[]
+  medical_records       medical_records[]
+  notifications         notifications[]
+  users                 users?                  @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+  prescriptions         prescriptions[]
+  vaccinations          vaccinations[]
 }
 
 model prescriptions {
-    prescription_id   Int            @id @default(autoincrement())
-    prescription_uuid String         @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-    pet_id            Int?
-    medication_id     Int?
-    vet_id            Int?
-    appointment_id    Int?
-    dosage            String         @db.VarChar(50)
-    frequency         String         @db.VarChar(50)
-    start_date        DateTime?      @db.Date
-    end_date          DateTime?      @db.Date
-    refills_remaining Int?
-    created_at        DateTime?      @default(now()) @db.Timestamptz(6)
-    medications       medications?   @relation(fields: [medication_id], references: [medication_id], onDelete: NoAction, onUpdate: NoAction)
-    pets              pets?          @relation(fields: [pet_id], references: [pet_id], onDelete: NoAction, onUpdate: NoAction)
-    veterinarians     veterinarians? @relation(fields: [vet_id], references: [vet_id], onDelete: NoAction, onUpdate: NoAction)
-    appointments      appointments?  @relation(fields: [appointment_id], references: [appointment_id], onDelete: SetNull, onUpdate: NoAction)
-}
-
-model messages {
-    message_id     Int      @id @default(autoincrement())
-    message_uuid   String   @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-    sender_id      Int
-    receiver_id    Int
-    content        String
-    attachment_url String?  @db.VarChar(255)
-    is_read        Boolean  @default(false)
-    created_at     DateTime @default(now()) @db.Timestamptz(6)
-    updated_at     DateTime @default(now()) @db.Timestamptz(6)
-    appointment_id Int?
-
-    sender      users         @relation("sentMessages", fields: [sender_id], references: [user_id], onDelete: Cascade)
-    receiver    users         @relation("receivedMessages", fields: [receiver_id], references: [user_id], onDelete: Cascade)
-    appointment appointments? @relation(fields: [appointment_id], references: [appointment_id], onDelete: SetNull)
-
-    @@index([sender_id])
-    @@index([receiver_id])
-    @@index([appointment_id])
+  prescription_id   Int            @id @default(autoincrement())
+  prescription_uuid String         @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  pet_id            Int?
+  medication_id     Int?
+  vet_id            Int?
+  dosage            String         @db.VarChar(50)
+  frequency         String         @db.VarChar(50)
+  start_date        DateTime?      @db.Date
+  end_date          DateTime?      @db.Date
+  refills_remaining Int?
+  created_at        DateTime?      @default(now()) @db.Timestamptz(6)
+  appointment_id    Int?
+  appointments      appointments?  @relation(fields: [appointment_id], references: [appointment_id], onUpdate: NoAction)
+  medications       medications?   @relation(fields: [medication_id], references: [medication_id], onDelete: NoAction, onUpdate: NoAction)
+  pets              pets?          @relation(fields: [pet_id], references: [pet_id], onDelete: NoAction, onUpdate: NoAction)
+  veterinarians     veterinarians? @relation(fields: [vet_id], references: [vet_id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model user_settings {
-    user_id               Int        @id
-    theme_mode            theme_mode @default(light)
-    email_notifications   Boolean    @default(true)
-    push_notifications    Boolean    @default(true)
-    health_alerts         Boolean    @default(true)
-    google_calendar_sync  Boolean    @default(false)
-    google_calendar_token String?    @db.Text
-    updated_at            DateTime   @default(now()) @db.Timestamptz(6)
-    last_sync             DateTime?  @db.Timestamptz(6)
-    users                 users      @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+  user_id               Int        @id
+  updated_at            DateTime   @default(now()) @db.Timestamptz(6)
+  email_notifications   Boolean    @default(true)
+  google_calendar_sync  Boolean    @default(false)
+  google_calendar_token String?
+  health_alerts         Boolean    @default(true)
+  push_notifications    Boolean    @default(true)
+  theme_mode            theme_mode @default(light)
+  last_sync             DateTime?  @db.Timestamptz(6)
+  users                 users      @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model users {
-    user_id                       Int                   @id @default(autoincrement())
-    user_uuid                     String                @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-    email                         String                @unique @db.VarChar(255)
-    password_hash                 String                @db.VarChar(255)
-    first_name                    String                @db.VarChar(100)
-    last_name                     String                @db.VarChar(100)
-    phone_number                  String                @db.VarChar(20)
-    role                          role_type             @default(user)
-    created_at                    DateTime              @default(now()) @db.Timestamptz(6)
-    updated_at                    DateTime              @default(now()) @db.Timestamptz(6)
-    last_login                    DateTime?             @db.Timestamptz(6)
-    disabled                      Boolean?              @default(false)
-    deleted_at                    DateTime?             @db.Timestamptz(6)
-    otp_token                     String?               @default("") @db.VarChar(10)
-    otp_expires_at                DateTime?             @db.Timestamptz(6)
-    email_verified                Boolean?              @default(false)
-    email_verification_token      String?               @db.VarChar(255)
-    email_verification_expires_at DateTime?             @db.Timestamptz(6)
-    password_reset_token          String?               @db.VarChar(255)
-    password_reset_expires_at     DateTime?             @db.Timestamptz(6)
-    educational_content           educational_content[]
-    emergency_contacts            emergency_contacts[]
-    forum_comments                forum_comments[]
-    forum_posts                   forum_posts[]
-    notifications                 notifications[]
-    pets                          pets[]
-    user_settings                 user_settings?
-    veterinarians                 veterinarians[]
-    clinics                       clinics[]             @relation("clinicsTousers")
-    documents                     documents[]
-    sent_messages                 messages[]            @relation("sentMessages")
-    received_messages             messages[]            @relation("receivedMessages")
+  user_id                       Int                   @id @default(autoincrement())
+  user_uuid                     String                @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  email                         String                @unique @db.VarChar(255)
+  password_hash                 String                @db.VarChar(255)
+  first_name                    String                @db.VarChar(100)
+  last_name                     String                @db.VarChar(100)
+  phone_number                  String                @db.VarChar(20)
+  role                          role_type             @default(user)
+  created_at                    DateTime              @default(now()) @db.Timestamptz(6)
+  updated_at                    DateTime              @default(now()) @db.Timestamptz(6)
+  deleted_at                    DateTime?             @db.Timestamptz(6)
+  disabled                      Boolean?              @default(false)
+  email_verification_expires_at DateTime?             @db.Timestamptz(6)
+  email_verification_token      String?               @db.VarChar(255)
+  email_verified                Boolean?              @default(false)
+  last_login                    DateTime?             @db.Timestamptz(6)
+  password_reset_expires_at     DateTime?             @db.Timestamptz(6)
+  password_reset_token          String?               @db.VarChar(255)
+  otp_expires_at                DateTime?             @db.Timestamptz(6)
+  otp_token                     String?               @default("") @db.VarChar(10)
+  documents                     documents[]
+  educational_content           educational_content[]
+  emergency_contacts            emergency_contacts[]
+  forum_comments                forum_comments[]
+  forum_posts                   forum_posts[]
+  notifications                 notifications[]
+  pets                          pets[]
+  user_settings                 user_settings?
+  veterinarians                 veterinarians[]
+  clinics                       clinics[]             @relation("clinicsTousers")
 }
 
 model vaccinations {
-    vaccination_id    Int            @id @default(autoincrement())
-    vaccination_uuid  String         @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-    pet_id            Int?
-    vaccine_name      String?        @db.VarChar(100)
-    administered_date DateTime?      @db.Date
-    next_due_date     DateTime?      @db.Date
-    administered_by   Int?
-    batch_number      String?        @db.VarChar(50)
-    created_at        DateTime       @default(now()) @db.Timestamptz(6)
-    appointment_id    Int?
-    veterinarians     veterinarians? @relation(fields: [administered_by], references: [vet_id], onDelete: NoAction, onUpdate: NoAction)
-    pets              pets?          @relation(fields: [pet_id], references: [pet_id], onDelete: NoAction, onUpdate: NoAction)
-    appointments      appointments?  @relation(fields: [appointment_id], references: [appointment_id], onDelete: SetNull, onUpdate: NoAction)
+  vaccination_id    Int            @id @default(autoincrement())
+  pet_id            Int?
+  vaccine_name      String?        @db.VarChar(100)
+  administered_date DateTime?      @db.Date
+  next_due_date     DateTime?      @db.Date
+  administered_by   Int?
+  batch_number      String?        @db.VarChar(50)
+  created_at        DateTime       @default(now()) @db.Timestamptz(6)
+  vaccination_uuid  String         @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  appointment_id    Int?
+  veterinarians     veterinarians? @relation(fields: [administered_by], references: [vet_id], onDelete: NoAction, onUpdate: NoAction)
+  appointments      appointments?  @relation(fields: [appointment_id], references: [appointment_id], onUpdate: NoAction)
+  pets              pets?          @relation(fields: [pet_id], references: [pet_id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model veterinarians {
-    vet_id                Int                       @id @default(autoincrement())
-    vet_uuid              String                    @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-    license_number        String                    @unique @db.VarChar(50)
-    specialization        veterinary_specialization
-    created_at            DateTime?                 @default(now()) @db.Timestamptz(6)
-    user_id               Int?
-    appointments          appointments[]
-    clinic_veterinarians  clinic_veterinarians[]
-    healthcare_procedures healthcare_procedures[]
-    medical_records       medical_records[]
-    prescriptions         prescriptions[]
-    vaccinations          vaccinations[]
-    vet_availability      vet_availability[]
-    users                 users?                    @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+  vet_id                Int                       @id @default(autoincrement())
+  vet_uuid              String                    @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  license_number        String                    @unique @db.VarChar(50)
+  specialization        veterinary_specialization
+  created_at            DateTime?                 @default(now()) @db.Timestamptz(6)
+  user_id               Int?
+  appointments          appointments[]
+  clinic_veterinarians  clinic_veterinarians[]
+  healthcare_procedures healthcare_procedures[]
+  medical_records       medical_records[]
+  prescriptions         prescriptions[]
+  vaccinations          vaccinations[]
+  vet_availability      vet_availability[]
+  users                 users?                    @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model clinic_veterinarians {
-    clinic_id     Int
-    vet_id        Int
-    clinics       clinics       @relation(fields: [clinic_id], references: [clinic_id], onDelete: Cascade, onUpdate: NoAction)
-    veterinarians veterinarians @relation(fields: [vet_id], references: [vet_id], onDelete: NoAction, onUpdate: NoAction)
+  clinic_id     Int
+  vet_id        Int
+  clinics       clinics       @relation(fields: [clinic_id], references: [clinic_id], onDelete: Cascade, onUpdate: NoAction)
+  veterinarians veterinarians @relation(fields: [vet_id], references: [vet_id], onDelete: NoAction, onUpdate: NoAction)
 
-    @@id([clinic_id, vet_id])
+  @@id([clinic_id, vet_id])
 }
 
 model clinics {
-    clinic_id            Int                    @id @default(autoincrement())
-    clinic_uuid          String?                @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-    name                 String                 @db.VarChar(255)
-    address              String
-    city                 String                 @db.VarChar(100)
-    state                String                 @db.VarChar(100)
-    postal_code          String                 @db.VarChar(20)
-    phone_number         String                 @db.VarChar(20)
-    emergency_services   Boolean?               @default(false)
-    created_at           DateTime?              @default(now()) @db.Timestamptz(6)
-    user_id              Int?
-    latitude             Float                  @default(0)
-    longitude            Float                  @default(0)
-    google_maps_url      String?                @db.VarChar(255)
-    website              String?                @db.VarChar(255)
-    appointments         appointments[]
-    clinic_hours         clinic_hours[]
-    clinic_veterinarians clinic_veterinarians[]
-    vet_availability     vet_availability[]
-    users                users[]                @relation("clinicsTousers")
+  clinic_id            Int                    @id @default(autoincrement())
+  clinic_uuid          String?                @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name                 String                 @db.VarChar(255)
+  address              String
+  city                 String                 @db.VarChar(100)
+  state                String                 @db.VarChar(100)
+  postal_code          String                 @db.VarChar(20)
+  phone_number         String                 @db.VarChar(20)
+  emergency_services   Boolean?               @default(false)
+  created_at           DateTime?              @default(now()) @db.Timestamptz(6)
+  user_id              Int?
+  latitude             Float                  @default(0)
+  longitude            Float                  @default(0)
+  google_maps_url      String?                @db.VarChar(255)
+  website              String?                @db.VarChar(255)
+  operating_hours      String?
+  appointments         appointments[]
+  clinic_hours         clinic_hours[]
+  clinic_veterinarians clinic_veterinarians[]
+  vet_availability     vet_availability[]
+  users                users[]                @relation("clinicsTousers")
 }
 
 model clinic_hours {
-    id          Int      @id @default(autoincrement())
-    clinic_id   Int
-    day_of_week Int
-    opens_at    DateTime @db.Time(6)
-    closes_at   DateTime @db.Time(6)
-    is_closed   Boolean  @default(false)
-    clinics     clinics  @relation(fields: [clinic_id], references: [clinic_id], onDelete: Cascade)
+  id          Int      @id @default(autoincrement())
+  clinic_id   Int
+  day_of_week Int
+  opens_at    DateTime @db.Time(6)
+  closes_at   DateTime @db.Time(6)
+  is_closed   Boolean  @default(false)
+  clinics     clinics  @relation(fields: [clinic_id], references: [clinic_id], onDelete: Cascade)
 
-    @@unique([clinic_id, day_of_week])
+  @@unique([clinic_id, day_of_week])
 }
 
 model vet_availability {
-    availability_id Int           @id @default(autoincrement())
-    vet_id          Int
-    clinic_id       Int
-    day_of_week     Int
-    start_time      DateTime      @db.Time(6)
-    end_time        DateTime      @db.Time(6)
-    is_available    Boolean       @default(true)
-    clinics         clinics       @relation(fields: [clinic_id], references: [clinic_id], onDelete: Cascade)
-    veterinarians   veterinarians @relation(fields: [vet_id], references: [vet_id], onDelete: Cascade)
+  availability_id Int           @id @default(autoincrement())
+  vet_id          Int
+  clinic_id       Int
+  day_of_week     Int
+  start_time      DateTime      @db.Time(6)
+  end_time        DateTime      @db.Time(6)
+  is_available    Boolean       @default(true)
+  clinics         clinics       @relation(fields: [clinic_id], references: [clinic_id], onDelete: Cascade)
+  veterinarians   veterinarians @relation(fields: [vet_id], references: [vet_id], onDelete: Cascade)
 
-    @@unique([vet_id, clinic_id, day_of_week, start_time, end_time])
+  @@unique([vet_id, clinic_id, day_of_week, start_time, end_time])
 }
 
 model healthcare_procedures {
-    procedure_id    Int            @id @default(autoincrement())
-    procedure_uuid  String         @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-    pet_id          Int?
-    procedure_type  procedure_type
-    procedure_date  DateTime?      @db.Date
-    next_due_date   DateTime?      @db.Date
-    product_used    String?        @db.VarChar(100)
-    dosage          String?        @db.VarChar(50)
-    administered_by Int?
-    notes           String?
-    created_at      DateTime       @default(now()) @db.Timestamptz(6)
-    appointment_id  Int?
-    veterinarians   veterinarians? @relation(fields: [administered_by], references: [vet_id], onDelete: NoAction, onUpdate: NoAction)
-    pets            pets?          @relation(fields: [pet_id], references: [pet_id], onDelete: NoAction, onUpdate: NoAction)
-    appointments    appointments?  @relation(fields: [appointment_id], references: [appointment_id], onDelete: SetNull, onUpdate: NoAction) // Add this relation
+  procedure_id    Int            @id @default(autoincrement())
+  procedure_uuid  String         @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  pet_id          Int?
+  procedure_type  procedure_type
+  procedure_date  DateTime?      @db.Date
+  next_due_date   DateTime?      @db.Date
+  product_used    String?        @db.VarChar(100)
+  dosage          String?        @db.VarChar(50)
+  administered_by Int?
+  notes           String?
+  created_at      DateTime       @default(now()) @db.Timestamptz(6)
+  appointment_id  Int?
+  veterinarians   veterinarians? @relation(fields: [administered_by], references: [vet_id], onDelete: NoAction, onUpdate: NoAction)
+  appointments    appointments?  @relation(fields: [appointment_id], references: [appointment_id], onUpdate: NoAction)
+  pets            pets?          @relation(fields: [pet_id], references: [pet_id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 enum procedure_type {
-    acupuncture
-    allergy_testing
-    behavioral_consultation
-    blood_test
-    dental_cleaning
-    deworming
-    ear_cleaning
-    emergency_care
-    examination
-    fecal_test
-    flea_treatment
-    general_checkup
-    grooming
-    heartworm_prevention
-    imaging
-    immunotherapy
-    laboratory_work
-    microchipping
-    nail_trimming
-    neutering
-    nutrition_consultation
-    oral_medication
-    parasite_control
-    physical_therapy
-    preventive_care
-    radiology
-    rehabilitation
-    skin_treatment
-    spay_neuter
-    surgical_procedure
-    teeth_brushing
-    ultrasound
-    urinalysis
-    vaccination
-    wellness_exam
-    wound_care
-    x_ray
-    other
+  deworming
+  flea_treatment
+  heartworm_prevention
+  dental_cleaning
+  spay_neuter
+  general_checkup
+  other
+  acupuncture
+  allergy_testing
+  behavioral_consultation
+  blood_test
+  ear_cleaning
+  emergency_care
+  examination
+  fecal_test
+  grooming
+  imaging
+  immunotherapy
+  laboratory_work
+  microchipping
+  nail_trimming
+  neutering
+  nutrition_consultation
+  oral_medication
+  parasite_control
+  physical_therapy
+  preventive_care
+  radiology
+  rehabilitation
+  skin_treatment
+  surgical_procedure
+  teeth_brushing
+  ultrasound
+  urinalysis
+  vaccination
+  wellness_exam
+  wound_care
+  x_ray
 }
 
 enum breed_type {
-    abyssinian
-    affenpinscher
-    afghan_hound
-    akbash
-    akita
-    alaskan_klee_kai
-    alaskan_malamute
-    american_bobtail
-    american_bulldog
-    american_curl
-    american_eskimo_dog
-    american_foxhound
-    american_pit_bull_terrier
-    american_shorthair
-    american_staffordshire_terrier
-    american_water_spaniel
-    anatolian_shepherd_dog
-    australian_cattle_dog
-    australian_kelpie
-    australian_shepherd
-    australian_terrier
-    balinese
-    barbet
-    basenji
-    basset_hound
-    beagle
-    bearded_collie
-    beauceron
-    bedlington_terrier
-    belgian_malinois
-    belgian_shepherd
-    belgian_tervuren
-    bengal
-    bernese_mountain_dog
-    bichon_frise
-    birman
-    black_and_tan_coonhound
-    black_russian_terrier
-    bloodhound
-    bluetick_coonhound
-    boerboel
-    border_collie
-    border_terrier
-    borzoi
-    boston_terrier
-    bouvier_des_flandres
-    boxer
-    boykin_spaniel
-    briard
-    british_longhair
-    british_shorthair
-    brittany
-    brussels_griffon
-    bulldog
-    bulldog_french
-    bullmastiff
-    burmese
-    cairn_terrier
-    canaan_dog
-    cane_corso
-    carpathian_shepherd_dog
-    cavalier_king_charles_spaniel
-    chartreux
-    chesapeake_bay_retriever
-    chihuahua
-    chinese_crested
-    chinese_lihua
-    chinese_shar_pei
-    chinook
-    chow_chow
-    clumber_spaniel
-    cocker_spaniel
-    collie
-    coton_de_tulear
-    cur_southern_black_mouth
-    dachshund
-    dalmatian
-    devon_rex
-    doberman_pinscher
-    dogo_argentino
-    dutch_shepherd
-    egyptian_mau
-    english_bulldog
-    english_cocker_spaniel
-    english_foxhound
-    english_setter
-    english_springer_spaniel
-    english_toy_spaniel
-    entlebucher_mountain_dog
-    eurasier
-    field_spaniel
-    finnish_lapphund
-    finnish_spitz
-    flat_coated_retriever
-    french_bulldog
-    german_pinscher
-    german_shepherd
-    german_shorthaired_pointer
-    german_spitz
-    german_wirehaired_pointer
-    giant_schnauzer
-    glen_of_imaal_terrier
-    golden_retriever
-    gordon_setter
-    great_dane
-    great_pyrenees
-    greater_swiss_mountain_dog
-    greyhound
-    havanese
-    ibizan_hound
-    icelandic_sheepdog
-    irish_setter
-    irish_terrier
-    irish_water_spaniel
-    irish_wolfhound
-    italian_greyhound
-    jack_russell_terrier
-    japanese_bobtail
-    japanese_chin
-    japanese_spitz
-    keeshond
-    kerry_blue_terrier
-    king_charles_spaniel
-    komondor
-    kooikerhondje
-    kuvasz
-    labrador_retriever
-    lagotto_romagnolo
-    laika
-    lakeland_terrier
-    lhasa_apso
-    leonberger
-    maine_coon
-    maltese
-    manchester_terrier
-    manx
-    mastiff
-    miniature_pinscher
-    miniature_schnauzer
-    nebelung
-    neapolitan_mastiff
-    newfoundland
-    norfolk_terrier
-    norwegian_buhund
-    norwegian_forest_cat
-    norwegian_lundehund
-    norwich_terrier
-    nova_scotia_duck_tolling_retriever
-    old_english_sheepdog
-    oriental_longhair
-    oriental_shorthair
-    papillon
-    parson_russell_terrier
-    pekingese
-    pembroke_welsh_corgi
-    persian
-    petit_basset_griffon_vendeen
-    pharaoh_hound
-    plott_hound
-    pointer
-    polish_lowland_sheepdog
-    pomeranian
-    poodle
-    portuguese_water_dog
-    pug
-    puli
-    pyrenean_shepherd
-    ragdoll
-    redbone_coonhound
-    rhodesian_ridgeback
-    rottweiler
-    russian_blue
-    saint_bernard
-    saluki
-    samoyed
-    scottish_deerhound
-    scottish_fold
-    scottish_terrier
-    sealyham_terrier
-    selkirk_rex
-    shetland_sheepdog
-    shiba_inu
-    shih_tzu
-    siberian
-    siberian_husky
-    singapura
-    skye_terrier
-    sloughi
-    soft_coated_wheaten_terrier
-    somali
-    sphynx
-    staffordshire_bull_terrier
-    sussex_spaniel
-    swedish_vallhund
-    tibetan_mastiff
-    tibetan_spaniel
-    tibetan_terrier
-    tonkinese
-    toy_fox_terrier
-    treeing_walker_coonhound
-    turkish_angora
-    turkish_van
-    vizsla
-    weimaraner
-    welsh_springer_spaniel
-    welsh_terrier
-    west_highland_white_terrier
-    whippet
-    wirehaired_pointing_griffon
-    xoloitzcuintli
-    yorkshire_terrier
-    others                             @map("others")
+  abyssinian
+  affenpinscher
+  afghan_hound
+  akbash
+  akita
+  alaskan_klee_kai
+  alaskan_malamute
+  american_bobtail
+  american_bulldog
+  american_curl
+  american_eskimo_dog
+  american_foxhound
+  american_pit_bull_terrier
+  american_shorthair
+  american_staffordshire_terrier
+  american_water_spaniel
+  anatolian_shepherd_dog
+  australian_cattle_dog
+  australian_kelpie
+  australian_shepherd
+  australian_terrier
+  balinese
+  barbet
+  basenji
+  basset_hound
+  beagle
+  bearded_collie
+  beauceron
+  bedlington_terrier
+  belgian_malinois
+  belgian_shepherd
+  belgian_tervuren
+  bengal
+  bernese_mountain_dog
+  bichon_frise
+  birman
+  black_and_tan_coonhound
+  black_russian_terrier
+  bloodhound
+  bluetick_coonhound
+  boerboel
+  border_collie
+  border_terrier
+  borzoi
+  boston_terrier
+  bouvier_des_flandres
+  boxer
+  boykin_spaniel
+  briard
+  british_longhair
+  british_shorthair
+  brittany
+  brussels_griffon
+  bulldog
+  bulldog_french
+  bullmastiff
+  burmese
+  cairn_terrier
+  canaan_dog
+  cane_corso
+  carpathian_shepherd_dog
+  cavalier_king_charles_spaniel
+  chartreux
+  chesapeake_bay_retriever
+  chihuahua
+  chinese_crested
+  chinese_lihua
+  chinese_shar_pei
+  chinook
+  chow_chow
+  clumber_spaniel
+  cocker_spaniel
+  collie
+  coton_de_tulear
+  cur_southern_black_mouth
+  dachshund
+  dalmatian
+  devon_rex
+  doberman_pinscher
+  dogo_argentino
+  dutch_shepherd
+  egyptian_mau
+  english_bulldog
+  english_cocker_spaniel
+  english_foxhound
+  english_setter
+  english_springer_spaniel
+  english_toy_spaniel
+  entlebucher_mountain_dog
+  eurasier
+  field_spaniel
+  finnish_lapphund
+  finnish_spitz
+  flat_coated_retriever
+  french_bulldog
+  german_pinscher
+  german_shepherd
+  german_shorthaired_pointer
+  german_spitz
+  german_wirehaired_pointer
+  giant_schnauzer
+  glen_of_imaal_terrier
+  golden_retriever
+  gordon_setter
+  great_dane
+  great_pyrenees
+  greater_swiss_mountain_dog
+  greyhound
+  havanese
+  ibizan_hound
+  icelandic_sheepdog
+  irish_setter
+  irish_terrier
+  irish_water_spaniel
+  irish_wolfhound
+  italian_greyhound
+  jack_russell_terrier
+  japanese_bobtail
+  japanese_chin
+  japanese_spitz
+  keeshond
+  kerry_blue_terrier
+  king_charles_spaniel
+  komondor
+  kooikerhondje
+  kuvasz
+  labrador_retriever
+  lagotto_romagnolo
+  laika
+  lakeland_terrier
+  lhasa_apso
+  leonberger
+  maine_coon
+  maltese
+  manchester_terrier
+  manx
+  mastiff
+  miniature_pinscher
+  miniature_schnauzer
+  nebelung
+  neapolitan_mastiff
+  newfoundland
+  norfolk_terrier
+  norwegian_buhund
+  norwegian_forest_cat
+  norwegian_lundehund
+  norwich_terrier
+  nova_scotia_duck_tolling_retriever
+  old_english_sheepdog
+  oriental_longhair
+  oriental_shorthair
+  papillon
+  parson_russell_terrier
+  pekingese
+  pembroke_welsh_corgi
+  persian
+  petit_basset_griffon_vendeen
+  pharaoh_hound
+  plott_hound
+  pointer
+  polish_lowland_sheepdog
+  pomeranian
+  poodle
+  portuguese_water_dog
+  pug
+  puli
+  pyrenean_shepherd
+  ragdoll
+  redbone_coonhound
+  rhodesian_ridgeback
+  rottweiler
+  russian_blue
+  saint_bernard
+  saluki
+  samoyed
+  scottish_deerhound
+  scottish_fold
+  scottish_terrier
+  sealyham_terrier
+  selkirk_rex
+  shetland_sheepdog
+  shiba_inu
+  shih_tzu
+  siberian
+  siberian_husky
+  singapura
+  skye_terrier
+  sloughi
+  soft_coated_wheaten_terrier
+  somali
+  sphynx
+  staffordshire_bull_terrier
+  sussex_spaniel
+  swedish_vallhund
+  tibetan_mastiff
+  tibetan_spaniel
+  tibetan_terrier
+  tonkinese
+  toy_fox_terrier
+  treeing_walker_coonhound
+  turkish_angora
+  turkish_van
+  vizsla
+  weimaraner
+  welsh_springer_spaniel
+  welsh_terrier
+  west_highland_white_terrier
+  whippet
+  wirehaired_pointing_griffon
+  xoloitzcuintli
+  yorkshire_terrier
+  others                             @map("others")
 }
 
 enum theme_mode {
-    light
-    dark
-    system
+  light
+  dark
+  system
 }
 
 enum role_type {
-    user
-    admin
-    client
-    veterinarian
+  user
+  admin
+  client
+  veterinarian
 }
 
 enum pet_sex_type {
-    male
-    female
-    prefer_not_to_say @map("prefer not to say")
+  male
+  female
+  prefer_not_to_say @map("prefer not to say")
 }
 
 enum species_type {
-    dog
-    cat
+  dog
+  cat
 }
 
 enum appointment_type {
-    allergy_testing
-    behavioral_consultation
-    cardiology
-    dental_cleaning
-    dermatology
-    emergency
-    euthanasia
-    follow_up
-    grooming
-    hospice_care
-    imaging
-    laboratory_work
-    medication_refill
-    microchipping
-    neurology
-    new_pet_consultation
-    nutrition_consultation
-    oncology
-    ophthalmology
-    orthopedic_evaluation
-    parasite_control
-    physical_therapy
-    senior_pet_care
-    sick_visit
-    spay_neuter
-    surgery
-    vaccination
-    wellness_exam
+  wellness_exam
+  vaccination
+  sick_visit
+  follow_up
+  surgery
+  dental_cleaning
+  emergency
+  laboratory_work
+  imaging
+  grooming
+  physical_therapy
+  behavioral_consultation
+  nutrition_consultation
+  euthanasia
+  new_pet_consultation
+  senior_pet_care
+  parasite_control
+  microchipping
+  medication_refill
+  spay_neuter
+  allergy_testing
+  orthopedic_evaluation
+  ophthalmology
+  dermatology
+  cardiology
+  neurology
+  oncology
+  hospice_care
 }
 
 enum veterinary_specialization {
-    behaviorist
-    cardiologist
-    dentist
-    dermatologist
-    emergency_and_critical_care
-    general_practitioner
-    internal_medicine
-    oncologist
-    ophthalmologist
-    orthopedic
-    surgeon
+  general_practitioner
+  surgeon
+  dermatologist
+  cardiologist
+  orthopedic
+  dentist
+  ophthalmologist
+  oncologist
+  internal_medicine
+  emergency_and_critical_care
+  behaviorist
 }
 
 enum appointment_status {
-    requested
-    confirmed
-    checked_in
-    completed
-    cancelled
-    no_show
+  requested
+  confirmed
+  checked_in
+  completed
+  cancelled
+  no_show
 }
 
 enum notification_type {
-    account_security
-    appointment_cancelled
-    appointment_confirmation
-    appointment_reminder
-    appointment_rescheduled
-    document_shared
-    forum_mention
-    forum_reply
-    health_alert
-    health_checkup_due
-    lab_results_ready
-    medical_record_updated
-    medication_completed
-    medication_refill_needed
-    medication_reminder
-    medication_started
-    message_received
-    pet_birthday
-    system_maintenance
-    vaccine_administered
-    vaccine_due
-    vaccine_overdue
+  account_security
+  appointment_cancelled
+  appointment_confirmation
+  appointment_reminder
+  appointment_rescheduled
+  document_shared
+  forum_mention
+  forum_reply
+  health_alert
+  health_checkup_due
+  lab_results_ready
+  medical_record_updated
+  medication_completed
+  medication_refill_needed
+  medication_reminder
+  medication_started
+  message_received
+  pet_birthday
+  system_maintenance
+  vaccine_administered
+  vaccine_due
+  vaccine_overdue
 }
 
 enum notification_priority {
-    low
-    normal
-    high
-    urgent
+  low
+  normal
+  high
+  urgent
 }
