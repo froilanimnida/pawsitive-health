@@ -33,8 +33,8 @@ import {
     Syringe,
 } from "lucide-react";
 import type { notification_priority } from "@prisma/client";
+import type { UUIDPageParams } from "@/types";
 
-// Helper function to determine icon based on notification type
 function getNotificationIcon(type: string) {
     if (type.includes("appointment")) return Calendar;
     if (type.includes("medication")) return Pill;
@@ -109,9 +109,7 @@ const NotificationDetail = async ({ uuid }: { uuid: string }) => {
     if (!uuid) notFound();
     const notification = await getUserNotification(uuid);
 
-    if (!notification.success || !notification.data) {
-        notFound();
-    }
+    if (!notification.success || !notification.data) notFound();
 
     const notificationData = notification.data;
     const Icon = getNotificationIcon(notificationData.type);
@@ -255,9 +253,7 @@ const NotificationDetail = async ({ uuid }: { uuid: string }) => {
         </div>
     );
 };
-
-// Page component
-export default async function NotificationDetailPage({ params }: { params: Promise<{ uuid: string }> }) {
+export default async function NotificationDetailPage({ params }: UUIDPageParams) {
     const { uuid } = await params;
     return (
         <Suspense fallback={<NotificationSkeleton />}>

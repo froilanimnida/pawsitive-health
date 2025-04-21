@@ -6,53 +6,70 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { AppointmentHealthcareForms } from "@/components/form/appointment-healthcare-forms";
 import AppointmentHistoricalData from "@/components/shared/appointment-historical-data";
 import CurrentAppointmentRecordedService from "@/components/shared/veterinary/session-data";
+import type { UUIDPageParams } from "@/types";
+import { cache } from "react";
 
-export const metadata: Metadata = {
-    title: "View Appointment | PawsitiveHealth",
-    description: "View your pet's appointment details",
-};
+const getAppointmentCached = cache(async (uuid: string) => {
+    const response = await getAppointment(uuid, true);
+    if (!response.success || !response.data?.appointment) {
+        return null;
+    }
+    return response.data.appointment;
+});
 
-const ViewAppointment = async ({ params }: { params: Promise<{ uuid: string }> }) => {
+export async function generateMetadata({ params }: UUIDPageParams): Promise<Metadata> {
     const { uuid } = await params;
-    const appointmentResponse = await getAppointment(uuid, true);
+    const appointment = await getAppointmentCached(uuid);
+    return {
+        title: appointment
+            ? `${appointment.pets?.name} | ${appointment.clinics?.name} | PawsitiveHealth`
+            : "Appointment Details | PawsitiveHealth",
+        description: appointment ? `Details for ${appointment.pets?.name}` : "Appointment details page",
+    };
+}
+
+const ViewAppointment = async ({ params }: UUIDPageParams) => {
+    const { uuid } = await params;
+    const appointmentResponse = await getAppointmentCached(uuid);
+    if (!uuid || !appointmentResponse) notFound();
     const medicationResponse = await getMedicationsList();
-    if (!appointmentResponse.success || !appointmentResponse.data?.appointment) notFound();
-    const { appointment } = appointmentResponse.data;
+    if (!appointmentResponse) notFound();
+    const { status, appointment_uuid, pets, appointment_id } = appointmentResponse;
+
     return (
         <section className="grid grid-cols-1 gap-4 2xl:grid-cols-2">
-            <AppointmentCard appointment={appointment} viewerType="vet" />
-            {(appointmentResponse.data.appointment.status === "checked_in" ||
-                appointmentResponse.data.appointment.status === "confirmed") && (
+            <AppointmentCard appointment={appointmentResponse} viewerType="vet" />
+            {(status === "checked_in" || status === "confirmed") && (
                 <AppointmentHistoricalData
-                    appointmentUuid={appointment.appointment_uuid}
-                    petName={appointment.pets?.name ?? ""}
-                    status={appointmentResponse.data.appointment.status}
-                    key={appointmentResponse.data.appointment.status}
+                    appointmentUuid={appointment_uuid}
+                    petName={pets?.name ?? ""}
+                    status={status}
+                    key={status}
                 />
             )}
-            {appointmentResponse.data.appointment.status === "checked_in" && (
+            {status === "checked_in" && (
                 <Card>
                     <CardHeader>
                         <CardTitle>Record Services</CardTitle>
                         <CardDescription>
-                            Document services provided during this appointment for {appointment.pets?.name}
+                            Document services provided during this appointment for {pets?.name}
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        {appointment.pets && (
+                        {pets && (
                             <AppointmentHealthcareForms
                                 isVetView
                                 medicationList={medicationResponse.success ? medicationResponse.data.medication : []}
-                                petUuid={appointment.pets.pet_uuid}
-                                petId={appointment.pets.pet_id}
-                                appointmentId={appointment.appointment_id}
-                                appointmentUuid={appointment.appointment_uuid}
+                                petUuid={pets.pet_uuid}
+                                petId={pets.pet_id}
+                                appointmentId={appointment_id}
+                                appointmentUuid={appointment_uuid}
                             />
                         )}
                     </CardContent>
                 </Card>
             )}
-            <CurrentAppointmentRecordedService appointmentUuid={appointment.appointment_uuid} />
+            <CurrentAppointmentRecordedService appointmentUuid={appointment_uuid} />
         </section>
     );
 };

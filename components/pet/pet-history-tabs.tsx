@@ -4,8 +4,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PetAppointmentsTable } from "./pet-appointments-table";
 import { PetVaccinationsTable } from "./pet-vaccinations-table";
 import { PetProceduresTable } from "./pet-procedures-table";
-import { PetPrescriptionsTable, type PrescriptionData } from "./pet-prescriptions-table";
+import { PetPrescriptionsTable } from "./pet-prescriptions-table";
 import type { appointments, healthcare_procedures, vaccinations } from "@prisma/client";
+import type { PrescriptionData } from "@/types";
 
 export function PetHistoryTabs({
     appointments,
