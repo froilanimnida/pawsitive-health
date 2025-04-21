@@ -1,5 +1,4 @@
 "use client";
-
 import { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/ui/data-table";
 import { format } from "date-fns";
@@ -19,7 +18,7 @@ export interface PrescriptionData {
         users: {
             first_name: string;
             last_name: string;
-        };
+        } | null;
     } | null;
 }
 
@@ -81,7 +80,9 @@ const columns: ColumnDef<PrescriptionData>[] = [
         header: "Prescribed By",
         cell: ({ row }) => {
             const vet = row.original.veterinarians;
-            return <div>{vet ? `Dr. ${vet.users.first_name} ${vet.users.last_name}` : "Not specified"}</div>;
+            return (
+                <div>{vet && vet.users ? `Dr. ${vet.users.first_name} ${vet.users.last_name}` : "Not specified"}</div>
+            );
         },
     },
 ];
