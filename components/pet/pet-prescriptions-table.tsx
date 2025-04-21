@@ -4,7 +4,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/ui/data-table";
 import { format } from "date-fns";
 
-interface PrescriptionData {
+export interface PrescriptionData {
     prescription_id: number;
     dosage: string;
     frequency: string;

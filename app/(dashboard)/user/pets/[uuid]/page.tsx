@@ -25,6 +25,7 @@ import { VaccinationForm } from "@/components/form/veccination-form";
 import { cache } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { PetHistoryTabs } from "@/components/pet/pet-history-tabs";
+import type { UUIDPageParams } from "@/types";
 
 // Create a cached version of getPet
 const getPetCached = cache(async (uuid: string) => {
@@ -35,8 +36,9 @@ const getPetCached = cache(async (uuid: string) => {
     return response.data.pet;
 });
 
-export async function generateMetadata({ params }: { params: { uuid: string } }): Promise<Metadata> {
-    const pet = await getPetCached(params.uuid);
+export async function generateMetadata({ params }: UUIDPageParams): Promise<Metadata> {
+    const { uuid } = await params;
+    const pet = await getPetCached(uuid);
 
     return {
         title: pet
@@ -46,8 +48,8 @@ export async function generateMetadata({ params }: { params: { uuid: string } })
     };
 }
 
-export default async function PetDetails({ params }: { params: { uuid: string } }) {
-    const uuid = params.uuid;
+const PetDetails = async ({ params }: UUIDPageParams) => {
+    const { uuid } = await params;
 
     if (!uuid) notFound();
 
@@ -63,10 +65,13 @@ export default async function PetDetails({ params }: { params: { uuid: string } 
     const proceduresResponse = await getPetProcedures(pet_id);
     const prescriptionsResponse = await getPetPrescriptions(pet_id);
 
-    const appointments = appointmentsResponse.success ? appointmentsResponse.data.appointments : [];
-    const vaccinations = vaccinationsResponse.success ? vaccinationsResponse.data.vaccinations : [];
-    const procedures = proceduresResponse.success ? proceduresResponse.data.procedures : [];
-    const prescriptions = prescriptionsResponse.success ? prescriptionsResponse.data.prescriptions : [];
+    const appointments =
+        appointmentsResponse.success && appointmentsResponse.data ? appointmentsResponse.data.appointments : [];
+    const vaccinations =
+        vaccinationsResponse.success && vaccinationsResponse.data ? vaccinationsResponse.data.vaccinations : [];
+    const procedures = proceduresResponse.success && proceduresResponse.data ? proceduresResponse.data.procedures : [];
+    const prescriptions =
+        prescriptionsResponse.success && prescriptionsResponse.data ? prescriptionsResponse.data.prescriptions : [];
 
     return (
         <div className="container mx-auto p-6 space-y-6">
@@ -160,4 +165,6 @@ export default async function PetDetails({ params }: { params: { uuid: string } 
             </Card>
         </div>
     );
-}
+};
+
+export default PetDetails;
