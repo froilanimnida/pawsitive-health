@@ -5,16 +5,16 @@ import { prisma } from "@/lib";
 import { ActionResponse } from "@/types/server-action-response";
 import type { user_settings } from "@prisma/client";
 
-const changeTheme = async (values: ThemeType): Promise<ActionResponse<{ updated_at: Date }>> => {
+const changeTheme = async (values: ThemeType): Promise<ActionResponse<{ success: boolean }>> => {
     try {
         const formData = ThemeSchema.safeParse(values);
         if (!formData.success) return { success: false, error: "Invalid input data" };
-        const result = await prisma.user_settings.update({
+        await prisma.user_settings.update({
             where: { user_id: Number(formData.data.user_id) },
             data: { theme_mode: formData.data.theme_mode },
         });
 
-        return { success: true, data: { updated_at: result.updated_at } };
+        return { success: true, data: { success: true } };
     } catch (error) {
         return {
             success: false,

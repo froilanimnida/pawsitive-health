@@ -1,6 +1,5 @@
 "use client";
-import { HealthMonitoringSchema, HealthMonitoringType } from "@/schemas";
-import { type TextFormField } from "@/types/forms/text-form-field";
+import { HealthMonitoringSchema, type HealthMonitoringType } from "@/schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -14,59 +13,35 @@ import {
     FormLabel,
     FormMessage,
     Input,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+    Textarea,
 } from "@/components/ui";
 import { toast } from "sonner";
+import { addHealthMonitoringRecord } from "@/actions";
 
-export const HealthMonitoringForm = () => {
+interface HealthMonitoringFormProps {
+    petId: number;
+    petUuid: string;
+    onSuccess?: () => void;
+    onCancel?: () => void;
+}
+
+export const HealthMonitoringForm = ({ petId, petUuid, onSuccess, onCancel }: HealthMonitoringFormProps) => {
     const [isLoading, setIsLoading] = useState(false);
-    const healthMonitoringFields: TextFormField[] = [
-        {
-            label: "Activity Level",
-            placeholder: "Enter activity level",
-            name: "activity_level",
-            description: "The activity level of the pet.",
-            required: true,
-            autoComplete: "activity_level",
-            type: "text",
-        },
-        {
-            label: "Weight (kg)",
-            placeholder: "Enter weight in kg",
-            name: "weight_kg",
-            description: "The weight of the pet in kilograms.",
-            required: true,
-            autoComplete: "weight_kg",
-            type: "number",
-        },
-        {
-            label: "Temperature (°C)",
-            placeholder: "Enter temperature in Celsius",
-            name: "temperature_celsius",
-            description: "The temperature of the pet in Celsius.",
-            required: true,
-            autoComplete: "temperature_celsius",
-            type: "number",
-        },
-        {
-            label: "Symptoms",
-            placeholder: "Enter symptoms",
-            name: "symptoms",
-            description: "Any symptoms observed in the pet.",
-            required: true,
-            autoComplete: "symptoms",
-            type: "text",
-        },
-        {
-            label: "Notes",
-            placeholder: "Enter additional notes",
-            name: "notes",
-            description: "Any additional notes or comments.",
-            required: false,
-            autoComplete: "notes",
-            type: "text",
-        },
+
+    const activityLevelOptions = [
+        { value: "very_low", label: "Very Low" },
+        { value: "low", label: "Low" },
+        { value: "normal", label: "Normal" },
+        { value: "high", label: "High" },
+        { value: "very_high", label: "Very High" },
     ];
-    const healthMonitoringForm = useForm({
+
+    const form = useForm<HealthMonitoringType>({
         defaultValues: {
             activity_level: "",
             weight_kg: 0,
@@ -76,55 +51,156 @@ export const HealthMonitoringForm = () => {
         },
         resolver: zodResolver(HealthMonitoringSchema),
     });
-    const { handleSubmit, control } = healthMonitoringForm;
+
     const onSubmit = async (data: HealthMonitoringType) => {
-        console.log(data);
         setIsLoading(true);
         try {
+            const result = await addHealthMonitoringRecord({
+                ...data,
+                pet_id: petId,
+                pet_uuid: petUuid,
+            });
+
+            if (result && !result.success) {
+                toast.error(result.error || "Failed to save health monitoring data");
+                setIsLoading(false);
+                return;
+            }
+
             toast.success("Health monitoring data saved successfully");
-        } catch {
+            form.reset();
+            if (onSuccess) onSuccess();
+        } catch (error) {
             toast.error("Failed to save health monitoring data");
         } finally {
             setIsLoading(false);
         }
     };
+
     return (
-        <Form {...healthMonitoringForm}>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                {healthMonitoringFields.map((healthMonitoringField) => (
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                    control={form.control}
+                    name="activity_level"
+                    render={({ field, fieldState }) => (
+                        <FormItem>
+                            <FormLabel>Activity Level</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoading}>
+                                <FormControl>
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Select activity level" />
+                                    </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    {activityLevelOptions.map((option) => (
+                                        <SelectItem key={option.value} value={option.value}>
+                                            {option.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <FormDescription>The current activity level of your pet</FormDescription>
+                            <FormMessage className="text-red-500">{fieldState.error?.message}</FormMessage>
+                        </FormItem>
+                    )}
+                />
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
-                        key={healthMonitoringField.name}
-                        control={control}
-                        name={
-                            healthMonitoringField.name as
-                                | "weight_kg"
-                                | "temperature_celsius"
-                                | "activity_level"
-                                | "symptoms"
-                                | "notes"
-                        }
+                        control={form.control}
+                        name="weight_kg"
                         render={({ field, fieldState }) => (
                             <FormItem>
-                                <FormLabel>{healthMonitoringField.label}</FormLabel>
+                                <FormLabel>Weight (kg)</FormLabel>
                                 <FormControl>
                                     <Input
+                                        type="number"
+                                        step="0.01"
+                                        placeholder="Enter weight in kg"
                                         {...field}
-                                        type={healthMonitoringField.type}
-                                        placeholder={healthMonitoringField.placeholder}
-                                        autoComplete={healthMonitoringField.autoComplete}
-                                        required={healthMonitoringField.required}
+                                        onChange={(e) => field.onChange(parseFloat(e.target.value))}
                                         disabled={isLoading}
                                     />
                                 </FormControl>
-                                <FormDescription>{healthMonitoringField.description}</FormDescription>
+                                <FormDescription>The weight of your pet in kilograms</FormDescription>
                                 <FormMessage className="text-red-500">{fieldState.error?.message}</FormMessage>
                             </FormItem>
                         )}
                     />
-                ))}
-                <Button type="submit" disabled={isLoading} className="w-full">
-                    {isLoading ? "Saving..." : "Save"}
-                </Button>
+
+                    <FormField
+                        control={form.control}
+                        name="temperature_celsius"
+                        render={({ field, fieldState }) => (
+                            <FormItem>
+                                <FormLabel>Temperature (°C)</FormLabel>
+                                <FormControl>
+                                    <Input
+                                        type="number"
+                                        step="0.1"
+                                        placeholder="Enter temperature in Celsius"
+                                        {...field}
+                                        onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                                        disabled={isLoading}
+                                    />
+                                </FormControl>
+                                <FormDescription>The temperature of your pet in Celsius</FormDescription>
+                                <FormMessage className="text-red-500">{fieldState.error?.message}</FormMessage>
+                            </FormItem>
+                        )}
+                    />
+                </div>
+
+                <FormField
+                    control={form.control}
+                    name="symptoms"
+                    render={({ field, fieldState }) => (
+                        <FormItem>
+                            <FormLabel>Symptoms</FormLabel>
+                            <FormControl>
+                                <Textarea
+                                    placeholder="Describe any symptoms or changes in behavior"
+                                    className="min-h-[80px]"
+                                    {...field}
+                                    disabled={isLoading}
+                                />
+                            </FormControl>
+                            <FormDescription>Any symptoms or changes in behavior you've observed</FormDescription>
+                            <FormMessage className="text-red-500">{fieldState.error?.message}</FormMessage>
+                        </FormItem>
+                    )}
+                />
+
+                <FormField
+                    control={form.control}
+                    name="notes"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Additional Notes (Optional)</FormLabel>
+                            <FormControl>
+                                <Textarea
+                                    placeholder="Any additional notes or observations"
+                                    className="min-h-[80px]"
+                                    {...field}
+                                    disabled={isLoading}
+                                />
+                            </FormControl>
+                            <FormDescription>Any other relevant information about your pet's health</FormDescription>
+                        </FormItem>
+                    )}
+                />
+
+                <div className="flex justify-end gap-2 pt-2">
+                    {onCancel && (
+                        <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
+                            Cancel
+                        </Button>
+                    )}
+                    <Button type="submit" disabled={isLoading}>
+                        {isLoading ? "Saving..." : "Save Health Record"}
+                    </Button>
+                </div>
             </form>
         </Form>
     );

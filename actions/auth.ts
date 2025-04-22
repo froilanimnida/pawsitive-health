@@ -1,12 +1,19 @@
 "use server";
 import { createNewPreferenceDefault, sendEmail } from "@/actions";
-import { LoginType, SignUpSchema, NewClinicAccountSchema, type SignUpType, type NewClinicAccountType } from "@/schemas";
+import {
+    type LoginType,
+    SignUpSchema,
+    NewClinicAccountSchema,
+    type SignUpType,
+    type NewClinicAccountType,
+} from "@/schemas";
 import { OtpVerificationEmail, ClinicOnboardingEmail, UserOnboardingEmail } from "@/templates";
 import { hashPassword, verifyPassword, prisma, generateOtp, generateVerificationToken, toTitleCase } from "@/lib";
 import { role_type, type users } from "@prisma/client";
 import { signOut } from "next-auth/react";
 import type { ActionResponse } from "@/types/server-action-response";
 import jwt from "jsonwebtoken";
+import { redirect } from "next/navigation";
 
 const isEmailTaken = async (email: string): Promise<boolean> => {
     const user = await prisma.users.findFirst({
@@ -15,7 +22,7 @@ const isEmailTaken = async (email: string): Promise<boolean> => {
     return user !== null;
 };
 
-const createAccount = async (values: SignUpType): Promise<ActionResponse<{ user_uuid: string }>> => {
+const createAccount = async (values: SignUpType): Promise<ActionResponse | void> => {
     try {
         const formData = SignUpSchema.safeParse(values);
         if (!formData.success) return { success: false, error: "Invalid input" };
@@ -59,7 +66,7 @@ const createAccount = async (values: SignUpType): Promise<ActionResponse<{ user_
             },
         );
         await createNewPreferenceDefault(result.user_id);
-        return { success: true, data: { user_uuid: result.user_uuid } };
+        redirect("/signin");
     } catch (error) {
         return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
     }
@@ -67,7 +74,7 @@ const createAccount = async (values: SignUpType): Promise<ActionResponse<{ user_
 
 const verifyEmail = async (token: string): Promise<ActionResponse<{ verified: boolean }>> => {
     try {
-        const decoded = jwt.verify(token, process.env.EMAIL_VERIFICATION_SECRET || "fallback-secret-key") as {
+        const decoded = jwt.verify(token, process.env.EMAIL_VERIFICATION_SECRET as string) as {
             email: string;
         };
 

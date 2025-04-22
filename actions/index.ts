@@ -30,7 +30,7 @@ export { getUserId, updateCalendarIntegration, updateUserProfile } from "./user"
 export { getVeterinaryAvailability } from "./veterinarian-availability";
 export { createVaccination, getPetVaccinations, deleteVaccination, getVaccination } from "./vaccination";
 //export {} from "./medical-records";
-//export {} from "./health-monitoring";
+export { addHealthMonitoringRecord, getPetHealthMonitoring, deleteHealthMonitoringRecord } from "./health-monitoring";
 export {
     addHealthcareProcedure,
     getHealthcareProcedure,
