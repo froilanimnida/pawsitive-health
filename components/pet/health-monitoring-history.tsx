@@ -6,11 +6,13 @@ import { Activity, BarChart2, ThermometerIcon, Weight, Trash2 } from "lucide-rea
 import { useState } from "react";
 import { deleteHealthMonitoringRecord } from "@/actions";
 import { toast } from "sonner";
+import type { Decimal } from "@prisma/client/runtime/library";
+import { formatDecimal } from "@/lib";
 
 type HealthMonitoringRecord = {
     monitoring_id: number;
     activity_level: string;
-    weight_kg: number | string;
+    weight_kg: Decimal;
     temperature_celsius: number | string;
     symptoms: string;
     notes?: string;
@@ -110,7 +112,7 @@ export function HealthMonitoringHistory({ healthRecords, petUuid, onDelete }: He
                                 <Weight className="h-5 w-5 text-blue-500" />
                                 <div>
                                     <p className="text-sm font-medium">Weight</p>
-                                    <p className="text-sm">{record.weight_kg} kg</p>
+                                    <p className="text-sm">{formatDecimal(record.weight_kg)} kg</p>
                                 </div>
                             </div>
 
