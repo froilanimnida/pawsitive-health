@@ -70,7 +70,7 @@ export const HealthMonitoringForm = ({ petId, petUuid, onSuccess, onCancel }: He
             toast.success("Health monitoring data saved successfully");
             form.reset();
             if (onSuccess) onSuccess();
-        } catch (error) {
+        } catch {
             toast.error("Failed to save health monitoring data");
         } finally {
             setIsLoading(false);
@@ -166,7 +166,7 @@ export const HealthMonitoringForm = ({ petId, petUuid, onSuccess, onCancel }: He
                                     disabled={isLoading}
                                 />
                             </FormControl>
-                            <FormDescription>Any symptoms or changes in behavior you've observed</FormDescription>
+                            <FormDescription>Any symptoms or changes in behavior you&apos;ve observed</FormDescription>
                             <FormMessage className="text-red-500">{fieldState.error?.message}</FormMessage>
                         </FormItem>
                     )}
@@ -186,7 +186,9 @@ export const HealthMonitoringForm = ({ petId, petUuid, onSuccess, onCancel }: He
                                     disabled={isLoading}
                                 />
                             </FormControl>
-                            <FormDescription>Any other relevant information about your pet's health</FormDescription>
+                            <FormDescription>
+                                Any other relevant information about your pet&apos;s health
+                            </FormDescription>
                         </FormItem>
                     )}
                 />

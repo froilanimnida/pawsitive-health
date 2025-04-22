@@ -72,7 +72,7 @@ export default function AppointmentConfirmation({
 const styles = {
     body: {
         backgroundColor: "#f6f9fc",
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;',
     },
     container: {
         margin: "0 auto",

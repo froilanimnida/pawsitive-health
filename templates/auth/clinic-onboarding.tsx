@@ -45,7 +45,7 @@ export default function ClinicOnboardingEmail({
                         <Hr style={styles.divider} />
 
                         <Section style={styles.infoSection}>
-                            <Text style={styles.infoHeading}>What's Next?</Text>
+                            <Text style={styles.infoHeading}>What&apos;s Next?</Text>
                             <Text>After verification, you can:</Text>
                             <ul style={styles.list}>
                                 <li>Complete your clinic profile</li>
@@ -62,7 +62,7 @@ export default function ClinicOnboardingEmail({
                         </Text>
 
                         <Text>
-                            If you're having trouble clicking the button, copy and paste the URL below into your web
+                            If you&apos;re having trouble clicking the button, copy and paste the URL below into your web
                             browser:
                         </Text>
                         <Text style={styles.link}>{verificationUrl}</Text>

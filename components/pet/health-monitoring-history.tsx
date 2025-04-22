@@ -60,7 +60,7 @@ export function HealthMonitoringHistory({ healthRecords, petUuid, onDelete }: He
             }
             toast.success("Health record deleted successfully");
             if (onDelete) onDelete();
-        } catch (error) {
+        } catch {
             toast.error("Failed to delete health record");
         } finally {
             setIsDeleting(null);
