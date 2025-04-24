@@ -1,6 +1,6 @@
 "use client";
 import MaxWidthContainer from "@/components/shared/layout/max-width-container";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui";
 import ClientSignUpForm from "@/components/form/clinic-form";
 
 function ClientSignUp() {
