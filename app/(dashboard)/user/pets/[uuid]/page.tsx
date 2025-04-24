@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getPet } from "@/actions";
 import { getPetAppointments, getPetPrescriptions, getPetProcedures, getPetVaccinations } from "@/actions/pet-history";
+import { getPetHealthMonitoring } from "@/actions/health-monitoring";
 import type { Metadata } from "next";
 import {
     Card,
@@ -16,6 +17,10 @@ import {
     DialogTitle,
     DialogTrigger,
     DialogHeader,
+    Tabs,
+    TabsContent,
+    TabsList,
+    TabsTrigger,
 } from "@/components/ui";
 import Link from "next/link";
 import { toTitleCase } from "@/lib";
@@ -25,6 +30,9 @@ import { VaccinationForm } from "@/components/form/veccination-form";
 import { cache } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { PetHistoryTabs } from "@/components/pet/pet-history-tabs";
+import { HealthMonitoringDialog } from "@/components/pet/health-monitoring-dialog";
+import { HealthMonitoringHistory } from "@/components/pet/health-monitoring-history";
+import type { UUIDPageParams } from "@/types";
 
 // Create a cached version of getPet
 const getPetCached = cache(async (uuid: string) => {
@@ -35,8 +43,9 @@ const getPetCached = cache(async (uuid: string) => {
     return response.data.pet;
 });
 
-export async function generateMetadata({ params }: { params: { uuid: string } }): Promise<Metadata> {
-    const pet = await getPetCached(params.uuid);
+export async function generateMetadata({ params }: UUIDPageParams): Promise<Metadata> {
+    const { uuid } = await params;
+    const pet = await getPetCached(uuid);
 
     return {
         title: pet
@@ -46,8 +55,8 @@ export async function generateMetadata({ params }: { params: { uuid: string } })
     };
 }
 
-export default async function PetDetails({ params }: { params: { uuid: string } }) {
-    const uuid = params.uuid;
+const PetDetails = async ({ params }: UUIDPageParams) => {
+    const { uuid } = await params;
 
     if (!uuid) notFound();
 
@@ -62,11 +71,19 @@ export default async function PetDetails({ params }: { params: { uuid: string } 
     const vaccinationsResponse = await getPetVaccinations(pet_id);
     const proceduresResponse = await getPetProcedures(pet_id);
     const prescriptionsResponse = await getPetPrescriptions(pet_id);
+    const healthMonitoringResponse = await getPetHealthMonitoring(pet_id);
 
-    const appointments = appointmentsResponse.success ? appointmentsResponse.data.appointments : [];
-    const vaccinations = vaccinationsResponse.success ? vaccinationsResponse.data.vaccinations : [];
-    const procedures = proceduresResponse.success ? proceduresResponse.data.procedures : [];
-    const prescriptions = prescriptionsResponse.success ? prescriptionsResponse.data.prescriptions : [];
+    const appointments =
+        appointmentsResponse.success && appointmentsResponse.data ? appointmentsResponse.data.appointments : [];
+    const vaccinations =
+        vaccinationsResponse.success && vaccinationsResponse.data ? vaccinationsResponse.data.vaccinations : [];
+    const procedures = proceduresResponse.success && proceduresResponse.data ? proceduresResponse.data.procedures : [];
+    const prescriptions =
+        prescriptionsResponse.success && prescriptionsResponse.data ? prescriptionsResponse.data.prescriptions : [];
+    const healthMonitoring =
+        healthMonitoringResponse.success && healthMonitoringResponse.data
+            ? healthMonitoringResponse.data.healthMonitoring
+            : [];
 
     return (
         <div className="container mx-auto p-6 space-y-6">
@@ -138,26 +155,53 @@ export default async function PetDetails({ params }: { params: { uuid: string } 
                         </DialogContent>
                     </Dialog>
 
+                    <HealthMonitoringDialog petId={pet_id} petUuid={pet_uuid} petName={name} />
+
                     <Button asChild variant="default">
                         <Link href={`/user/appointments/${pet_uuid}`}>Schedule Appointment</Link>
                     </Button>
                 </CardFooter>
             </Card>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle className="text-xl">Pet History</CardTitle>
-                    <CardDescription>View all health records, appointments, and medical history</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <PetHistoryTabs
-                        appointments={appointments}
-                        vaccinations={vaccinations}
-                        procedures={procedures}
-                        prescriptions={prescriptions}
-                    />
-                </CardContent>
-            </Card>
+            <Tabs defaultValue="history" className="w-full">
+                <TabsList className="mb-4">
+                    <TabsTrigger value="history">Medical History</TabsTrigger>
+                    <TabsTrigger value="monitoring">Health Monitoring</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="history">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-xl">Pet History</CardTitle>
+                            <CardDescription>
+                                View all health records, appointments, and medical history
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <PetHistoryTabs
+                                appointments={appointments}
+                                vaccinations={vaccinations}
+                                procedures={procedures}
+                                prescriptions={prescriptions}
+                            />
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+
+                <TabsContent value="monitoring">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-xl">Health Monitoring</CardTitle>
+                            <CardDescription>Track your pet&apos;s health metrics over time</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <HealthMonitoringHistory healthRecords={healthMonitoring} petUuid={pet_uuid} />
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+            </Tabs>
         </div>
     );
-}
+};
+
+export default PetDetails;

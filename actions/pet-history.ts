@@ -94,8 +94,13 @@ export async function getPetPrescriptions(petId: number) {
             include: {
                 medications: true,
                 veterinarians: {
-                    include: {
-                        users: true,
+                    select: {
+                        users: {
+                            select: {
+                                first_name: true,
+                                last_name: true,
+                            },
+                        },
                     },
                 },
             },

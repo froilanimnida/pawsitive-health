@@ -3,7 +3,7 @@ import { notification_type, notification_priority } from "@prisma/client";
 /**
  * Type for notification relationships with nested entities
  */
-export type NotificationWithRelations = {
+type NotificationWithRelations = {
     notification_id: number;
     notification_uuid: string;
     user_id: number | null;
@@ -36,7 +36,7 @@ export type NotificationWithRelations = {
 /**
  * Type for notification list results with pagination
  */
-export interface NotificationsResult {
+interface NotificationsResult {
     notifications: NotificationWithRelations[];
     totalCount: number;
     hasMore: boolean;
@@ -45,7 +45,7 @@ export interface NotificationsResult {
 /**
  * Props for creating a new notification
  */
-export interface CreateNotificationProps {
+interface CreateNotificationProps {
     userId: number;
     title: string;
     content: string;
@@ -61,7 +61,7 @@ export interface CreateNotificationProps {
 /**
  * Type for notification filter parameters
  */
-export interface NotificationFilters {
+interface NotificationFilters {
     page?: number;
     pageSize?: number;
     type?: notification_type;
@@ -72,16 +72,29 @@ export interface NotificationFilters {
 /**
  * Props for the notification card component
  */
-export interface NotificationCardProps {
+interface NotificationCardProps {
     notification: NotificationWithRelations;
     onRead?: (uuid: string) => void;
     onDelete?: (uuid: string) => void;
 }
 
+interface CreateNotificationProps {
+    userId: number;
+    title: string;
+    content: string;
+    type: notification_type;
+    petId?: number;
+    appointmentId?: number;
+    forumPostId?: number;
+    expiresAt?: Date;
+    actionUrl?: string;
+    priority?: notification_priority;
+}
+
 /**
  * Group notification types by category
  */
-export const notificationTypeGroups: Record<string, notification_type[]> = {
+const notificationTypeGroups: Record<string, notification_type[]> = {
     Appointments: [
         "appointment_reminder",
         "appointment_confirmation",
@@ -93,4 +106,13 @@ export const notificationTypeGroups: Record<string, notification_type[]> = {
     Health: ["health_alert", "health_checkup_due", "lab_results_ready", "medical_record_updated"],
     Social: ["pet_birthday", "forum_reply", "forum_mention", "message_received", "document_shared"],
     System: ["account_security", "system_maintenance"],
+};
+
+export {
+    type NotificationWithRelations,
+    type NotificationsResult,
+    type CreateNotificationProps,
+    type NotificationFilters,
+    type NotificationCardProps,
+    notificationTypeGroups,
 };

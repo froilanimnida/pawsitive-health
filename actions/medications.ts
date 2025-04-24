@@ -3,6 +3,7 @@ import { prisma } from "@/lib";
 import { type MedicineType } from "@/schemas";
 import type { ActionResponse } from "@/types/server-action-response";
 import type { medications } from "@prisma/client";
+import { revalidatePath } from "next/cache";
 
 const getMedicationsList = async (): Promise<ActionResponse<{ medication: medications[] }>> => {
     try {
@@ -16,7 +17,7 @@ const getMedicationsList = async (): Promise<ActionResponse<{ medication: medica
     }
 };
 
-const createMedication = async (values: MedicineType): Promise<ActionResponse<{ medication_uuid: string }>> => {
+const createMedication = async (values: MedicineType): Promise<ActionResponse | void> => {
     try {
         const medications = await prisma.medications.create({
             data: {
@@ -28,7 +29,7 @@ const createMedication = async (values: MedicineType): Promise<ActionResponse<{ 
         });
         if (!medications || !medications.medication_uuid)
             return { success: false, error: "Failed adding new medicine" };
-        return { success: true, data: { medication_uuid: medications.medication_uuid } };
+        revalidatePath(`/admin/medications`);
     } catch (error) {
         return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
     }

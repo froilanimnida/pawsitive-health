@@ -1,4 +1,4 @@
-import { type appointment_type, type appointment_status } from "@prisma/client";
+import { type appointment_type, type appointment_status, type Prisma } from "@prisma/client";
 import type { Decimal } from "@prisma/client/runtime/library";
 
 type GetUserAppointmentsResponse = {
@@ -57,4 +57,66 @@ type AppointmentDetailsResponse = {
     } | null;
 };
 
-export type { GetUserAppointmentsResponse, AppointmentDetailsResponse };
+interface GetExistingAppointmentsType {
+    appointments: {
+        appointment_date: Date;
+        duration_minutes: number;
+        appointment_uuid: string;
+        status: string;
+    }[];
+}
+
+type GetVeterinarianAppointmentsType = Prisma.appointmentsGetPayload<{
+    include: {
+        pets: {
+            include: {
+                users: true;
+            };
+        };
+        veterinarians: {
+            include: {
+                users: true;
+            };
+        };
+    };
+}>;
+
+type VetAppointmentWithRelations = Prisma.appointmentsGetPayload<{
+    include: {
+        pets: {
+            include: {
+                users: true;
+            };
+        };
+        veterinarians: {
+            include: {
+                users: true;
+            };
+        };
+    };
+}>;
+
+type AppointmentWithRelations = Prisma.appointmentsGetPayload<{
+    include: {
+        pets: {
+            include: {
+                users: true;
+            };
+        };
+        veterinarians: {
+            include: {
+                users: true;
+            };
+        };
+        clinics: true;
+    };
+}>;
+
+export type {
+    GetUserAppointmentsResponse,
+    AppointmentDetailsResponse,
+    GetExistingAppointmentsType,
+    GetVeterinarianAppointmentsType,
+    VetAppointmentWithRelations,
+    AppointmentWithRelations,
+};

@@ -6,15 +6,19 @@ import { PetVaccinationsTable } from "./pet-vaccinations-table";
 import { PetProceduresTable } from "./pet-procedures-table";
 import { PetPrescriptionsTable } from "./pet-prescriptions-table";
 import type { appointments, healthcare_procedures, vaccinations } from "@prisma/client";
+import type { PrescriptionData } from "@/types";
 
-interface PetHistoryTabsProps {
+export function PetHistoryTabs({
+    appointments,
+    vaccinations,
+    procedures,
+    prescriptions,
+}: {
     appointments: appointments[];
     vaccinations: vaccinations[];
     procedures: healthcare_procedures[];
-    prescriptions: unknown[];
-}
-
-export function PetHistoryTabs({ appointments, vaccinations, procedures, prescriptions }: PetHistoryTabsProps) {
+    prescriptions: PrescriptionData[];
+}) {
     const appointmentCount = appointments.length;
     const vaccinationCount = vaccinations.length;
     const procedureCount = procedures.length;

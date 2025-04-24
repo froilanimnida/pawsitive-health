@@ -18,7 +18,7 @@ import { type Metadata } from "next";
 import { getVeterinarianAppointments } from "@/actions";
 import Link from "next/link";
 import { cn, toTitleCase } from "@/lib";
-import type { VetAppointmentWithRelations } from "@/actions/appointment";
+import type { VetAppointmentWithRelations } from "@/types";
 
 export const metadata: Metadata = {
     title: "PawsitiveHealth | Veterinary Appointments",
