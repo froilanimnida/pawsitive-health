@@ -20,7 +20,7 @@ export function AppointmentForm({
     };
 }) {
     const {
-        form,
+        appointmentForm,
         selectedDate,
         selectedClinicId,
         selectedVetId,
@@ -32,7 +32,10 @@ export function AppointmentForm({
         handleClinicChange,
         handleDateSelect,
         handleVetChange,
-        loading,
+        isLoading,
+        isSubmitting,
+        control,
+        watch,
     } = useAppointmentForm(params.uuid);
 
     const textFields = getAppointmentFields();
@@ -41,34 +44,34 @@ export function AppointmentForm({
         isLoadingVets,
         handleClinicChange,
         handleVetChange,
-        form: form,
+        form: appointmentForm,
     });
 
     return (
-        <Form {...form}>
+        <Form {...appointmentForm}>
             <form onSubmit={onSubmit} className="space-y-8">
                 <SelectFields
                     fields={selectFields}
-                    control={form.control}
+                    control={control}
                     selectedClinicId={selectedClinicId}
                     isLoadingVets={isLoadingVets}
                 />
-                <TextFields fields={textFields} control={form.control} />
-                <DateSelector control={form.control} onSelect={handleDateSelect} />
+                <TextFields fields={textFields} control={control} />
+                <DateSelector control={control} onSelect={handleDateSelect} />
                 <TimeSelector
-                    control={form.control}
+                    control={control}
                     selectedDate={selectedDate}
                     selectedVetId={selectedVetId}
                     timeSlots={timeSlots}
                     isLoadingTimeSlots={isLoadingTimeSlots}
                 />
 
-                {selectedDate && form.watch("appointment_time") && (
+                {selectedDate && watch("appointment_time") && (
                     <AppointmentSummary
                         selectedDate={selectedDate}
-                        selectedTime={form.watch("appointment_time")}
+                        selectedTime={watch("appointment_time")}
                         selectedVetName={veterinarians.find((v) => v.value === selectedVetId)?.label}
-                        selectedPetName={params.pets.find((p) => p.pet_uuid === form.watch("pet_uuid"))?.name}
+                        selectedPetName={params.pets.find((p) => p.pet_uuid === watch("pet_uuid"))?.name}
                         selectedClinicName={params.clinics.find((c) => String(c.clinic_id) === selectedClinicId)?.name}
                         selectedClinicAddress={`${params.clinics.find((c) => String(c.clinic_id) === selectedClinicId)?.address}, ${
                             params.clinics.find((c) => String(c.clinic_id) === selectedClinicId)?.city
@@ -77,7 +80,7 @@ export function AppointmentForm({
                         }`}
                     />
                 )}
-                <Button disabled={loading} type="submit">
+                <Button disabled={isSubmitting || isLoading} type="submit">
                     Add Appointment
                 </Button>
             </form>

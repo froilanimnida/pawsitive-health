@@ -5,5 +5,6 @@ export type {
     GetUserAppointmentsResponse,
     GetExistingAppointmentsType,
     GetVeterinarianAppointmentsType,
+    VetAppointmentWithRelations,
 } from "./actions/appointments";
 export type { EmailOptions, EmailTemplate } from "./email-types";
