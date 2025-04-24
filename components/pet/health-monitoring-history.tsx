@@ -13,10 +13,10 @@ type HealthMonitoringRecord = {
     monitoring_id: number;
     activity_level: string;
     weight_kg: Decimal;
-    temperature_celsius: number | string;
+    temperature_celsius: Decimal;
     symptoms: string;
-    notes?: string;
-    recorded_at: Date | string;
+    notes?: string | null;
+    recorded_at: Date;
 };
 
 interface HealthMonitoringHistoryProps {
@@ -120,7 +120,7 @@ export function HealthMonitoringHistory({ healthRecords, petUuid, onDelete }: He
                                 <ThermometerIcon className="h-5 w-5 text-red-500" />
                                 <div>
                                     <p className="text-sm font-medium">Temperature</p>
-                                    <p className="text-sm">{record.temperature_celsius} °C</p>
+                                    <p className="text-sm">{formatDecimal(record.temperature_celsius)} °C</p>
                                 </div>
                             </div>
                         </div>

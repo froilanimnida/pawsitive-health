@@ -97,16 +97,16 @@ model forum_posts {
 }
 
 model health_monitoring {
-    monitoring_id       Int       @id @default(autoincrement())
-    monitoring_uuid     String    @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+    monitoring_id       Int      @id @default(autoincrement())
+    monitoring_uuid     String   @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
     pet_id              Int?
-    activity_level      String    @db.VarChar(20)
-    weight_kg           Decimal   @db.Decimal(5, 2)
-    temperature_celsius Decimal   @db.Decimal(4, 2)
+    activity_level      String   @db.VarChar(20)
+    weight_kg           Decimal  @db.Decimal(5, 2)
+    temperature_celsius Decimal  @db.Decimal(4, 2)
     symptoms            String
     notes               String?
-    recorded_at         DateTime? @default(now()) @db.Timestamptz(6)
-    pets                pets?     @relation(fields: [pet_id], references: [pet_id], onDelete: NoAction, onUpdate: NoAction)
+    recorded_at         DateTime @default(now()) @db.Timestamptz(6)
+    pets                pets?    @relation(fields: [pet_id], references: [pet_id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model medical_records {
