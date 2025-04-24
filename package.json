@@ -9,7 +9,7 @@
         "prisma": "prisma",
         "migrate": "prisma migrate dev",
         "lint": "next lint",
-        "postinstall": "prisma generate",
+        "postinstall": "npx prisma generate",
         "format": "prettier --write .",
         "format:check": "prettier --check .",
         "test": "jest --passWithNoTests --detectOpenHandles --forceExit",
