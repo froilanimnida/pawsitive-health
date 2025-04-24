@@ -96,10 +96,27 @@ type VetAppointmentWithRelations = Prisma.appointmentsGetPayload<{
     };
 }>;
 
+type AppointmentWithRelations = Prisma.appointmentsGetPayload<{
+    include: {
+        pets: {
+            include: {
+                users: true;
+            };
+        };
+        veterinarians: {
+            include: {
+                users: true;
+            };
+        };
+        clinics: true;
+    };
+}>;
+
 export type {
     GetUserAppointmentsResponse,
     AppointmentDetailsResponse,
     GetExistingAppointmentsType,
     GetVeterinarianAppointmentsType,
     VetAppointmentWithRelations,
+    AppointmentWithRelations,
 };

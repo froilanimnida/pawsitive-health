@@ -9,23 +9,24 @@ import {
     DialogTrigger,
     Button,
 } from "@/components/ui";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { HealthMonitoringForm } from "../form/health-monitoring-form";
 import { Activity } from "lucide-react";
 
-interface HealthMonitoringDialogProps {
+export const HealthMonitoringDialog = ({
+    petId,
+    petUuid,
+    petName,
+    triggerButton,
+}: {
     petId: number;
     petUuid: string;
     petName: string;
-    triggerButton?: React.ReactNode;
-}
-
-export const HealthMonitoringDialog = ({ petId, petUuid, petName, triggerButton }: HealthMonitoringDialogProps) => {
+    triggerButton?: ReactNode;
+}) => {
     const [open, setOpen] = useState(false);
 
-    const handleSuccess = () => {
-        setOpen(false);
-    };
+    const handleSuccess = () => setOpen(false);
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>

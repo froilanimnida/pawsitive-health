@@ -6,5 +6,24 @@ export type {
     GetExistingAppointmentsType,
     GetVeterinarianAppointmentsType,
     VetAppointmentWithRelations,
+    AppointmentWithRelations,
 } from "./actions/appointments";
 export type { EmailOptions, EmailTemplate } from "./email-types";
+export { CatBreeds, DogBreeds } from "./breed-types";
+export type { HealthMonitoring } from "./actions/healthcare-monitoring";
+export type { EducationalContentFilters } from "./actions/educational-content";
+export type {
+    UpcomingVaccination,
+    UpcomingVaccinationsResponse,
+    UpcomingPrescription,
+    UpcomingPrescriptionsResponse,
+    DashboardHealthcareResponse,
+} from "./actions/dashboard-healthcare";
+export {
+    type NotificationWithRelations,
+    type NotificationsResult,
+    type CreateNotificationProps,
+    type NotificationFilters,
+    type NotificationCardProps,
+    notificationTypeGroups,
+} from "./actions/notification";

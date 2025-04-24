@@ -7,7 +7,8 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 import { type ActionResponse } from "@/types/server-action-response";
 import { revalidatePath } from "next/cache";
-import type { health_monitoring } from "@prisma/client";
+import { formatDecimal } from "@/lib";
+import type { HealthMonitoring } from "@/types";
 
 /**
  * Add a new health monitoring record for a pet
@@ -58,7 +59,7 @@ export async function addHealthMonitoringRecord(
  */
 export async function getPetHealthMonitoring(
     petId: number,
-): Promise<ActionResponse<{ healthMonitoring: health_monitoring[] }>> {
+): Promise<ActionResponse<{ healthMonitoring: HealthMonitoring[] }>> {
     try {
         const session = await getServerSession(authOptions);
         if (!session || !session.user || !session.user.id) redirect("/signin");
@@ -75,7 +76,13 @@ export async function getPetHealthMonitoring(
             },
         });
 
-        return { success: true, data: { healthMonitoring: healthMonitoring } };
+        const formattedHealthMonitoring = healthMonitoring.map((record) => ({
+            ...record,
+            temperature_celsius: formatDecimal(record.temperature_celsius),
+            weight_kg: formatDecimal(record.weight_kg),
+        }));
+
+        return { success: true, data: { healthMonitoring: formattedHealthMonitoring } };
     } catch (error) {
         return {
             success: false,
