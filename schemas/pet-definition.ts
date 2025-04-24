@@ -40,8 +40,8 @@ export const UpdatePetSchema = z.object({
     weight_kg: z.number().refine((value) => value > 0, {
         message: "Weight must be a positive number",
     }),
-    pet_uuid: z.string().uuid({
-        message: "Invalid pet UUID",
+    pet_id: z.number().int().positive({
+        message: "Pet ID must be a positive integer",
     }),
 });
 

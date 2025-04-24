@@ -66,8 +66,7 @@ const addPrescription = async (values: PrescriptionType): Promise<ActionResponse
             };
         }
 
-        revalidatePath(`/vet/`);
-        return; // Return undefined on success
+        revalidatePath(`/vet`);
     } catch (error) {
         console.error("Error adding prescription:", error);
         return {

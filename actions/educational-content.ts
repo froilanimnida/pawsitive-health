@@ -2,13 +2,7 @@
 import { prisma } from "@/lib";
 import type { ActionResponse } from "@/types/server-action-response";
 import type { educational_content } from "@prisma/client";
-
-export type EducationalContentFilters = {
-    category?: string;
-    tags?: string[];
-    search?: string;
-};
-
+import type { EducationalContentFilters } from "@/types";
 /**
  * Fetch educational content with optional filtering
  */

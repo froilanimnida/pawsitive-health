@@ -2,7 +2,7 @@
 import { TextEncoder, TextDecoder } from "util";
 global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder;
-global.IS_REACT_ACT_ENVIRONMENT = true
+global.IS_REACT_ACT_ENVIRONMENT = true;
 
 // Import jest-dom matchers
 import "@testing-library/jest-dom";
@@ -54,14 +54,14 @@ global.fetch = jest.fn();
 
 // Mock global objects that Next.js expects
 global.Request = class Request {
-  constructor() {}
+    constructor() {}
 };
 
 // Mock ResizeObserver which is often used by UI components
 global.ResizeObserver = class ResizeObserver {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
+    observe() {}
+    unobserve() {}
+    disconnect() {}
 };
 
 // Mock DOM APIs needed by Radix UI components for all tests

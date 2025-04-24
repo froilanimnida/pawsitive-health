@@ -11,7 +11,7 @@ import {
     UpcomingPrescription,
     UpcomingPrescriptionsResponse,
     DashboardHealthcareResponse,
-} from "@/types/actions";
+} from "@/types";
 
 /**
  * Gets upcoming vaccinations for the logged-in user's pets

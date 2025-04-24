@@ -1,30 +1,16 @@
 "use server";
-import { notifications, type notification_type, notification_priority } from "@prisma/client";
+import { notifications } from "@prisma/client";
 import { prisma } from "@/lib";
 import { ActionResponse } from "@/types/server-action-response";
 import { redirect } from "next/navigation";
-import type { NotificationFilters, NotificationWithRelations } from "@/types/actions/notification";
+import type {
+    NotificationFilters,
+    NotificationWithRelations,
+    NotificationsResult,
+    CreateNotificationProps,
+} from "@/types";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-
-interface NotificationsResult {
-    notifications: notifications[];
-    totalCount: number;
-    hasMore: boolean;
-}
-
-interface CreateNotificationProps {
-    userId: number;
-    title: string;
-    content: string;
-    type: notification_type;
-    petId?: number;
-    appointmentId?: number;
-    forumPostId?: number;
-    expiresAt?: Date;
-    actionUrl?: string;
-    priority?: notification_priority;
-}
 
 const getUserNotifications = async ({ page = 1, pageSize = 10, type, isRead }: NotificationFilters = {}): Promise<
     ActionResponse<NotificationsResult>
