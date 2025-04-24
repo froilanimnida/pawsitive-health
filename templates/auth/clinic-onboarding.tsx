@@ -62,8 +62,8 @@ export default function ClinicOnboardingEmail({
                         </Text>
 
                         <Text>
-                            If you&apos;re having trouble clicking the button, copy and paste the URL below into your web
-                            browser:
+                            If you&apos;re having trouble clicking the button, copy and paste the URL below into your
+                            web browser:
                         </Text>
                         <Text style={styles.link}>{verificationUrl}</Text>
                     </Section>

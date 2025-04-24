@@ -21,8 +21,9 @@ export default function UserOnboardingEmail({ firstName, lastName, verificationU
                             Hello {firstName} {lastName},
                         </Text>
                         <Text>
-                            Thank you for creating an account with PawsitiveHealth, your pet&apos;s healthcare companion. To
-                            complete your registration and activate your account, please verify your email address.
+                            Thank you for creating an account with PawsitiveHealth, your pet&apos;s healthcare
+                            companion. To complete your registration and activate your account, please verify your email
+                            address.
                         </Text>
 
                         <Section style={styles.actionSection}>
@@ -42,8 +43,8 @@ export default function UserOnboardingEmail({ firstName, lastName, verificationU
                         </Text>
 
                         <Text>
-                            If you&apos;re having trouble clicking the button, copy and paste the URL below into your web
-                            browser:
+                            If you&apos;re having trouble clicking the button, copy and paste the URL below into your
+                            web browser:
                         </Text>
                         <Text style={styles.link}>{verificationUrl}</Text>
                     </Section>
