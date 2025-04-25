@@ -150,53 +150,51 @@ export default function PasswordChangeForm() {
                                         autoComplete="new-password"
                                     />
                                 </FormControl>
-                                <FormDescription>
-                                    <div className="space-y-1 mt-2">
-                                        <p className="text-sm font-medium">Password requirements:</p>
-                                        <ul className="text-xs space-y-1">
-                                            <li className="flex items-center gap-1.5">
-                                                {isLongEnough ? (
-                                                    <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
-                                                ) : (
-                                                    <AlertCircle className="h-3.5 w-3.5 text-amber-500" />
-                                                )}
-                                                <span>At least 8 characters long</span>
-                                            </li>
-                                            <li className="flex items-center gap-1.5">
-                                                {hasLowerCase ? (
-                                                    <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
-                                                ) : (
-                                                    <AlertCircle className="h-3.5 w-3.5 text-amber-500" />
-                                                )}
-                                                <span>Contains lowercase letters</span>
-                                            </li>
-                                            <li className="flex items-center gap-1.5">
-                                                {hasUpperCase ? (
-                                                    <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
-                                                ) : (
-                                                    <AlertCircle className="h-3.5 w-3.5 text-amber-500" />
-                                                )}
-                                                <span>Contains uppercase letters</span>
-                                            </li>
-                                            <li className="flex items-center gap-1.5">
-                                                {hasNumber ? (
-                                                    <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
-                                                ) : (
-                                                    <AlertCircle className="h-3.5 w-3.5 text-amber-500" />
-                                                )}
-                                                <span>Contains numbers</span>
-                                            </li>
-                                            <li className="flex items-center gap-1.5">
-                                                {hasSpecialChar ? (
-                                                    <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
-                                                ) : (
-                                                    <AlertCircle className="h-3.5 w-3.5 text-amber-500" />
-                                                )}
-                                                <span>Contains special characters</span>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </FormDescription>
+                                <div className="text-muted-foreground text-sm space-y-1 mt-2">
+                                    <div className="text-sm font-medium">Password requirements:</div>
+                                    <ul className="text-xs space-y-1">
+                                        <li className="flex items-center gap-1.5">
+                                            {isLongEnough ? (
+                                                <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+                                            ) : (
+                                                <AlertCircle className="h-3.5 w-3.5 text-amber-500" />
+                                            )}
+                                            <span>At least 8 characters long</span>
+                                        </li>
+                                        <li className="flex items-center gap-1.5">
+                                            {hasLowerCase ? (
+                                                <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+                                            ) : (
+                                                <AlertCircle className="h-3.5 w-3.5 text-amber-500" />
+                                            )}
+                                            <span>Contains lowercase letters</span>
+                                        </li>
+                                        <li className="flex items-center gap-1.5">
+                                            {hasUpperCase ? (
+                                                <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+                                            ) : (
+                                                <AlertCircle className="h-3.5 w-3.5 text-amber-500" />
+                                            )}
+                                            <span>Contains uppercase letters</span>
+                                        </li>
+                                        <li className="flex items-center gap-1.5">
+                                            {hasNumber ? (
+                                                <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+                                            ) : (
+                                                <AlertCircle className="h-3.5 w-3.5 text-amber-500" />
+                                            )}
+                                            <span>Contains numbers</span>
+                                        </li>
+                                        <li className="flex items-center gap-1.5">
+                                            {hasSpecialChar ? (
+                                                <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+                                            ) : (
+                                                <AlertCircle className="h-3.5 w-3.5 text-amber-500" />
+                                            )}
+                                            <span>Contains special characters</span>
+                                        </li>
+                                    </ul>
+                                </div>
                                 <FormMessage />
                             </FormItem>
                         )}
