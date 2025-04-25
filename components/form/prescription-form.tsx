@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -40,24 +39,8 @@ interface PrescriptionFormProps {
     vetId?: number;
     isCheckIn?: boolean; // Flag to determine if the patient has checked in
     medicationList: medications[] | [];
-    petId: number;
-    petUuid?: string;
-    appointmentUuid?: string;
-    appointmentId?: number;
-    vetId?: number;
-    isCheckIn?: boolean; // Flag to determine if the patient has checked in
-    medicationList: medications[] | [];
 }
 
-const PrescriptionForm = ({
-    petId,
-    petUuid,
-    appointmentUuid,
-    appointmentId,
-    vetId,
-    isCheckIn = true,
-    medicationList,
-}: PrescriptionFormProps) => {
 const PrescriptionForm = ({
     petId,
     petUuid,
@@ -160,8 +143,6 @@ const PrescriptionForm = ({
                                     </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                    {medicationList.map((med) => (
-                                        <SelectItem key={med.medication_id} value={med.medication_id.toString()}>
                                     {medicationList.map((med) => (
                                         <SelectItem key={med.medication_id} value={med.medication_id.toString()}>
                                             {med.name}

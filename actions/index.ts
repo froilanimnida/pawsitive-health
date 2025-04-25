@@ -21,18 +21,13 @@ export {
     getAppointment,
     getClinicAppointments,
     getVeterinarianAppointments,
-    getAppointmentId,
     changeAppointmentStatus,
-    rescheduleAppointment,
-    getAppointmentHistoricalData,
-    getAppointmentRecordedServices,
     rescheduleAppointment,
     getAppointmentHistoricalData,
     getAppointmentRecordedServices,
 } from "./appointment";
 export { getUserId, updateCalendarIntegration, updateUserProfile } from "./user";
 export { getVeterinaryAvailability } from "./veterinarian-availability";
-export { createVaccination, getPetVaccinations, deleteVaccination, getVaccination } from "./vaccination";
 export { createVaccination, getPetVaccinations, deleteVaccination, getVaccination } from "./vaccination";
 //export {} from "./medical-records";
 export { addHealthMonitoringRecord, getPetHealthMonitoring, deleteHealthMonitoringRecord } from "./health-monitoring";
@@ -49,12 +44,6 @@ export { getEducationalContent, getEducationalContentByUuid } from "./educationa
 export { getUserNotifications, getUserNotification, markNotificationAsRead } from "./notification";
 export { addPrescription, viewPrescription, deletePrescription } from "./prescription";
 export {
-    addToGoogleCalendar,
-    deleteGoogleCalendarEvent,
-    updateGoogleCalendarEvent,
-    synchronizeAllAppointments,
-} from "./calendar-sync";
-export {
     changeTheme,
     createNewPreferenceDefault,
     getUserPreference,
@@ -62,26 +51,11 @@ export {
     getThemePreference,
 } from "./preference";
 export {
-    getDashboardHealthcare,
-    getPetHistoricalHealthcareData,
-    getDashboardHealthcareData,
-    getUpcomingPrescriptions,
-    getUpcomingVaccinations,
-} from "./dashboard-healthcare";
-export { addPrescription, viewPrescription, deletePrescription } from "./prescription";
-export {
     addToGoogleCalendar,
     deleteGoogleCalendarEvent,
     updateGoogleCalendarEvent,
     synchronizeAllAppointments,
 } from "./calendar-sync";
-export {
-    changeTheme,
-    createNewPreferenceDefault,
-    getUserPreference,
-    getCalendarSyncPreference,
-    getThemePreference,
-} from "./preference";
 export {
     getDashboardHealthcare,
     getPetHistoricalHealthcareData,

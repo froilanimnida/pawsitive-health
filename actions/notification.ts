@@ -78,10 +78,7 @@ const markNotificationAsRead = async (notificationUuid: string): Promise<ActionR
     try {
         const user = await getServerSession(authOptions);
         if (!user || user.user?.id === undefined) redirect("/signin");
-        const user = await getServerSession(authOptions);
-        if (!user || user.user?.id === undefined) redirect("/signin");
         const notification = await prisma.notifications.findFirst({
-            where: { notification_uuid: notificationUuid, user_id: Number(user.user?.id) },
             where: { notification_uuid: notificationUuid, user_id: Number(user.user?.id) },
         });
 
@@ -105,8 +102,6 @@ const markNotificationAsRead = async (notificationUuid: string): Promise<ActionR
 
 const getUserNotification = async (notificationUuid: string): Promise<ActionResponse<NotificationWithRelations>> => {
     try {
-        const user = await getServerSession(authOptions);
-        if (!user || user.user?.id === undefined) redirect("/signin");
         const user = await getServerSession(authOptions);
         if (!user || user.user?.id === undefined) redirect("/signin");
         const notification = await prisma.notifications.findFirst({
@@ -182,8 +177,6 @@ const markAllNotificationsAsRead = async (): Promise<ActionResponse<boolean>> =>
     try {
         const user = await getServerSession(authOptions);
         if (!user || user.user?.id === undefined) redirect("/signin");
-        const user = await getServerSession(authOptions);
-        if (!user || user.user?.id === undefined) redirect("/signin");
 
         await prisma.notifications.updateMany({
             where: {
@@ -209,12 +202,9 @@ const deleteNotification = async (notificationUuid: string): Promise<ActionRespo
     try {
         const session = await getServerSession(authOptions);
         if (!session || !session.user?.id) redirect("/signin");
-        const session = await getServerSession(authOptions);
-        if (!session || !session.user?.id) redirect("/signin");
         const notification = await prisma.notifications.findFirst({
             where: {
                 notification_uuid: notificationUuid,
-                user_id: Number(session.user?.id),
                 user_id: Number(session.user?.id),
             },
         });
@@ -225,7 +215,6 @@ const deleteNotification = async (notificationUuid: string): Promise<ActionRespo
                 notification_id: notification.notification_id,
             },
         });
-        return { success: true, data: true };
         return { success: true, data: true };
     } catch (error) {
         return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };

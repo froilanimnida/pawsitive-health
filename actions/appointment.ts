@@ -1,7 +1,6 @@
 "use server";
 import { prisma, toTitleCase } from "@/lib";
 import { getClinic, getPet, sendEmail } from "@/actions";
-import { getClinic, getPet, sendEmail } from "@/actions";
 import { AppointmentType } from "@/schemas";
 import type {
     appointment_status,
@@ -22,11 +21,6 @@ import type {
 import { AppointmentConfirmation, AppointmentConfirmed } from "@/templates";
 import { revalidatePath } from "next/cache";
 import { createNotification } from "./notification";
-import { updateGoogleCalendarEvent, deleteGoogleCalendarEvent, addToGoogleCalendar } from "./calendar-sync";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { redirect } from "next/navigation";
-import type { PrescriptionWithMedication } from "@/types/common-prisma-join-types";
 import { updateGoogleCalendarEvent, deleteGoogleCalendarEvent, addToGoogleCalendar } from "./calendar-sync";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
@@ -482,7 +476,6 @@ const confirmAppointment = async (appointment_uuid: string): Promise<ActionRespo
             petId: appointment.pets.pet_id,
             appointmentId: appointment.appointment_id,
             expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-            actionUrl: `/user/appointments/${appointment.appointment_uuid}`,
             actionUrl: `/user/appointments/${appointment.appointment_uuid}`,
         });
 
