@@ -7,20 +7,15 @@ import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { getPetId } from "@/actions";
 
 const addPrescription = async (values: PrescriptionType): Promise<ActionResponse | void> => {
     try {
-        const formData = PrescriptionDefinition.safeParse(values);
         const session = await getServerSession(authOptions);
         if (!session || !session.user || !session.user.id) redirect("/signin");
-        let veterinarian_id = null;
-        if (session.user.role === "veterinarian") {
-            const veterinatian = await prisma.veterinarians.findFirst({
-                where: { user_id: Number(session.user.id) },
-                select: { vet_id: true },
-            });
-            veterinarian_id = veterinatian?.vet_id;
-        }
+
+        // Validate the prescription data first
+        const formData = PrescriptionDefinition.safeParse(values);
         if (!formData.success) {
             return {
                 success: false,
@@ -28,6 +23,28 @@ const addPrescription = async (values: PrescriptionType): Promise<ActionResponse
             };
         }
 
+        // If a pet_uuid is provided, validate it and get the pet ID
+        if (formData.data.pet_uuid) {
+            const petResponse = await getPetId(formData.data.pet_uuid);
+            if (!petResponse.success) {
+                return {
+                    success: false,
+                    error: "Invalid pet UUID",
+                };
+            }
+        }
+
+        // Get vet ID if the session user is a veterinarian
+        let veterinarian_id = null;
+        if (session.user.role === "veterinarian") {
+            const veterinarian = await prisma.veterinarians.findFirst({
+                where: { user_id: Number(session.user.id) },
+                select: { vet_id: true },
+            });
+            veterinarian_id = veterinarian?.vet_id;
+        }
+
+        // Create the prescription
         const result = await prisma.prescriptions.create({
             data: {
                 dosage: formData.data.dosage,
@@ -36,19 +53,22 @@ const addPrescription = async (values: PrescriptionType): Promise<ActionResponse
                 pet_id: Number(formData.data.pet_id),
                 end_date: formData.data.end_date,
                 refills_remaining: formData.data.refills_remaining,
-                vet_id: veterinarian_id,
                 appointment_id: formData.data.appointment_id,
                 medication_id: formData.data.medication_id,
+                vet_id: veterinarian_id,
             },
         });
+
         if (!result) {
             return {
                 success: false,
                 error: "Failed to add prescription",
             };
         }
-        revalidatePath(`/vet/`);
+
+        revalidatePath(`/vet`);
     } catch (error) {
+        console.error("Error adding prescription:", error);
         return {
             success: false,
             error: error instanceof Error ? error.message : "An unexpected error occurred",
@@ -78,9 +98,10 @@ const viewPrescription = async (
             data: { prescription: prescription },
         };
     } catch (error) {
+        console.error("Failed to view prescription:", error);
         return {
             success: false,
-            error: error instanceof Error ? error.message : "An unexpected error occurred",
+            error: "Failed to fetch prescription",
         };
     }
 };

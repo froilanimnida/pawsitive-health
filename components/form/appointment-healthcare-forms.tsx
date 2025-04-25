@@ -1,6 +1,6 @@
 "use client";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui";
-import PrescriptionForm from "../form/prescription-form";
+import PrescriptionForm from "./prescription-form"
 import { useState } from "react";
 import PetProcedureForm from "./pet-healthcare-procedure-form";
 import { VaccinationForm } from "./veccination-form";

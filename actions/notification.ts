@@ -1,30 +1,16 @@
 "use server";
-import { notifications, type notification_type, notification_priority } from "@prisma/client";
+import { notifications } from "@prisma/client";
 import { prisma } from "@/lib";
 import { ActionResponse } from "@/types/server-action-response";
 import { redirect } from "next/navigation";
-import type { NotificationFilters, NotificationWithRelations } from "@/types/actions/notification";
+import type {
+    NotificationFilters,
+    NotificationWithRelations,
+    NotificationsResult,
+    CreateNotificationProps,
+} from "@/types";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-
-interface NotificationsResult {
-    notifications: notifications[];
-    totalCount: number;
-    hasMore: boolean;
-}
-
-interface CreateNotificationProps {
-    userId: number;
-    title: string;
-    content: string;
-    type: notification_type;
-    petId?: number;
-    appointmentId?: number;
-    forumPostId?: number;
-    expiresAt?: Date;
-    actionUrl?: string;
-    priority?: notification_priority;
-}
 
 const getUserNotifications = async ({ page = 1, pageSize = 10, type, isRead }: NotificationFilters = {}): Promise<
     ActionResponse<NotificationsResult>
@@ -97,6 +83,7 @@ const markNotificationAsRead = async (notificationUuid: string): Promise<ActionR
         });
 
         if (!notification) return { success: false, error: "Notification not found" };
+        if (!notification) return { success: false, error: "Notification not found" };
         await prisma.notifications.update({
             where: {
                 notification_id: notification.notification_id,
@@ -106,6 +93,7 @@ const markNotificationAsRead = async (notificationUuid: string): Promise<ActionR
             },
         });
 
+        return { success: true, data: true };
         return { success: true, data: true };
     } catch (error) {
         return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
@@ -201,6 +189,7 @@ const markAllNotificationsAsRead = async (): Promise<ActionResponse<boolean>> =>
         });
 
         return { success: true, data: true };
+        return { success: true, data: true };
     } catch (error) {
         return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
     }
@@ -219,6 +208,7 @@ const deleteNotification = async (notificationUuid: string): Promise<ActionRespo
                 user_id: Number(session.user?.id),
             },
         });
+        if (!notification) return { success: false, error: "Notification not found" };
         if (!notification) return { success: false, error: "Notification not found" };
         await prisma.notifications.delete({
             where: {

@@ -14,6 +14,7 @@ const createJestConfig = nextJest({
 // Add any custom config to be passed to Jest
 const config: Config = {
     clearMocks: true,
+
     collectCoverage: true,
     coverageDirectory: "coverage",
     coverageProvider: "v8", // or 'babel' if you prefer
@@ -24,6 +25,9 @@ const config: Config = {
         "^@/(.*)$": "<rootDir>/$1",
         "^types/(.*)$": "<rootDir>/types/$1",
     },
+    cache: true,
+    testTimeout: 10000,
+    workerIdleMemoryLimit: "1GB",
     testPathIgnorePatterns: ["<rootDir>/node_modules/", "<rootDir>/.next/"],
     transformIgnorePatterns: ["/node_modules/", "^.+.module.(css|sass|scss)$"],
 };

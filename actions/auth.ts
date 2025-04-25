@@ -1,12 +1,21 @@
 "use server";
 import { createNewPreferenceDefault, sendEmail } from "@/actions";
-import { LoginType, SignUpSchema, NewClinicAccountSchema, type SignUpType, type NewClinicAccountType } from "@/schemas";
+import {
+    type LoginType,
+    SignUpSchema,
+    NewClinicAccountSchema,
+    type SignUpType,
+    type NewClinicAccountType,
+    PasswordChangeSchema,
+    type PasswordChangeType,
+} from "@/schemas";
 import { OtpVerificationEmail, ClinicOnboardingEmail, UserOnboardingEmail } from "@/templates";
 import { hashPassword, verifyPassword, prisma, generateOtp, generateVerificationToken, toTitleCase } from "@/lib";
 import { role_type, type users } from "@prisma/client";
 import { signOut } from "next-auth/react";
 import type { ActionResponse } from "@/types/server-action-response";
 import jwt from "jsonwebtoken";
+import { redirect } from "next/navigation";
 
 const isEmailTaken = async (email: string): Promise<boolean> => {
     const user = await prisma.users.findFirst({
@@ -15,7 +24,7 @@ const isEmailTaken = async (email: string): Promise<boolean> => {
     return user !== null;
 };
 
-const createAccount = async (values: SignUpType): Promise<ActionResponse<{ user_uuid: string }>> => {
+const createAccount = async (values: SignUpType): Promise<ActionResponse | void> => {
     try {
         const formData = SignUpSchema.safeParse(values);
         if (!formData.success) return { success: false, error: "Invalid input" };
@@ -59,7 +68,7 @@ const createAccount = async (values: SignUpType): Promise<ActionResponse<{ user_
             },
         );
         await createNewPreferenceDefault(result.user_id);
-        return { success: true, data: { user_uuid: result.user_uuid } };
+        redirect("/signin");
     } catch (error) {
         return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
     }
@@ -67,7 +76,7 @@ const createAccount = async (values: SignUpType): Promise<ActionResponse<{ user_
 
 const verifyEmail = async (token: string): Promise<ActionResponse<{ verified: boolean }>> => {
     try {
-        const decoded = jwt.verify(token, process.env.EMAIL_VERIFICATION_SECRET || "fallback-secret-key") as {
+        const decoded = jwt.verify(token, process.env.EMAIL_VERIFICATION_SECRET as string) as {
             email: string;
         };
 
@@ -299,6 +308,99 @@ const nextAuthLogin = async (email: string, password: string): Promise<ActionRes
     }
 };
 
+const changePassword = async (values: PasswordChangeType, userId: number): Promise<ActionResponse | void> => {
+    try {
+        const formData = PasswordChangeSchema.safeParse(values);
+        if (!formData.success) return { success: false, error: "Invalid input" };
+
+        const user = await prisma.users.findUnique({
+            where: { user_id: userId },
+            select: {
+                email: true,
+                password_hash: true,
+                first_name: true,
+                last_name: true,
+            },
+        });
+
+        if (!user) return { success: false, error: "User not found" };
+
+        // Verify current password
+        const isPasswordValid = await verifyPassword(values.current_password, user.password_hash);
+        if (!isPasswordValid) return { success: false, error: "Current password is incorrect" };
+
+        // Generate OTP for verification
+        const otpToken = generateOtp(user.email);
+        const expiryTime = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+
+        await prisma.users.update({
+            where: { user_id: userId },
+            data: {
+                otp_expires_at: expiryTime,
+                otp_token: otpToken,
+            },
+        });
+
+        await sendEmail(
+            OtpVerificationEmail,
+            {
+                firstName: user.first_name,
+                lastName: user.last_name,
+                otpCode: otpToken,
+                expiresIn: "5 minutes",
+            },
+            {
+                to: user.email,
+                subject: "PawsitiveHealth - Password Change Verification Code",
+            },
+        );
+        return;
+    } catch (error) {
+        return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
+    }
+};
+
+const confirmPasswordChange = async (
+    otp: string,
+    newPassword: string,
+    userId: number,
+): Promise<ActionResponse | void> => {
+    try {
+        const user = await prisma.users.findUnique({
+            where: { user_id: userId },
+            select: {
+                otp_token: true,
+                otp_expires_at: true,
+                email: true,
+            },
+        });
+
+        if (!user) return { success: false, error: "User not found" };
+        if (user.otp_token === null || user.otp_expires_at === null)
+            return { success: false, error: "OTP token not found or expired" };
+
+        const isCorrect = user.otp_token === otp && user.otp_expires_at > new Date();
+
+        if (!isCorrect) return { success: false, error: "Invalid or expired OTP" };
+
+        // Hash new password and update
+        const hashedPassword = await hashPassword(newPassword);
+
+        await prisma.users.update({
+            where: { user_id: userId },
+            data: {
+                password_hash: hashedPassword,
+                otp_token: null,
+                otp_expires_at: null,
+            },
+        });
+
+        return;
+    } catch (error) {
+        return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
+    }
+};
+
 export {
     loginAccount,
     createAccount,
@@ -309,4 +411,6 @@ export {
     nextAuthLogin,
     regenerateOTPToken,
     isEmailTaken,
+    changePassword,
+    confirmPasswordChange,
 };

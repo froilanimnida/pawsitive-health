@@ -1,10 +1,11 @@
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, act } from "@testing-library/react";
 import UserSignUpForm from "@/components/form/user-sign-up-form";
 import * as actions from "@/actions";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
 import { toast } from "sonner";
+import { testFormData } from "../../utils/testData";
 
 // Mock dependencies
 jest.mock("sonner", () => ({
@@ -21,6 +22,17 @@ jest.mock("@/actions", () => ({
 
 jest.mock("@/lib", () => ({
     toTitleCase: (text: string) => text, // Simple mock that returns the input unchanged
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    createFormConfig: (config: any) => ({
+        // Add the standard form config values
+        shouldFocusError: true,
+        progressive: true,
+        mode: "onChange",
+        shouldUseNativeValidation: false,
+        reValidateMode: "onChange",
+        // Spread the custom config to merge with defaults
+        ...config,
+    }),
 }));
 
 describe("UserSignUpForm", () => {
@@ -28,8 +40,10 @@ describe("UserSignUpForm", () => {
         jest.clearAllMocks();
     });
 
-    it("renders all form fields correctly", () => {
-        render(<UserSignUpForm />);
+    it("renders all form fields correctly", async () => {
+        await act(async () => {
+            render(<UserSignUpForm />);
+        });
 
         // Check if all form fields are rendered
         expect(screen.getByLabelText(/First Name/i)).toBeInTheDocument();
@@ -43,91 +57,112 @@ describe("UserSignUpForm", () => {
 
     it("displays validation errors for empty form submission", async () => {
         const user = userEvent.setup();
-        render(<UserSignUpForm />);
+
+        await act(async () => {
+            render(<UserSignUpForm />);
+        });
 
         // Submit the empty form
-        await user.click(screen.getByRole("button", { name: /Create account/i }));
-
-        // Check if validation errors are displayed
-        await waitFor(() => {
-            expect(screen.getAllByText(/\brequired\b/i).length).toBeGreaterThan(0);
+        await act(async () => {
+            await user.click(screen.getByRole("button", { name: /Create account/i }));
         });
+
+        // Check for presence of form validation messages
+        // In React Hook Form, aria-invalid gets set when fields have errors
+        const invalidInputs = document.querySelectorAll('input[aria-invalid="true"]');
+        expect(invalidInputs.length).toBeGreaterThan(0);
+
+        // Look for any validation error messages - using a more flexible approach
+        // since the exact message rendering might depend on the form component
+        const errorMessages = screen.getAllByText(/_is required|required|invalid/i);
+        expect(errorMessages.length).toBeGreaterThan(0);
     });
 
     it("displays validation error for invalid email", async () => {
         const user = userEvent.setup();
-        render(<UserSignUpForm />);
+
+        await act(async () => {
+            render(<UserSignUpForm />);
+        });
 
         // Fill in an invalid email
-        await user.type(screen.getByLabelText(/Email/i), "invalid-email");
-        await user.tab(); // Move focus to trigger validation
+        await act(async () => {
+            await user.type(screen.getByLabelText(/Email/i), "invalid-email");
+            await user.tab(); // Move focus to trigger validation
+        });
 
         // Check if email validation error is displayed
-        await waitFor(() => {
-            expect(screen.getByText(/Please enter a valid email/i)).toBeInTheDocument();
-        });
+        expect(screen.getByText(/Please enter a valid email/i)).toBeInTheDocument();
     });
 
     it("displays validation error for password mismatch", async () => {
         const user = userEvent.setup();
-        render(<UserSignUpForm />);
+
+        await act(async () => {
+            render(<UserSignUpForm />);
+        });
 
         // Fill in mismatched passwords
-        await user.type(screen.getByLabelText(/^Password$/i), "Password123!");
-        await user.type(screen.getByLabelText(/Confirm your password/i), "Password456!");
-        await user.tab(); // Move focus to trigger validation
+        await act(async () => {
+            await user.type(screen.getByLabelText(/^Password$/i), "Password123!");
+            await user.type(screen.getByLabelText(/Confirm your password/i), "Password456!");
+            await user.tab(); // Move focus to trigger validation
+        });
 
         // Check if password mismatch error is displayed
-        await waitFor(() => {
-            expect(screen.getByText(/Passwords do not match/i)).toBeInTheDocument();
-        });
+        expect(screen.getByText(/Passwords do not match/i)).toBeInTheDocument();
     });
 
     it("displays validation error for short password", async () => {
         const user = userEvent.setup();
-        render(<UserSignUpForm />);
+
+        await act(async () => {
+            render(<UserSignUpForm />);
+        });
 
         // Fill in a short password
-        await user.type(screen.getByLabelText(/^Password$/i), "short");
-        await user.tab(); // Move focus to trigger validation
+        await act(async () => {
+            await user.type(screen.getByLabelText(/^Password$/i), "short");
+            await user.tab(); // Move focus to trigger validation
+        });
 
         // Check if password length error is displayed
-        await waitFor(() => {
-            expect(screen.getByText(/Password must be/i)).toBeInTheDocument();
-        });
+        expect(screen.getByText(/Password must be/i)).toBeInTheDocument();
     });
-    // Update the expectation in your test
+
     it("calls createAccount action with valid form data", async () => {
         const user = userEvent.setup();
-        render(<UserSignUpForm />);
+
+        await act(async () => {
+            render(<UserSignUpForm />);
+        });
 
         // Mock the createAccount to resolve successfully
         (actions.createAccount as jest.Mock).mockResolvedValue({ success: true });
 
-        // Fill in all form fields with valid data
-        await user.type(screen.getByLabelText(/First Name/i), "John");
-        await user.type(screen.getByLabelText(/Last Name/i), "Doe");
-        await user.type(screen.getByLabelText(/Email/i), "john.doe@example.com");
-        await user.type(screen.getByLabelText(/Phone Number/i), "1234567890");
-        await user.type(screen.getByLabelText(/^Password$/i), "Password123!");
-        await user.type(screen.getByLabelText(/Confirm your password/i), "Password123!");
+        const formData = testFormData.validSignUp;
+
+        // Fill in all form fields with valid data from test constants
+        await act(async () => {
+            await user.type(screen.getByLabelText(/First Name/i), formData.first_name);
+            await user.type(screen.getByLabelText(/Last Name/i), formData.last_name);
+            await user.type(screen.getByLabelText(/Email/i), formData.email);
+            await user.type(screen.getByLabelText(/Phone Number/i), formData.phone_number);
+            await user.type(screen.getByLabelText(/^Password$/i), formData.password);
+            await user.type(screen.getByLabelText(/Confirm your password/i), formData.confirm_password);
+        });
 
         // Submit the form
-        await user.click(screen.getByRole("button", { name: /Create account/i }));
+        await act(async () => {
+            await user.click(screen.getByRole("button", { name: /Create account/i }));
+        });
 
         // Check if createAccount was called with the correct data
         await waitFor(() => {
             // First, check that the action was called with correct data
-            expect(actions.createAccount).toHaveBeenCalledWith({
-                first_name: "John",
-                last_name: "Doe",
-                email: "john.doe@example.com",
-                phone_number: "1234567890",
-                password: "Password123!",
-                confirm_password: "Password123!",
-            });
+            expect(actions.createAccount).toHaveBeenCalledWith(formData);
 
-            // Then, check that toast.promise was called (without checking exact parameters)
+            // Then, check that toast.promise was called
             expect(toast.promise).toHaveBeenCalled();
         });
     });

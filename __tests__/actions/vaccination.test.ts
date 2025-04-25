@@ -1,15 +1,30 @@
-import { createVaccination, getPetVaccinations, getVaccination } from "../../actions/vaccination";
+// Mock EmailService before importing vaccination actions
 import { prismaMock, mockSession } from "../utils/mocks";
 import { getServerSession } from "next-auth";
+import { revalidatePath } from "next/cache";
+
+// Mock dependencies first
+jest.mock("next-auth");
+jest.mock("next/cache", () => ({
+    revalidatePath: jest.fn(),
+}));
+
+// Mock EmailService before importing the module that uses it
+jest.mock("@/lib/email-service", () => {
+    return {
+        EmailService: jest.fn().mockImplementation(() => {
+            return {
+                sendEmail: jest.fn().mockResolvedValue(true),
+            };
+        }),
+    };
+});
+
+// Now import the vaccination actions after mocking dependencies
+import { createVaccination, getPetVaccinations, getVaccination } from "../../actions/vaccination";
 import * as petsActions from "../../actions/pets";
 import { breed_type, pet_sex_type, species_type, type pets, type vaccinations } from "@prisma/client";
 import { Decimal } from "@prisma/client/runtime/library";
-
-// Mock dependencies
-jest.mock("next-auth");
-jest.mock("../../actions/pets", () => ({
-    getPet: jest.fn(),
-}));
 
 const VALID_VACCINATION_DATA: vaccinations = {
     administered_by: null,

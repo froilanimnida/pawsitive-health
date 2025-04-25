@@ -21,8 +21,8 @@ export default function OtpVerificationEmail({ firstName, lastName, otpCode, exp
                             Hello {firstName} {lastName},
                         </Text>
                         <Text>
-                            We've received a request to log in to your PawsitiveHealth account. To complete the login
-                            process, please enter the following verification code:
+                            We&apos;ve received a request to log in to your PawsitiveHealth account. To complete the
+                            login process, please enter the following verification code:
                         </Text>
 
                         <Section style={styles.codeSection}>
@@ -42,7 +42,7 @@ export default function OtpVerificationEmail({ firstName, lastName, otpCode, exp
                     </Section>
 
                     <Text style={styles.footer}>
-                        Thank you for choosing PawsitiveHealth for your pet's healthcare needs.
+                        Thank you for choosing PawsitiveHealth for your pet&apos;s healthcare needs.
                     </Text>
                 </Container>
             </Body>

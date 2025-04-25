@@ -1,7 +1,7 @@
 import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import PetVaccinationForm from "@/components/form/pet-vaccination-form";
+import { VaccinationForm } from "@/components/form/veccination-form";
 import { toast } from "sonner";
 import * as actions from "@/actions";
 // Add this import for DOM testing matchers
@@ -58,7 +58,7 @@ describe("PetVaccinationForm", () => {
     });
 
     it("renders all form fields correctly", async () => {
-        render(<PetVaccinationForm petUuid={mockPetUuid} petId={mockPetId} />);
+        render(<VaccinationForm petUuid={mockPetUuid} petId={mockPetId} />);
 
         // Check if all form fields are rendered
         expect(screen.getByLabelText(/Vaccine Name/i)).toBeInTheDocument();
@@ -75,7 +75,7 @@ describe("PetVaccinationForm", () => {
             data: { vaccination: { id: 123 } },
         });
 
-        render(<PetVaccinationForm petUuid={mockPetUuid} petId={mockPetId} />);
+        render(<VaccinationForm petUuid={mockPetUuid} petId={mockPetId} />);
         const user = userEvent.setup();
 
         // Fill the form with valid data
@@ -132,7 +132,7 @@ describe("PetVaccinationForm", () => {
             data: { vaccination: { id: 124 } },
         });
 
-        render(<PetVaccinationForm petUuid={mockPetUuid} petId={mockPetId} />);
+        render(<VaccinationForm petUuid={mockPetUuid} petId={mockPetId} />);
         const user = userEvent.setup();
 
         // Fill only required fields
@@ -163,7 +163,7 @@ describe("PetVaccinationForm", () => {
             error: "Failed to add vaccination record",
         });
 
-        render(<PetVaccinationForm petUuid={mockPetUuid} petId={mockPetId} />);
+        render(<VaccinationForm petUuid={mockPetUuid} petId={mockPetId} />);
         const user = userEvent.setup();
 
         // Fill required fields
@@ -187,7 +187,7 @@ describe("PetVaccinationForm", () => {
         // Spy on console.error
         const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
 
-        render(<PetVaccinationForm petUuid={mockPetUuid} petId={mockPetId} />);
+        render(<VaccinationForm petUuid={mockPetUuid} petId={mockPetId} />);
         const user = userEvent.setup();
 
         // Fill required fields
@@ -211,7 +211,7 @@ describe("PetVaccinationForm", () => {
             () => new Promise((resolve) => setTimeout(() => resolve({ success: true }), 100)),
         );
 
-        render(<PetVaccinationForm petUuid={mockPetUuid} petId={mockPetId} />);
+        render(<VaccinationForm petUuid={mockPetUuid} petId={mockPetId} />);
         const user = userEvent.setup();
 
         // Fill required fields
@@ -235,7 +235,7 @@ describe("PetVaccinationForm", () => {
             data: { vaccination: { id: 125 } },
         });
 
-        render(<PetVaccinationForm petUuid={mockPetUuid} petId={mockPetId} />);
+        render(<VaccinationForm petUuid={mockPetUuid} petId={mockPetId} />);
         const user = userEvent.setup();
 
         // Fill the form

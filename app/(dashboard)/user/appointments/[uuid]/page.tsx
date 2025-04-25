@@ -3,12 +3,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import type { Metadata } from "next";
 import AppointmentForm from "@/components/form/appointment-form/index";
 import { notFound } from "next/navigation";
+import type { UUIDPageParams } from "@/types";
 
 export const metadata: Metadata = {
     title: "PawsitiveHealth | New Appointment",
     description: "PawsitiveHealth is a pet health care service.",
 };
-const NewAppointment = async ({ params }: { params: Promise<{ uuid: string }> }) => {
+
+const NewAppointment = async ({ params }: UUIDPageParams) => {
     const { uuid } = await params;
     const petsResponse = await getPets();
     const pets = petsResponse.success ? (petsResponse.data?.pets ?? []) : [];

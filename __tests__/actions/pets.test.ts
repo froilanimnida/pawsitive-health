@@ -1,4 +1,3 @@
-import { addPet, getPet, getPets, getPetId, updatePet } from "../../actions/pets";
 import { prismaMock, mockSession } from "../utils/mocks";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
@@ -6,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { breed_type, pet_sex_type, species_type } from "@prisma/client";
 import { Decimal } from "@prisma/client/runtime/library";
 
-// Mock dependencies
+// Mock dependencies first
 jest.mock("next-auth");
 jest.mock("next/navigation", () => ({
     redirect: jest.fn(),
@@ -14,6 +13,36 @@ jest.mock("next/navigation", () => ({
 jest.mock("next/cache", () => ({
     revalidatePath: jest.fn(),
 }));
+
+jest.mock("@/lib", () => {
+    return {
+        __esModule: true,
+        prisma: prismaMock,
+        toTitleCase: jest.fn((text) => (text ? text.charAt(0).toUpperCase() + text.slice(1).toLowerCase() : "")),
+    };
+});
+
+// Mock EmailService before importing actions
+jest.mock("@/lib/email-service", () => {
+    return {
+        EmailService: jest.fn().mockImplementation(() => {
+            return {
+                sendEmail: jest.fn().mockResolvedValue(true),
+            };
+        }),
+    };
+});
+
+// Mock NextAuth route
+jest.mock("@/app/api/auth/[...nextauth]/route", () => ({
+    authOptions: {
+        providers: [],
+        callbacks: {},
+    },
+}));
+
+// Import actions after mocks
+import { addPet, getPet, getPets, getPetId, updatePet } from "@/actions/pets";
 
 describe("Pets Actions", () => {
     beforeEach(() => {

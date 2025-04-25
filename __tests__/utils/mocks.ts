@@ -1,8 +1,8 @@
 import { PrismaClient } from "@prisma/client";
-import { mockDeep, mockReset } from "jest-mock-extended";
+import { mockDeep, mockReset, DeepMockProxy } from "jest-mock-extended";
 
 // Create a mock PrismaClient
-export const prismaMock = mockDeep<PrismaClient>();
+export const prismaMock = mockDeep<PrismaClient>() as unknown as DeepMockProxy<PrismaClient>;
 
 // Mock the prisma module
 jest.mock("../../lib/prisma", () => ({
@@ -12,20 +12,24 @@ jest.mock("../../lib/prisma", () => ({
 // Mock the auth session
 export const mockSession = {
     user: {
-        id: "test-user-id",
+        id: "1",
         email: "test@example.com",
         name: "Test User",
-        role: "USER",
+        image: "https://example.com/image.jpg",
+        role: "user",
     },
+    expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
 };
 
 export const mockVetSession = {
     user: {
-        id: "test-vet-id",
+        id: "2",
         email: "vet@example.com",
         name: "Test Vet",
-        role: "VETERINARIAN",
+        image: "https://example.com/vet.jpg",
+        role: "veterinarian",
     },
+    expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
 };
 
 export const mockAdminSession = {
@@ -35,6 +39,17 @@ export const mockAdminSession = {
         name: "Test Admin",
         role: "ADMIN",
     },
+};
+
+export const mockClinicSession = {
+    user: {
+        id: "3",
+        email: "clinic@example.com",
+        name: "Test Clinic",
+        image: "https://example.com/clinic.jpg",
+        role: "client",
+    },
+    expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
 };
 
 // Mock the next-auth getServerSession function
@@ -79,4 +94,14 @@ jest.mock("../../lib/email-service", () => ({
 beforeEach(() => {
     mockReset(prismaMock);
     jest.clearAllMocks();
+});
+
+// Add a minimal test to avoid Jest warnings
+describe("mocks", () => {
+    it("should exist", () => {
+        expect(prismaMock).toBeDefined();
+        expect(mockSession).toBeDefined();
+        expect(mockVetSession).toBeDefined();
+        expect(mockClinicSession).toBeDefined();
+    });
 });

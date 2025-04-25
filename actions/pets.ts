@@ -1,5 +1,5 @@
 "use server";
-import { formatDecimal, prisma, toTitleCase } from "@/lib";
+import { formatDecimal, getCurrentUtcDate, prisma, toTitleCase } from "@/lib";
 import { PetOnboardingSchema, UpdatePetSchema, type UpdatePetType, OnboardingPetSchema } from "@/schemas";
 import { procedure_type, type breed_type, type pet_sex_type, type species_type } from "@prisma/client";
 import { type ActionResponse } from "@/types/server-action-response";
@@ -203,10 +203,11 @@ const updatePet = async (values: UpdatePetType): Promise<ActionResponse | void> 
         if (!petData.success) return { success: false, error: "Please check the form inputs" };
 
         const pet = await prisma.pets.update({
-            where: { pet_uuid: petData.data.pet_uuid },
+            where: { pet_id: petData.data.pet_id },
             data: {
                 name: petData.data.name,
                 weight_kg: petData.data.weight_kg,
+                updated_at: getCurrentUtcDate(),
             },
         });
         if (!pet) return { success: false, error: "Failed to update pet" };

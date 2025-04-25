@@ -29,6 +29,7 @@ import { Calendar as CalendarIcon } from "lucide-react";
 import { format, addDays } from "date-fns";
 import { addPrescription } from "@/actions";
 import type { medications } from "@prisma/client";
+import { createFormConfig } from "@/lib/config/hook-form-config";
 
 interface PrescriptionFormProps {
     petId: number;
@@ -50,52 +51,68 @@ const PrescriptionForm = ({
     medicationList,
 }: PrescriptionFormProps) => {
     const [isLoading, setIsLoading] = useState(false);
-    const form = useForm({
-        resolver: zodResolver(PrescriptionDefinition),
-        defaultValues: {
-            pet_id: petId,
-            pet_uuid: petUuid,
-            appointment_uuid: appointmentUuid,
-            appointment_id: appointmentId,
-            vet_id: vetId,
-            medication_id: undefined,
-            dosage: "",
-            frequency: "",
-            start_date: new Date(),
-            end_date: addDays(new Date(), 7),
-            refills_remaining: 0,
-        },
-    });
 
-    const onSubmit = async (data: PrescriptionType) => {
-        setIsLoading(true);
-        toast.loading("Issuing prescription...");
-        const response = await addPrescription(data);
-        if (response === undefined) {
-            toast.dismiss();
-            toast.success("Prescription issued successfully");
-            form.reset({
-                ...form.getValues(),
+    const form = useForm<PrescriptionType>(
+        createFormConfig({
+            resolver: zodResolver(PrescriptionDefinition),
+            defaultValues: {
+                pet_id: petId,
+                pet_uuid: petUuid,
+                appointment_uuid: appointmentUuid,
+                appointment_id: appointmentId,
+                vet_id: vetId,
                 medication_id: undefined,
                 dosage: "",
                 frequency: "",
                 start_date: new Date(),
                 end_date: addDays(new Date(), 7),
                 refills_remaining: 0,
+            },
+        }),
+    );
+
+    const onSubmit = async (data: PrescriptionType) => {
+        try {
+            setIsLoading(true);
+            toast.loading("Issuing prescription...");
+            // Ensure medication_id is a number
+            const response = await addPrescription({
+                ...data,
+                medication_id:
+                    typeof data.medication_id === "string" ? parseInt(data.medication_id, 10) : data.medication_id,
+                refills_remaining: Number(data.refills_remaining),
             });
-            setIsLoading(false);
-            return;
-        }
-        if (response.success === false) {
+
+            if (response === undefined) {
+                toast.dismiss();
+                toast.success("Prescription issued successfully");
+                form.reset({
+                    ...form.getValues(),
+                    medication_id: undefined,
+                    dosage: "",
+                    frequency: "",
+                    start_date: new Date(),
+                    end_date: addDays(new Date(), 7),
+                    refills_remaining: 0,
+                });
+                return;
+            }
+
+            if (response.success === false) {
+                toast.dismiss();
+                toast.error(response.error || "Failed to issue prescription");
+                return;
+            }
+
             toast.dismiss();
-            toast.error(response.error || "Failed to issue prescription");
+            toast.error("An unexpected error occurred");
+        } catch (error) {
+            toast.dismiss();
+            toast.error("Failed to issue prescription");
+            console.error("Prescription error:", error);
+        } finally {
             setIsLoading(false);
-            return;
         }
-        toast.dismiss();
-        toast.error("An unexpected error occurred");
-        toast.dismiss();
-        setIsLoading(false);
     };
 
     if (!isCheckIn) {
@@ -119,11 +136,7 @@ const PrescriptionForm = ({
                     render={({ field }) => (
                         <FormItem>
                             <FormLabel>Medication</FormLabel>
-                            <Select
-                                onValueChange={(value) => field.onChange(parseInt(value))}
-                                value={field.value?.toString()}
-                                disabled={isLoading}
-                            >
+                            <Select onValueChange={field.onChange} value={field.value?.toString()} disabled={isLoading}>
                                 <FormControl>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select medication" />
@@ -269,8 +282,9 @@ const PrescriptionForm = ({
                                     type="number"
                                     min="0"
                                     {...field}
-                                    onChange={(e) => field.onChange(parseInt(e.target.value))}
+                                    onChange={(e) => field.onChange(Number(e.target.value))}
                                     disabled={isLoading}
+                                    value={field.value}
                                 />
                             </FormControl>
                             <FormDescription>Number of prescription refills allowed</FormDescription>
