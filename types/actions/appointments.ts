@@ -1,4 +1,5 @@
-import { type appointment_type, type appointment_status } from "@prisma/client";
+import { type appointment_type, type appointment_status, type Prisma } from "@prisma/client";
+import type { Decimal } from "@prisma/client/runtime/library";
 
 type GetUserAppointmentsResponse = {
     appointment_id: number;
