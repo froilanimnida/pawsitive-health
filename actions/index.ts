@@ -10,6 +10,8 @@ export {
     verifyEmail,
     verifyOTPToken,
     isEmailTaken,
+    changePassword,
+    confirmPasswordChange,
 } from "./auth";
 export { newVeterinarian, getClinicVeterinarians, getVeterinariansByClinic } from "./veterinary";
 export {
