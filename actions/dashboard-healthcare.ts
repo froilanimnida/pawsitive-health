@@ -4,8 +4,8 @@ import { prisma } from "@/lib";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
-import { type ActionResponse } from "@/types/server-action-response";
 import {
+    ActionResponse,
     UpcomingVaccination,
     UpcomingVaccinationsResponse,
     UpcomingPrescription,

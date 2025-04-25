@@ -1,9 +1,9 @@
 "use server";
 import { prisma } from "@/lib";
-import { ActionResponse } from "@/types/server-action-response";
+import { ActionResponse } from "@/types";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import { getUserId } from "./user";
+import { getUserId } from "@/actions";
 
 const sendMessage = async (text: string, appointment_id: number): Promise<ActionResponse | void> => {
     try {
@@ -27,7 +27,7 @@ const sendMessage = async (text: string, appointment_id: number): Promise<Action
             },
         });
 
-        return
+        return;
     } catch (error) {
         return {
             success: false,

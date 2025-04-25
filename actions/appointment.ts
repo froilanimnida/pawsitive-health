@@ -1,6 +1,14 @@
 "use server";
 import { prisma, toTitleCase } from "@/lib";
-import { getClinic, getPet, sendEmail } from "@/actions";
+import {
+    getClinic,
+    getPet,
+    sendEmail,
+    createNotification,
+    updateGoogleCalendarEvent,
+    deleteGoogleCalendarEvent,
+    addToGoogleCalendar,
+} from "@/actions";
 import { AppointmentType } from "@/schemas";
 import type {
     appointment_status,
@@ -10,18 +18,16 @@ import type {
     medical_records,
     healthcare_procedures,
 } from "@prisma/client";
-import type { ActionResponse } from "@/types/server-action-response";
 import { endOfDay, startOfDay } from "date-fns";
 import type {
     AppointmentDetailsResponse,
+    ActionResponse,
     GetUserAppointmentsResponse,
     GetExistingAppointmentsType,
     GetVeterinarianAppointmentsType,
-} from "@/types/actions/appointments";
+} from "@/types";
 import { AppointmentConfirmation, AppointmentConfirmed } from "@/templates";
 import { revalidatePath } from "next/cache";
-import { createNotification } from "./notification";
-import { updateGoogleCalendarEvent, deleteGoogleCalendarEvent, addToGoogleCalendar } from "./calendar-sync";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
@@ -392,7 +398,7 @@ const cancelAppointment = async (appointment_uuid: string): Promise<ActionRespon
             petId: appointment.pets.pet_id,
             appointmentId: appointment.appointment_id,
             expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-            actionUrl: `/user/appointments/${appointment.appointment_uuid}`,
+            actionUrl: `/user/appointments/view/${appointment.appointment_uuid}`,
         });
         revalidatePath(`/user/appointments/${appointment.appointment_uuid}`);
     } catch (error) {
@@ -476,7 +482,7 @@ const confirmAppointment = async (appointment_uuid: string): Promise<ActionRespo
             petId: appointment.pets.pet_id,
             appointmentId: appointment.appointment_id,
             expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-            actionUrl: `/user/appointments/${appointment.appointment_uuid}`,
+            actionUrl: `/user/appointments/view/${appointment.appointment_uuid}`,
         });
 
         revalidatePath(`/vet/appointments/${appointment.appointment_uuid}`);

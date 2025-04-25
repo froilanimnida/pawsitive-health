@@ -1,8 +1,6 @@
 "use server";
-
 import { prisma } from "@/lib";
-import { createCalendarEvent, updateCalendarEvent, deleteCalendarEvent } from "@/lib/google/calendar";
-import { createCalendarEventDetails } from "@/lib/create-calendar-event-details";
+import { createCalendarEvent, updateCalendarEvent, deleteCalendarEvent, createCalendarEventDetails } from "@/lib";
 import { AppointmentMetadata, createAppointmentMetadata } from "@/types/appointments-metadata";
 import type { JsonObject } from "@prisma/client/runtime/library";
 import { getServerSession } from "next-auth";

@@ -3,7 +3,7 @@
 import { prisma } from "@/lib";
 import { uploadFileToR2, deleteFileFromR2, getPresignedDownloadUrl } from "@/lib";
 import { revalidatePath } from "next/cache";
-import type { ActionResponse } from "@/types/server-action-response";
+import type { ActionResponse } from "@/types";
 import { DocumentUploadSchema, type DocumentUploadType } from "@/schemas";
 
 /**

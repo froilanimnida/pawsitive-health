@@ -2,7 +2,7 @@
 
 import { ThemeSchema, type ThemeType } from "@/schemas";
 import { prisma } from "@/lib";
-import { ActionResponse } from "@/types/server-action-response";
+import { ActionResponse } from "@/types";
 import type { user_settings } from "@prisma/client";
 
 const changeTheme = async (values: ThemeType): Promise<ActionResponse<{ success: boolean }>> => {

@@ -38,7 +38,7 @@ function SkeletonCard() {
 
 function SettingsContent({ preference }: { preference: user_settings }) {
     return (
-        <div className="space-y-8 grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+        <div className="space-y-8 grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
             <Card>
                 <CardHeader className="flex flex-row items-center gap-2">
                     <div className="grid gap-1">

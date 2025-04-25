@@ -1,7 +1,7 @@
 "use server";
 import { PrescriptionDefinition, type PrescriptionType } from "@/schemas";
 import { prisma } from "@/lib";
-import { ActionResponse } from "@/types/server-action-response";
+import { ActionResponse } from "@/types";
 import type { prescriptions } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";

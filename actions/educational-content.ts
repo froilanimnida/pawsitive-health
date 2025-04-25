@@ -1,8 +1,7 @@
 "use server";
 import { prisma } from "@/lib";
-import type { ActionResponse } from "@/types/server-action-response";
 import type { educational_content } from "@prisma/client";
-import type { EducationalContentFilters } from "@/types";
+import type { EducationalContentFilters, ActionResponse } from "@/types";
 /**
  * Fetch educational content with optional filtering
  */

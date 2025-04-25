@@ -2,8 +2,7 @@
 import { formatDecimal, getCurrentUtcDate, prisma, toTitleCase } from "@/lib";
 import { PetOnboardingSchema, UpdatePetSchema, type UpdatePetType, OnboardingPetSchema } from "@/schemas";
 import { procedure_type, type breed_type, type pet_sex_type, type species_type } from "@prisma/client";
-import { type ActionResponse } from "@/types/server-action-response";
-import type { Pets } from "@/types/pets";
+import type { ActionResponse, Pets } from "@/types";
 import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";

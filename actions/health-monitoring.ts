@@ -1,14 +1,13 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { HealthMonitoringSchema, type HealthMonitoringType } from "@/schemas/health-monitoring";
+import { HealthMonitoringSchema, type HealthMonitoringType } from "@/schemas";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
-import { type ActionResponse } from "@/types/server-action-response";
+import { type ActionResponse, HealthMonitoring } from "@/types";
 import { revalidatePath } from "next/cache";
 import { formatDecimal } from "@/lib";
-import type { HealthMonitoring } from "@/types";
 
 /**
  * Add a new health monitoring record for a pet

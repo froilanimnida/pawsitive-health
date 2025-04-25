@@ -1,6 +1,6 @@
 "use server";
 import { prisma } from "@/lib";
-import { type ActionResponse } from "@/types/server-action-response";
+import { type ActionResponse } from "@/types";
 import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";

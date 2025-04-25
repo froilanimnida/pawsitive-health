@@ -1,7 +1,7 @@
 "use server";
 import { type vet_availability } from "@prisma/client";
-import { prisma } from "@/lib/prisma";
-import type { ActionResponse } from "@/types/server-action-response";
+import { prisma } from "@/lib";
+import type { ActionResponse } from "@/types";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";

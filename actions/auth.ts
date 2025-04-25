@@ -13,7 +13,7 @@ import { OtpVerificationEmail, ClinicOnboardingEmail, UserOnboardingEmail } from
 import { hashPassword, verifyPassword, prisma, generateOtp, generateVerificationToken, toTitleCase } from "@/lib";
 import { role_type, type users } from "@prisma/client";
 import { signOut } from "next-auth/react";
-import type { ActionResponse } from "@/types/server-action-response";
+import type { ActionResponse } from "@/types";
 import jwt from "jsonwebtoken";
 import { redirect } from "next/navigation";
 
