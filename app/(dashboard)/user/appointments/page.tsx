@@ -117,9 +117,13 @@ function Appointments() {
                 </Dialog>
             </div>
             <Suspense
-                fallback={Array.from({ length: 16 }, (_, i) => (
-                    <SkeletonCard key={i} />
-                ))}
+                fallback={
+                    <div className="grid grid-cols-1 w-full lg:grid-cols-2 xl:grid-cols-3 gap-4">
+                        {Array.from({ length: 6 }, (_, i) => (
+                            <SkeletonCard key={i} />
+                        ))}
+                    </div>
+                }
             >
                 <AppointmentsHistory />
             </Suspense>
