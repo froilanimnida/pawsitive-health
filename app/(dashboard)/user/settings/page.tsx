@@ -38,7 +38,7 @@ function SkeletonCard() {
 
 function SettingsContent({ preference }: { preference: user_settings }) {
     return (
-        <div className="space-y-8">
+        <div className="space-y-8 grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
             <Card>
                 <CardHeader className="flex flex-row items-center gap-2">
                     <div className="grid gap-1">
@@ -129,7 +129,7 @@ export default async function Settings() {
         notFound();
     }
     return (
-        <section className="container mx-auto py-8 max-w-4xl">
+        <section className="mx-auto py-8 w-full">
             <div className="flex justify-between items-center mb-6">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
