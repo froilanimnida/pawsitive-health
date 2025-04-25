@@ -21,6 +21,8 @@ export {
     type OtpType,
     SignUpSchema,
     type SignUpType,
+    PasswordChangeSchema,
+    type PasswordChangeType,
 } from "./auth-definitions";
 export { AppointmentSchema, type AppointmentType } from "./appointment-definition";
 export { DocumentUploadSchema, type DocumentUploadType } from "./document-schema";

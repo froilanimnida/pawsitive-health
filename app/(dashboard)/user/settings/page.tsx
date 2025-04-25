@@ -1,10 +1,11 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, Separator, Skeleton } from "@/components/ui";
-import { User, Paintbrush, CalendarIcon } from "lucide-react";
+import { User, Paintbrush, CalendarIcon, Lock } from "lucide-react";
 import ProfileForm from "@/components/form/profile-form";
 import AppearanceForm from "@/components/form/appearance-form";
 import CalendarIntegrationForm from "@/components/form/calendar-integration-form";
+import PasswordChangeForm from "@/components/form/password-change-form";
 import { getUserPreference } from "@/actions";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
@@ -37,7 +38,7 @@ function SkeletonCard() {
 
 function SettingsContent({ preference }: { preference: user_settings }) {
     return (
-        <div className="space-y-8">
+        <div className="space-y-8 grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
             <Card>
                 <CardHeader className="flex flex-row items-center gap-2">
                     <div className="grid gap-1">
@@ -53,6 +54,25 @@ function SettingsContent({ preference }: { preference: user_settings }) {
                 <Separator />
                 <CardContent className="pt-6">
                     <ProfileForm />
+                </CardContent>
+            </Card>
+
+            {/* Password Security */}
+            <Card>
+                <CardHeader className="flex flex-row items-center gap-2">
+                    <div className="grid gap-1">
+                        <CardTitle>
+                            <div className="flex items-center space-x-2">
+                                <Lock className="h-5 w-5" />
+                                <span>Password Security</span>
+                            </div>
+                        </CardTitle>
+                        <CardDescription>Update your password and secure your account</CardDescription>
+                    </div>
+                </CardHeader>
+                <Separator />
+                <CardContent className="pt-6">
+                    <PasswordChangeForm />
                 </CardContent>
             </Card>
 
@@ -109,7 +129,7 @@ export default async function Settings() {
         notFound();
     }
     return (
-        <section className="container mx-auto py-8 max-w-4xl">
+        <section className="mx-auto py-8 w-full">
             <div className="flex justify-between items-center mb-6">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
