@@ -51,8 +51,12 @@ const addPrescription = async (values: PrescriptionType): Promise<ActionResponse
                 frequency: formData.data.frequency,
                 start_date: formData.data.start_date,
                 pet_id: Number(formData.data.pet_id),
+                pet_id: Number(formData.data.pet_id),
                 end_date: formData.data.end_date,
                 refills_remaining: formData.data.refills_remaining,
+                vet_id: veterinarian_id,
+                appointment_id: formData.data.appointment_id,
+                medication_id: formData.data.medication_id,
                 vet_id: veterinarian_id,
                 appointment_id: formData.data.appointment_id,
                 medication_id: formData.data.medication_id,
@@ -71,7 +75,7 @@ const addPrescription = async (values: PrescriptionType): Promise<ActionResponse
         console.error("Error adding prescription:", error);
         return {
             success: false,
-            error: "Failed to add prescription",
+            error: error instanceof Error ? error.message : "An unexpected error occurred",
         };
     }
 };
