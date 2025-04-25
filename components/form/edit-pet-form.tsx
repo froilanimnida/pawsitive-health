@@ -1,5 +1,4 @@
 "use client";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import {
     FormItem,
@@ -16,40 +15,43 @@ import { updatePet } from "@/actions";
 import { UpdatePetSchema, type UpdatePetType } from "@/schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { createFormConfig } from "@/lib";
 
-const EditPetForm = ({ petName, weightKg, petUuid }: { petName: string; weightKg: number; petUuid: string }) => {
-    const [isLoading, setIsLoading] = useState(false);
-    const editPetForm = useForm({
-        defaultValues: {
-            name: petName,
-            weight_kg: weightKg,
-            pet_uuid: petUuid,
-        },
-        resolver: zodResolver(UpdatePetSchema),
-        reValidateMode: "onChange",
-        shouldFocusError: true,
-        progressive: true,
-    });
+const EditPetForm = ({ petName, weightKg, petId }: { petName: string; weightKg: number; petId: number }) => {
+    const editPetForm = useForm<UpdatePetType>(
+        createFormConfig({
+            defaultValues: {
+                name: petName,
+                weight_kg: weightKg,
+                pet_id: petId,
+            },
+            resolver: zodResolver(UpdatePetSchema),
+        }),
+    );
 
-    const handleSubmit = async (values: UpdatePetType) => {
-        setIsLoading(true);
+    const {
+        control,
+        handleSubmit,
+        formState: { isSubmitting },
+    } = editPetForm;
+
+    const onSubmit = async (values: UpdatePetType) => {
         const t = toast.loading("Updating pet...");
         const result = await updatePet(values);
+        toast.dismiss(t);
+
         if (result === undefined) {
-            setIsLoading(false);
-            toast.dismiss(t);
             toast.success("Pet updated successfully");
             return;
         }
-        setIsLoading(false);
         toast.error("An error occurred while updating the pet");
     };
 
     return (
         <Form {...editPetForm}>
-            <form onSubmit={editPetForm.handleSubmit(handleSubmit)} className="space-y-4 w-full">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 w-full">
                 <FormField
-                    control={editPetForm.control}
+                    control={control}
                     name="name"
                     render={({ field, fieldState }) => (
                         <FormItem>
@@ -66,7 +68,7 @@ const EditPetForm = ({ petName, weightKg, petUuid }: { petName: string; weightKg
                 />
 
                 <FormField
-                    control={editPetForm.control}
+                    control={control}
                     name="weight_kg"
                     render={({ field, fieldState }) => (
                         <FormItem>
@@ -81,8 +83,8 @@ const EditPetForm = ({ petName, weightKg, petUuid }: { petName: string; weightKg
                         </FormItem>
                     )}
                 />
-                <Button type="submit" disabled={isLoading} className="w-full mt-4">
-                    {isLoading ? "Updating..." : "Update Pet"}
+                <Button type="submit" disabled={isSubmitting} className="w-full mt-4">
+                    {isSubmitting ? "Updating..." : "Update Pet"}
                 </Button>
             </form>
         </Form>

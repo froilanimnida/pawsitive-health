@@ -1,4 +1,4 @@
-import { Card, CardDescription, CardFooter, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardDescription, CardFooter, CardHeader, CardTitle, CardContent } from "@/components/ui";
 import { Metadata } from "next";
 import Link from "next/link";
 import ResponsiveContainer from "@/components/shared/layout/responsive-container";

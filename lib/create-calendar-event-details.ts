@@ -3,6 +3,7 @@
  */
 import { addMinutes } from "date-fns";
 import { AppointmentWithRelations } from "@/actions/appointment";
+import { toTitleCase } from "./functions/text/title-case";
 
 /**
  * Create the event details for a Google Calendar event from an appointment
@@ -32,9 +33,9 @@ export function createCalendarEventDetails(appointment: AppointmentWithRelations
     const summary = `Vet Appointment for ${appointment.pets ? appointment.pets.name : "Unknown Pet"}`;
     const description = `
 Veterinarian: Dr. ${vetName}
-Type: ${appointment.appointment_type}
-Pet: ${appointment.pets ? appointment.pets.name : "Unknown Pet"}
-Status: ${appointment.status}
+Type: ${toTitleCase(appointment.appointment_type)}
+Pet Name: ${appointment.pets ? appointment.pets.name : "Unknown Pet"}
+Status: ${toTitleCase(appointment.status)}
 ${appointment.notes ? `Notes: ${appointment.notes}` : ""}
 ${appointment.clinics?.phone_number ? `Phone: ${appointment.clinics.phone_number}` : ""}
     `.trim();
@@ -45,7 +46,7 @@ ${appointment.clinics?.phone_number ? `Phone: ${appointment.clinics.phone_number
         location,
         startTime: appointment.appointment_date,
         endTime,
-        status: appointment.status === "cancelled" ? "cancelled" : "confirmed",
+        status: toTitleCase(appointment.status === "cancelled" ? "cancelled" : "confirmed"),
         colorId,
         reminders: {
             useDefault: false,

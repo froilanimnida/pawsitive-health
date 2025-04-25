@@ -10,6 +10,8 @@ export {
     verifyEmail,
     verifyOTPToken,
     isEmailTaken,
+    changePassword,
+    confirmPasswordChange,
 } from "./auth";
 export { newVeterinarian, getClinicVeterinarians, getVeterinariansByClinic } from "./veterinary";
 export {
@@ -30,7 +32,7 @@ export { getUserId, updateCalendarIntegration, updateUserProfile } from "./user"
 export { getVeterinaryAvailability } from "./veterinarian-availability";
 export { createVaccination, getPetVaccinations, deleteVaccination, getVaccination } from "./vaccination";
 //export {} from "./medical-records";
-//export {} from "./health-monitoring";
+export { addHealthMonitoringRecord, getPetHealthMonitoring, deleteHealthMonitoringRecord } from "./health-monitoring";
 export {
     addHealthcareProcedure,
     getHealthcareProcedure,
@@ -44,18 +46,18 @@ export { getEducationalContent, getEducationalContentByUuid } from "./educationa
 export { getUserNotifications, getUserNotification, markNotificationAsRead } from "./notification";
 export { addPrescription, viewPrescription, deletePrescription } from "./prescription";
 export {
-    addToGoogleCalendar,
-    deleteGoogleCalendarEvent,
-    updateGoogleCalendarEvent,
-    synchronizeAllAppointments,
-} from "./calendar-sync";
-export {
     changeTheme,
     createNewPreferenceDefault,
     getUserPreference,
     getCalendarSyncPreference,
     getThemePreference,
 } from "./preference";
+export {
+    addToGoogleCalendar,
+    deleteGoogleCalendarEvent,
+    updateGoogleCalendarEvent,
+    synchronizeAllAppointments,
+} from "./calendar-sync";
 export {
     getDashboardHealthcare,
     getPetHistoricalHealthcareData,

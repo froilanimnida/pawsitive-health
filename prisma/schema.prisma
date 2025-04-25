@@ -7,6 +7,26 @@ datasource db {
     url      = env("NEON_DB_CONNECTION_STRING")
 }
 
+model messages {
+    message_id     Int           @id @default(autoincrement())
+    message_uuid   String        @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+    sender_id      Int
+    receiver_id    Int
+    content        String
+    attachment_url String?       @db.VarChar(255)
+    is_read        Boolean       @default(false)
+    created_at     DateTime      @default(now()) @db.Timestamptz(6)
+    updated_at     DateTime      @default(now()) @db.Timestamptz(6)
+    appointment_id Int?
+    sender         users         @relation("sentMessages", fields: [sender_id], references: [user_id], onDelete: Cascade)
+    receiver       users         @relation("receivedMessages", fields: [receiver_id], references: [user_id], onDelete: Cascade)
+    appointment    appointments? @relation(fields: [appointment_id], references: [appointment_id], onDelete: SetNull)
+
+    @@index([sender_id])
+    @@index([receiver_id])
+    @@index([appointment_id])
+}
+
 model appointments {
     appointment_id        Int                     @id @default(autoincrement())
     appointment_uuid      String                  @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
@@ -23,10 +43,11 @@ model appointments {
     clinics               clinics?                @relation(fields: [clinic_id], references: [clinic_id], onDelete: NoAction, onUpdate: NoAction)
     pets                  pets?                   @relation(fields: [pet_id], references: [pet_id], onDelete: NoAction, onUpdate: NoAction)
     veterinarians         veterinarians?          @relation(fields: [vet_id], references: [vet_id], onDelete: NoAction, onUpdate: NoAction)
-    vaccinations          vaccinations[]
     healthcare_procedures healthcare_procedures[]
     notifications         notifications[]
     prescriptions         prescriptions[]
+    vaccinations          vaccinations[]
+    messages              messages[]
 }
 
 model documents {
@@ -41,9 +62,9 @@ model documents {
     pet_id          Int?
     user_id         Int?
     record_id       Int?
-    pets            pets?            @relation(fields: [pet_id], references: [pet_id], onDelete: SetNull, onUpdate: NoAction)
-    users           users?           @relation(fields: [user_id], references: [user_id], onDelete: SetNull, onUpdate: NoAction)
-    medical_records medical_records? @relation(fields: [record_id], references: [record_id], onDelete: SetNull, onUpdate: NoAction)
+    pets            pets?            @relation(fields: [pet_id], references: [pet_id], onUpdate: NoAction)
+    medical_records medical_records? @relation(fields: [record_id], references: [record_id], onUpdate: NoAction)
+    users           users?           @relation(fields: [user_id], references: [user_id], onUpdate: NoAction)
 }
 
 model educational_content {
@@ -90,23 +111,23 @@ model forum_posts {
     category       String           @db.VarChar(50)
     created_at     DateTime         @default(now()) @db.Timestamptz(6)
     updated_at     DateTime         @default(now()) @db.Timestamptz(6)
+    tags           String[]
     forum_comments forum_comments[]
     users          users?           @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
-    tags           String[]
     notifications  notifications[]
 }
 
 model health_monitoring {
-    monitoring_id       Int       @id @default(autoincrement())
-    monitoring_uuid     String    @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+    monitoring_id       Int      @id @default(autoincrement())
+    monitoring_uuid     String   @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
     pet_id              Int?
-    activity_level      String    @db.VarChar(20)
-    weight_kg           Decimal   @db.Decimal(5, 2)
-    temperature_celsius Decimal   @db.Decimal(4, 2)
+    activity_level      String   @db.VarChar(20)
+    weight_kg           Decimal  @db.Decimal(5, 2)
+    temperature_celsius Decimal  @db.Decimal(4, 2)
     symptoms            String
     notes               String?
-    recorded_at         DateTime? @default(now()) @db.Timestamptz(6)
-    pets                pets?     @relation(fields: [pet_id], references: [pet_id], onDelete: NoAction, onUpdate: NoAction)
+    recorded_at         DateTime @default(now()) @db.Timestamptz(6)
+    pets                pets?    @relation(fields: [pet_id], references: [pet_id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model medical_records {
@@ -119,9 +140,9 @@ model medical_records {
     treatment     String
     notes         String?
     created_at    DateTime       @default(now()) @db.Timestamptz(6)
+    documents     documents[]
     pets          pets?          @relation(fields: [pet_id], references: [pet_id], onDelete: NoAction, onUpdate: NoAction)
     veterinarians veterinarians? @relation(fields: [vet_id], references: [vet_id], onDelete: NoAction, onUpdate: NoAction)
-    documents     documents[]
 }
 
 model medications {
@@ -137,23 +158,23 @@ model medications {
 
 model notifications {
     notification_id   Int                   @id @default(autoincrement())
-    notification_uuid String                @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
     user_id           Int?
     title             String                @db.VarChar(255)
     content           String
-    type              notification_type
     is_read           Boolean?              @default(false)
     created_at        DateTime?             @default(now()) @db.Timestamptz(6)
-    pet_id            Int?
-    appointment_id    Int?
-    forum_post_id     Int?
-    expires_at        DateTime?             @db.Timestamptz(6)
+    notification_uuid String                @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+    type              notification_type
     action_url        String?               @db.VarChar(255)
+    appointment_id    Int?
+    expires_at        DateTime?             @db.Timestamptz(6)
+    forum_post_id     Int?
+    pet_id            Int?
     priority          notification_priority @default(normal)
+    appointments      appointments?         @relation(fields: [appointment_id], references: [appointment_id], onUpdate: NoAction)
+    forum_posts       forum_posts?          @relation(fields: [forum_post_id], references: [post_id], onUpdate: NoAction)
+    pets              pets?                 @relation(fields: [pet_id], references: [pet_id], onUpdate: NoAction)
     users             users?                @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
-    pets              pets?                 @relation(fields: [pet_id], references: [pet_id], onDelete: SetNull, onUpdate: NoAction)
-    appointments      appointments?         @relation(fields: [appointment_id], references: [appointment_id], onDelete: SetNull, onUpdate: NoAction)
-    forum_posts       forum_posts?          @relation(fields: [forum_post_id], references: [post_id], onDelete: SetNull, onUpdate: NoAction)
 }
 
 model pets {
@@ -169,18 +190,18 @@ model pets {
     created_at            DateTime                @default(now()) @db.Timestamptz(6)
     updated_at            DateTime                @default(now()) @db.Timestamptz(6)
     private               Boolean                 @default(false)
-    deleted_at            DateTime?               @db.Timestamptz(6)
     deleted               Boolean?                @default(false)
+    deleted_at            DateTime?               @db.Timestamptz(6)
     profile_picture_url   String?                 @db.VarChar(255)
     appointments          appointments[]
+    documents             documents[]
     health_monitoring     health_monitoring[]
     healthcare_procedures healthcare_procedures[]
     medical_records       medical_records[]
+    notifications         notifications[]
     users                 users?                  @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
     prescriptions         prescriptions[]
     vaccinations          vaccinations[]
-    documents             documents[]
-    notifications         notifications[]
 }
 
 model prescriptions {
@@ -189,28 +210,28 @@ model prescriptions {
     pet_id            Int?
     medication_id     Int?
     vet_id            Int?
-    appointment_id    Int?
     dosage            String         @db.VarChar(50)
     frequency         String         @db.VarChar(50)
     start_date        DateTime?      @db.Date
     end_date          DateTime?      @db.Date
     refills_remaining Int?
     created_at        DateTime?      @default(now()) @db.Timestamptz(6)
+    appointment_id    Int?
+    appointments      appointments?  @relation(fields: [appointment_id], references: [appointment_id], onUpdate: NoAction)
     medications       medications?   @relation(fields: [medication_id], references: [medication_id], onDelete: NoAction, onUpdate: NoAction)
     pets              pets?          @relation(fields: [pet_id], references: [pet_id], onDelete: NoAction, onUpdate: NoAction)
     veterinarians     veterinarians? @relation(fields: [vet_id], references: [vet_id], onDelete: NoAction, onUpdate: NoAction)
-    appointments      appointments?  @relation(fields: [appointment_id], references: [appointment_id], onDelete: SetNull, onUpdate: NoAction)
 }
 
 model user_settings {
     user_id               Int        @id
-    theme_mode            theme_mode @default(light)
-    email_notifications   Boolean    @default(true)
-    push_notifications    Boolean    @default(true)
-    health_alerts         Boolean    @default(true)
-    google_calendar_sync  Boolean    @default(false)
-    google_calendar_token String?    @db.Text
     updated_at            DateTime   @default(now()) @db.Timestamptz(6)
+    email_notifications   Boolean    @default(true)
+    google_calendar_sync  Boolean    @default(false)
+    google_calendar_token String?
+    health_alerts         Boolean    @default(true)
+    push_notifications    Boolean    @default(true)
+    theme_mode            theme_mode @default(light)
     last_sync             DateTime?  @db.Timestamptz(6)
     users                 users      @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
 }
@@ -226,16 +247,17 @@ model users {
     role                          role_type             @default(user)
     created_at                    DateTime              @default(now()) @db.Timestamptz(6)
     updated_at                    DateTime              @default(now()) @db.Timestamptz(6)
-    last_login                    DateTime?             @db.Timestamptz(6)
-    disabled                      Boolean?              @default(false)
     deleted_at                    DateTime?             @db.Timestamptz(6)
-    otp_token                     String?               @default("") @db.VarChar(10)
-    otp_expires_at                DateTime?             @db.Timestamptz(6)
-    email_verified                Boolean?              @default(false)
-    email_verification_token      String?               @db.VarChar(255)
+    disabled                      Boolean?              @default(false)
     email_verification_expires_at DateTime?             @db.Timestamptz(6)
-    password_reset_token          String?               @db.VarChar(255)
+    email_verification_token      String?               @db.VarChar(255)
+    email_verified                Boolean?              @default(false)
+    last_login                    DateTime?             @db.Timestamptz(6)
     password_reset_expires_at     DateTime?             @db.Timestamptz(6)
+    password_reset_token          String?               @db.VarChar(255)
+    otp_expires_at                DateTime?             @db.Timestamptz(6)
+    otp_token                     String?               @default("") @db.VarChar(10)
+    documents                     documents[]
     educational_content           educational_content[]
     emergency_contacts            emergency_contacts[]
     forum_comments                forum_comments[]
@@ -245,12 +267,12 @@ model users {
     user_settings                 user_settings?
     veterinarians                 veterinarians[]
     clinics                       clinics[]             @relation("clinicsTousers")
-    documents                     documents[]
+    sentMessages                  messages[]            @relation("sentMessages")
+    receivedMessages              messages[]            @relation("receivedMessages")
 }
 
 model vaccinations {
     vaccination_id    Int            @id @default(autoincrement())
-    vaccination_uuid  String         @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
     pet_id            Int?
     vaccine_name      String?        @db.VarChar(100)
     administered_date DateTime?      @db.Date
@@ -258,10 +280,11 @@ model vaccinations {
     administered_by   Int?
     batch_number      String?        @db.VarChar(50)
     created_at        DateTime       @default(now()) @db.Timestamptz(6)
+    vaccination_uuid  String         @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
     appointment_id    Int?
     veterinarians     veterinarians? @relation(fields: [administered_by], references: [vet_id], onDelete: NoAction, onUpdate: NoAction)
+    appointments      appointments?  @relation(fields: [appointment_id], references: [appointment_id], onUpdate: NoAction)
     pets              pets?          @relation(fields: [pet_id], references: [pet_id], onDelete: NoAction, onUpdate: NoAction)
-    appointments      appointments?  @relation(fields: [appointment_id], references: [appointment_id], onDelete: SetNull, onUpdate: NoAction)
 }
 
 model veterinarians {
@@ -306,6 +329,7 @@ model clinics {
     longitude            Float                  @default(0)
     google_maps_url      String?                @db.VarChar(255)
     website              String?                @db.VarChar(255)
+    operating_hours      String?
     appointments         appointments[]
     clinic_hours         clinic_hours[]
     clinic_veterinarians clinic_veterinarians[]
@@ -353,25 +377,27 @@ model healthcare_procedures {
     created_at      DateTime       @default(now()) @db.Timestamptz(6)
     appointment_id  Int?
     veterinarians   veterinarians? @relation(fields: [administered_by], references: [vet_id], onDelete: NoAction, onUpdate: NoAction)
+    appointments    appointments?  @relation(fields: [appointment_id], references: [appointment_id], onUpdate: NoAction)
     pets            pets?          @relation(fields: [pet_id], references: [pet_id], onDelete: NoAction, onUpdate: NoAction)
-    appointments    appointments?  @relation(fields: [appointment_id], references: [appointment_id], onDelete: SetNull, onUpdate: NoAction) // Add this relation
 }
 
 enum procedure_type {
+    deworming
+    flea_treatment
+    heartworm_prevention
+    dental_cleaning
+    spay_neuter
+    general_checkup
+    other
     acupuncture
     allergy_testing
     behavioral_consultation
     blood_test
-    dental_cleaning
-    deworming
     ear_cleaning
     emergency_care
     examination
     fecal_test
-    flea_treatment
-    general_checkup
     grooming
-    heartworm_prevention
     imaging
     immunotherapy
     laboratory_work
@@ -386,7 +412,6 @@ enum procedure_type {
     radiology
     rehabilitation
     skin_treatment
-    spay_neuter
     surgical_procedure
     teeth_brushing
     ultrasound
@@ -395,7 +420,6 @@ enum procedure_type {
     wellness_exam
     wound_care
     x_ray
-    other
 }
 
 enum breed_type {
@@ -638,48 +662,48 @@ enum species_type {
 }
 
 enum appointment_type {
-    allergy_testing
-    behavioral_consultation
-    cardiology
-    dental_cleaning
-    dermatology
-    emergency
-    euthanasia
-    follow_up
-    grooming
-    hospice_care
-    imaging
-    laboratory_work
-    medication_refill
-    microchipping
-    neurology
-    new_pet_consultation
-    nutrition_consultation
-    oncology
-    ophthalmology
-    orthopedic_evaluation
-    parasite_control
-    physical_therapy
-    senior_pet_care
-    sick_visit
-    spay_neuter
-    surgery
-    vaccination
     wellness_exam
+    vaccination
+    sick_visit
+    follow_up
+    surgery
+    dental_cleaning
+    emergency
+    laboratory_work
+    imaging
+    grooming
+    physical_therapy
+    behavioral_consultation
+    nutrition_consultation
+    euthanasia
+    new_pet_consultation
+    senior_pet_care
+    parasite_control
+    microchipping
+    medication_refill
+    spay_neuter
+    allergy_testing
+    orthopedic_evaluation
+    ophthalmology
+    dermatology
+    cardiology
+    neurology
+    oncology
+    hospice_care
 }
 
 enum veterinary_specialization {
-    behaviorist
-    cardiologist
-    dentist
-    dermatologist
-    emergency_and_critical_care
     general_practitioner
-    internal_medicine
-    oncologist
-    ophthalmologist
-    orthopedic
     surgeon
+    dermatologist
+    cardiologist
+    orthopedic
+    dentist
+    ophthalmologist
+    oncologist
+    internal_medicine
+    emergency_and_critical_care
+    behaviorist
 }
 
 enum appointment_status {

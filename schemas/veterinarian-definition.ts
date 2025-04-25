@@ -3,7 +3,7 @@ import { SignUpSchema } from "./auth-definitions";
 import { veterinary_specialization } from "@prisma/client";
 
 export const VeterinarianSchema = z.object({
-    ...SignUpSchema.shape,
+    ...SignUpSchema.innerType().shape,
     license_number: z.string().nonempty({ message: "License number is required." }),
     specialization: z
         .enum(Object.values(veterinary_specialization) as [string, ...string[]], {

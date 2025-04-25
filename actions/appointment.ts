@@ -12,7 +12,12 @@ import type {
 } from "@prisma/client";
 import type { ActionResponse } from "@/types/server-action-response";
 import { endOfDay, startOfDay } from "date-fns";
-import { AppointmentDetailsResponse, GetUserAppointmentsResponse } from "@/types/actions/appointments";
+import type {
+    AppointmentDetailsResponse,
+    GetUserAppointmentsResponse,
+    GetExistingAppointmentsType,
+    GetVeterinarianAppointmentsType,
+} from "@/types/actions/appointments";
 import { AppointmentConfirmation, AppointmentConfirmed } from "@/templates";
 import { revalidatePath } from "next/cache";
 import { createNotification } from "./notification";
@@ -41,16 +46,7 @@ export type AppointmentWithRelations = Prisma.appointmentsGetPayload<{
 async function getExistingAppointments(
     date: Date,
     vetId: number,
-): Promise<
-    ActionResponse<{
-        appointments: {
-            appointment_date: Date;
-            duration_minutes: number;
-            appointment_uuid: string;
-            status: string;
-        }[];
-    }>
-> {
+): Promise<ActionResponse<GetExistingAppointmentsType>> {
     try {
         const startDate = startOfDay(date);
         const endDate = endOfDay(date);
@@ -132,9 +128,7 @@ const getUserAppointments = async (): Promise<ActionResponse<{ appointments: Get
     }
 };
 
-const createUserAppointment = async (
-    values: AppointmentType,
-): Promise<ActionResponse<{ appointment_uuid: string }>> => {
+const createUserAppointment = async (values: AppointmentType): Promise<ActionResponse | void> => {
     try {
         const session = await getServerSession(authOptions);
         if (!session || !session.user || !session.user.id || !session.user.email) redirect("/signin");
@@ -218,10 +212,7 @@ const createUserAppointment = async (
             },
             { to: session.user.email, subject: "Appointment Confirmation | Pawsitive Health" },
         );
-        return {
-            success: true,
-            data: { appointment_uuid: appointment.appointment_uuid },
-        };
+        redirect(`/user/appointments/${appointment.appointment_uuid}`);
     } catch (error) {
         return {
             success: false,
@@ -263,23 +254,9 @@ const getClinicAppointments = async (): Promise<ActionResponse<{ appointments: A
     }
 };
 
-export type VetAppointmentWithRelations = Prisma.appointmentsGetPayload<{
-    include: {
-        pets: {
-            include: {
-                users: true;
-            };
-        };
-        veterinarians: {
-            include: {
-                users: true;
-            };
-        };
-    };
-}>;
 const getVeterinarianAppointments = async (): Promise<
     ActionResponse<{
-        appointments: VetAppointmentWithRelations[];
+        appointments: GetVeterinarianAppointmentsType[];
     }>
 > => {
     try {
@@ -377,7 +354,7 @@ const getAppointment = async (
     }
 };
 
-const cancelAppointment = async (appointment_uuid: string): Promise<ActionResponse<{ appointment_uuid: string }>> => {
+const cancelAppointment = async (appointment_uuid: string): Promise<ActionResponse | void> => {
     try {
         const session = await getServerSession(authOptions);
         if (!session || !session.user || !session.user.id) redirect("/signin");
@@ -417,13 +394,13 @@ const cancelAppointment = async (appointment_uuid: string): Promise<ActionRespon
             expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
             actionUrl: `/user/appointments/${appointment.appointment_uuid}`,
         });
-        return { success: true, data: { appointment_uuid: appointment.appointment_uuid } };
+        revalidatePath(`/user/appointments/${appointment.appointment_uuid}`);
     } catch (error) {
         return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
     }
 };
 
-const confirmAppointment = async (appointment_uuid: string): Promise<ActionResponse<{ appointment_uuid: string }>> => {
+const confirmAppointment = async (appointment_uuid: string): Promise<ActionResponse | void> => {
     try {
         const session = await getServerSession(authOptions);
         if (!session || !session.user || !session.user.id) redirect("/signin");
@@ -475,12 +452,12 @@ const confirmAppointment = async (appointment_uuid: string): Promise<ActionRespo
         await sendEmail(
             AppointmentConfirmed,
             {
-                petName: appointment.pets.name,
-                ownerName: `${appointment.pets.users.first_name} ${appointment.pets.users.last_name}`,
+                petName: toTitleCase(appointment.pets.name),
+                ownerName: `${toTitleCase(appointment.pets.users.first_name)} ${toTitleCase(appointment.pets.users.last_name)}`,
                 vetName: `${appointment.veterinarians.users.first_name} ${appointment.veterinarians.users.last_name}`,
                 date: appointmentDate,
                 time: appointmentTime,
-                clinicName: appointment.clinics.name,
+                clinicName: toTitleCase(appointment.clinics.name),
                 clinicAddress: `${appointment.clinics.address}, ${appointment.clinics.city}, ${appointment.clinics.state} ${appointment.clinics.postal_code}`,
                 clinicPhone: appointment.clinics.phone_number,
                 appointmentType: toTitleCase(appointment.appointment_type),
@@ -502,7 +479,7 @@ const confirmAppointment = async (appointment_uuid: string): Promise<ActionRespo
             actionUrl: `/user/appointments/${appointment.appointment_uuid}`,
         });
 
-        return { success: true, data: { appointment_uuid: appointment.appointment_uuid } };
+        revalidatePath(`/vet/appointments/${appointment.appointment_uuid}`);
     } catch (error) {
         return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
     }

@@ -10,7 +10,7 @@ import {
     createUserAppointment,
     getExistingAppointments,
 } from "@/actions";
-import { toTitleCase } from "@/lib";
+import { createFormConfig, toTitleCase } from "@/lib";
 import { toast } from "sonner";
 
 export interface TimeSlot {
@@ -29,22 +29,27 @@ export function useAppointmentForm(uuid: string) {
     const [vetAvailability, setVetAvailability] = useState<vet_availability[]>([]);
     const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
     const [isLoadingTimeSlots, setIsLoadingTimeSlots] = useState(false);
-    const [loading, setLoading] = useState(false);
-
-    const form = useForm({
-        defaultValues: {
-            notes: "",
-            appointment_type: appointment_type.behavioral_consultation,
-            vet_id: "",
-            pet_uuid: uuid,
-            clinic_id: "",
-            appointment_date: undefined,
-            duration_minutes: 0,
-        },
-        resolver: zodResolver(AppointmentSchema),
-        progressive: true,
-        shouldFocusError: true,
-    });
+    const appointmentForm = useForm<AppointmentType>(
+        createFormConfig({
+            defaultValues: {
+                notes: "",
+                appointment_type: appointment_type.behavioral_consultation,
+                vet_id: "",
+                pet_uuid: uuid,
+                clinic_id: "",
+                appointment_date: undefined,
+                duration_minutes: 0,
+            },
+            resolver: zodResolver(AppointmentSchema),
+        }),
+    );
+    const {
+        formState: { isLoading, isSubmitting },
+        setValue,
+        handleSubmit,
+        control,
+        watch,
+    } = appointmentForm;
 
     useEffect(() => {
         const loadVeterinarians = async () => {
@@ -154,7 +159,6 @@ export function useAppointmentForm(uuid: string) {
 
     const onSubmit = async (values: AppointmentType) => {
         try {
-            setLoading(true);
             if (!selectedDate) {
                 toast.error("Please select a date");
                 return;
@@ -176,47 +180,36 @@ export function useAppointmentForm(uuid: string) {
                 appointmentDate.setHours(hour, minute, 0, 0);
 
                 submissionData.appointment_date = appointmentDate;
-            } else {
+            } else return;
+            const result = await createUserAppointment(submissionData);
+            if (result === undefined) {
+                toast.success("Appointment created successfully");
                 return;
             }
-            toast.promise(createUserAppointment(submissionData), {
-                loading: "Creating appointment...",
-                success: (data) => {
-                    if (data.success) return "Appointment created successfully!";
-                    return data.error || "Failed to create appointment";
-                },
-                error: (err) => {
-                    if (err instanceof Error) {
-                        return err.message;
-                    }
-                    return "An unexpected error occurred";
-                },
-            });
+            toast.error((result && !result.success && result.error) || "Failed to create appointment");
         } catch {
             toast.error("An unexpected error occurred");
-        } finally {
-            setLoading(false);
         }
     };
 
     const handleClinicChange = (value: string) => {
-        form.setValue("clinic_id", value);
-        form.setValue("vet_id", "");
+        setValue("clinic_id", value);
+        setValue("vet_id", "");
         setSelectedClinicId(value);
     };
 
     const handleDateSelect = (date: Date | undefined) => {
         setSelectedDate(date);
-        form.setValue("appointment_time", "");
+        setValue("appointment_time", "");
     };
 
     const handleVetChange = (value: string) => {
-        form.setValue("vet_id", value);
+        setValue("vet_id", value);
         setSelectedVetId(value);
     };
 
     return {
-        form,
+        appointmentForm,
         selectedDate,
         selectedClinicId,
         selectedVetId,
@@ -224,13 +217,15 @@ export function useAppointmentForm(uuid: string) {
         isLoadingVets,
         timeSlots,
         isLoadingTimeSlots,
-        onSubmit: form.handleSubmit(onSubmit),
+        onSubmit: handleSubmit(onSubmit),
         handleClinicChange,
         handleDateSelect,
         handleVetChange,
         setSelectedVetId,
         vetAvailability,
-        setLoading,
-        loading,
+        isLoading,
+        isSubmitting,
+        control,
+        watch,
     };
 }

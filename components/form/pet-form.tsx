@@ -26,7 +26,7 @@ import {
     TabsContent,
     Tabs,
 } from "@/components/ui";
-import { CatBreeds, DogBreeds } from "@/types/breed-types";
+import { CatBreeds, DogBreeds } from "@/types";
 import { cn } from "@/lib";
 import { Calendar as CalendarIcon, Plus, X } from "lucide-react";
 import { format } from "date-fns";
@@ -320,7 +320,7 @@ const AddPetForm = () => {
                             {vaccinations.map((vaccination, index) => (
                                 <div
                                     key={index}
-                                    className="grid grid-cols-3 gap-4 mb-4 p-4 border rounded-md relative place-content-center"
+                                    className="grid grid-cols-1 gap-4 mb-4 p-4 border rounded-md relative place-content-center"
                                 >
                                     <Button
                                         variant="ghost"
