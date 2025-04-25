@@ -452,12 +452,12 @@ const confirmAppointment = async (appointment_uuid: string): Promise<ActionRespo
         await sendEmail(
             AppointmentConfirmed,
             {
-                petName: appointment.pets.name,
-                ownerName: `${appointment.pets.users.first_name} ${appointment.pets.users.last_name}`,
+                petName: toTitleCase(appointment.pets.name),
+                ownerName: `${toTitleCase(appointment.pets.users.first_name)} ${toTitleCase(appointment.pets.users.last_name)}`,
                 vetName: `${appointment.veterinarians.users.first_name} ${appointment.veterinarians.users.last_name}`,
                 date: appointmentDate,
                 time: appointmentTime,
-                clinicName: appointment.clinics.name,
+                clinicName: toTitleCase(appointment.clinics.name),
                 clinicAddress: `${appointment.clinics.address}, ${appointment.clinics.city}, ${appointment.clinics.state} ${appointment.clinics.postal_code}`,
                 clinicPhone: appointment.clinics.phone_number,
                 appointmentType: toTitleCase(appointment.appointment_type),
