@@ -1,10 +1,30 @@
 generator client {
-  provider = "prisma-client-js"
+    provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("NEON_DB_CONNECTION_STRING")
+    provider = "postgresql"
+    url      = env("NEON_DB_CONNECTION_STRING")
+}
+
+model messages {
+    message_id     Int           @id @default(autoincrement())
+    message_uuid   String        @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+    sender_id      Int
+    receiver_id    Int
+    content        String
+    attachment_url String?       @db.VarChar(255)
+    is_read        Boolean       @default(false)
+    created_at     DateTime      @default(now()) @db.Timestamptz(6)
+    updated_at     DateTime      @default(now()) @db.Timestamptz(6)
+    appointment_id Int?
+    sender         users         @relation("sentMessages", fields: [sender_id], references: [user_id], onDelete: Cascade)
+    receiver       users         @relation("receivedMessages", fields: [receiver_id], references: [user_id], onDelete: Cascade)
+    appointment    appointments? @relation(fields: [appointment_id], references: [appointment_id], onDelete: SetNull)
+
+    @@index([sender_id])
+    @@index([receiver_id])
+    @@index([appointment_id])
 }
 
 model appointments {
@@ -27,6 +47,7 @@ model appointments {
     notifications         notifications[]
     prescriptions         prescriptions[]
     vaccinations          vaccinations[]
+    messages              messages[]
 }
 
 model documents {
@@ -47,38 +68,38 @@ model documents {
 }
 
 model educational_content {
-  content_id   Int      @id @default(autoincrement())
-  title        String   @db.VarChar(255)
-  content      String
-  category     String   @db.VarChar(50)
-  tags         String[]
-  author_id    Int?
-  published_at DateTime @default(now()) @db.Timestamptz(6)
-  updated_at   DateTime @default(now()) @db.Timestamptz(6)
-  content_uuid String   @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  users        users?   @relation(fields: [author_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+    content_id   Int      @id @default(autoincrement())
+    title        String   @db.VarChar(255)
+    content      String
+    category     String   @db.VarChar(50)
+    tags         String[]
+    author_id    Int?
+    published_at DateTime @default(now()) @db.Timestamptz(6)
+    updated_at   DateTime @default(now()) @db.Timestamptz(6)
+    content_uuid String   @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+    users        users?   @relation(fields: [author_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model emergency_contacts {
-  contact_id   Int      @id @default(autoincrement())
-  user_id      Int?
-  name         String   @db.VarChar(100)
-  relationship String   @db.VarChar(50)
-  phone_number String   @db.VarChar(20)
-  is_primary   Boolean? @default(false)
-  created_at   DateTime @default(now()) @db.Timestamptz(6)
-  users        users?   @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+    contact_id   Int      @id @default(autoincrement())
+    user_id      Int?
+    name         String   @db.VarChar(100)
+    relationship String   @db.VarChar(50)
+    phone_number String   @db.VarChar(20)
+    is_primary   Boolean? @default(false)
+    created_at   DateTime @default(now()) @db.Timestamptz(6)
+    users        users?   @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model forum_comments {
-  comment_id  Int          @id @default(autoincrement())
-  post_id     Int?
-  user_id     Int?
-  content     String
-  created_at  DateTime     @default(now()) @db.Timestamptz(6)
-  updated_at  DateTime     @default(now()) @db.Timestamptz(6)
-  forum_posts forum_posts? @relation(fields: [post_id], references: [post_id], onDelete: NoAction, onUpdate: NoAction)
-  users       users?       @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+    comment_id  Int          @id @default(autoincrement())
+    post_id     Int?
+    user_id     Int?
+    content     String
+    created_at  DateTime     @default(now()) @db.Timestamptz(6)
+    updated_at  DateTime     @default(now()) @db.Timestamptz(6)
+    forum_posts forum_posts? @relation(fields: [post_id], references: [post_id], onDelete: NoAction, onUpdate: NoAction)
+    users       users?       @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model forum_posts {
@@ -125,14 +146,14 @@ model medical_records {
 }
 
 model medications {
-  medication_id      Int             @id @default(autoincrement())
-  name               String          @db.VarChar(100)
-  description        String
-  usage_instructions String
-  side_effects       String
-  created_at         DateTime        @default(now()) @db.Timestamptz(6)
-  medication_uuid    String          @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  prescriptions      prescriptions[]
+    medication_id      Int             @id @default(autoincrement())
+    name               String          @db.VarChar(100)
+    description        String
+    usage_instructions String
+    side_effects       String
+    created_at         DateTime        @default(now()) @db.Timestamptz(6)
+    medication_uuid    String          @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+    prescriptions      prescriptions[]
 }
 
 model notifications {
@@ -246,6 +267,8 @@ model users {
     user_settings                 user_settings?
     veterinarians                 veterinarians[]
     clinics                       clinics[]             @relation("clinicsTousers")
+    sentMessages                  messages[]            @relation("sentMessages")
+    receivedMessages              messages[]            @relation("receivedMessages")
 }
 
 model vaccinations {
@@ -265,29 +288,29 @@ model vaccinations {
 }
 
 model veterinarians {
-  vet_id                Int                       @id @default(autoincrement())
-  vet_uuid              String                    @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  license_number        String                    @unique @db.VarChar(50)
-  specialization        veterinary_specialization
-  created_at            DateTime?                 @default(now()) @db.Timestamptz(6)
-  user_id               Int?
-  appointments          appointments[]
-  clinic_veterinarians  clinic_veterinarians[]
-  healthcare_procedures healthcare_procedures[]
-  medical_records       medical_records[]
-  prescriptions         prescriptions[]
-  vaccinations          vaccinations[]
-  vet_availability      vet_availability[]
-  users                 users?                    @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+    vet_id                Int                       @id @default(autoincrement())
+    vet_uuid              String                    @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+    license_number        String                    @unique @db.VarChar(50)
+    specialization        veterinary_specialization
+    created_at            DateTime?                 @default(now()) @db.Timestamptz(6)
+    user_id               Int?
+    appointments          appointments[]
+    clinic_veterinarians  clinic_veterinarians[]
+    healthcare_procedures healthcare_procedures[]
+    medical_records       medical_records[]
+    prescriptions         prescriptions[]
+    vaccinations          vaccinations[]
+    vet_availability      vet_availability[]
+    users                 users?                    @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model clinic_veterinarians {
-  clinic_id     Int
-  vet_id        Int
-  clinics       clinics       @relation(fields: [clinic_id], references: [clinic_id], onDelete: Cascade, onUpdate: NoAction)
-  veterinarians veterinarians @relation(fields: [vet_id], references: [vet_id], onDelete: NoAction, onUpdate: NoAction)
+    clinic_id     Int
+    vet_id        Int
+    clinics       clinics       @relation(fields: [clinic_id], references: [clinic_id], onDelete: Cascade, onUpdate: NoAction)
+    veterinarians veterinarians @relation(fields: [vet_id], references: [vet_id], onDelete: NoAction, onUpdate: NoAction)
 
-  @@id([clinic_id, vet_id])
+    @@id([clinic_id, vet_id])
 }
 
 model clinics {
@@ -315,29 +338,29 @@ model clinics {
 }
 
 model clinic_hours {
-  id          Int      @id @default(autoincrement())
-  clinic_id   Int
-  day_of_week Int
-  opens_at    DateTime @db.Time(6)
-  closes_at   DateTime @db.Time(6)
-  is_closed   Boolean  @default(false)
-  clinics     clinics  @relation(fields: [clinic_id], references: [clinic_id], onDelete: Cascade)
+    id          Int      @id @default(autoincrement())
+    clinic_id   Int
+    day_of_week Int
+    opens_at    DateTime @db.Time(6)
+    closes_at   DateTime @db.Time(6)
+    is_closed   Boolean  @default(false)
+    clinics     clinics  @relation(fields: [clinic_id], references: [clinic_id], onDelete: Cascade)
 
-  @@unique([clinic_id, day_of_week])
+    @@unique([clinic_id, day_of_week])
 }
 
 model vet_availability {
-  availability_id Int           @id @default(autoincrement())
-  vet_id          Int
-  clinic_id       Int
-  day_of_week     Int
-  start_time      DateTime      @db.Time(6)
-  end_time        DateTime      @db.Time(6)
-  is_available    Boolean       @default(true)
-  clinics         clinics       @relation(fields: [clinic_id], references: [clinic_id], onDelete: Cascade)
-  veterinarians   veterinarians @relation(fields: [vet_id], references: [vet_id], onDelete: Cascade)
+    availability_id Int           @id @default(autoincrement())
+    vet_id          Int
+    clinic_id       Int
+    day_of_week     Int
+    start_time      DateTime      @db.Time(6)
+    end_time        DateTime      @db.Time(6)
+    is_available    Boolean       @default(true)
+    clinics         clinics       @relation(fields: [clinic_id], references: [clinic_id], onDelete: Cascade)
+    veterinarians   veterinarians @relation(fields: [vet_id], references: [vet_id], onDelete: Cascade)
 
-  @@unique([vet_id, clinic_id, day_of_week, start_time, end_time])
+    @@unique([vet_id, clinic_id, day_of_week, start_time, end_time])
 }
 
 model healthcare_procedures {
@@ -400,218 +423,218 @@ enum procedure_type {
 }
 
 enum breed_type {
-  abyssinian
-  affenpinscher
-  afghan_hound
-  akbash
-  akita
-  alaskan_klee_kai
-  alaskan_malamute
-  american_bobtail
-  american_bulldog
-  american_curl
-  american_eskimo_dog
-  american_foxhound
-  american_pit_bull_terrier
-  american_shorthair
-  american_staffordshire_terrier
-  american_water_spaniel
-  anatolian_shepherd_dog
-  australian_cattle_dog
-  australian_kelpie
-  australian_shepherd
-  australian_terrier
-  balinese
-  barbet
-  basenji
-  basset_hound
-  beagle
-  bearded_collie
-  beauceron
-  bedlington_terrier
-  belgian_malinois
-  belgian_shepherd
-  belgian_tervuren
-  bengal
-  bernese_mountain_dog
-  bichon_frise
-  birman
-  black_and_tan_coonhound
-  black_russian_terrier
-  bloodhound
-  bluetick_coonhound
-  boerboel
-  border_collie
-  border_terrier
-  borzoi
-  boston_terrier
-  bouvier_des_flandres
-  boxer
-  boykin_spaniel
-  briard
-  british_longhair
-  british_shorthair
-  brittany
-  brussels_griffon
-  bulldog
-  bulldog_french
-  bullmastiff
-  burmese
-  cairn_terrier
-  canaan_dog
-  cane_corso
-  carpathian_shepherd_dog
-  cavalier_king_charles_spaniel
-  chartreux
-  chesapeake_bay_retriever
-  chihuahua
-  chinese_crested
-  chinese_lihua
-  chinese_shar_pei
-  chinook
-  chow_chow
-  clumber_spaniel
-  cocker_spaniel
-  collie
-  coton_de_tulear
-  cur_southern_black_mouth
-  dachshund
-  dalmatian
-  devon_rex
-  doberman_pinscher
-  dogo_argentino
-  dutch_shepherd
-  egyptian_mau
-  english_bulldog
-  english_cocker_spaniel
-  english_foxhound
-  english_setter
-  english_springer_spaniel
-  english_toy_spaniel
-  entlebucher_mountain_dog
-  eurasier
-  field_spaniel
-  finnish_lapphund
-  finnish_spitz
-  flat_coated_retriever
-  french_bulldog
-  german_pinscher
-  german_shepherd
-  german_shorthaired_pointer
-  german_spitz
-  german_wirehaired_pointer
-  giant_schnauzer
-  glen_of_imaal_terrier
-  golden_retriever
-  gordon_setter
-  great_dane
-  great_pyrenees
-  greater_swiss_mountain_dog
-  greyhound
-  havanese
-  ibizan_hound
-  icelandic_sheepdog
-  irish_setter
-  irish_terrier
-  irish_water_spaniel
-  irish_wolfhound
-  italian_greyhound
-  jack_russell_terrier
-  japanese_bobtail
-  japanese_chin
-  japanese_spitz
-  keeshond
-  kerry_blue_terrier
-  king_charles_spaniel
-  komondor
-  kooikerhondje
-  kuvasz
-  labrador_retriever
-  lagotto_romagnolo
-  laika
-  lakeland_terrier
-  lhasa_apso
-  leonberger
-  maine_coon
-  maltese
-  manchester_terrier
-  manx
-  mastiff
-  miniature_pinscher
-  miniature_schnauzer
-  nebelung
-  neapolitan_mastiff
-  newfoundland
-  norfolk_terrier
-  norwegian_buhund
-  norwegian_forest_cat
-  norwegian_lundehund
-  norwich_terrier
-  nova_scotia_duck_tolling_retriever
-  old_english_sheepdog
-  oriental_longhair
-  oriental_shorthair
-  papillon
-  parson_russell_terrier
-  pekingese
-  pembroke_welsh_corgi
-  persian
-  petit_basset_griffon_vendeen
-  pharaoh_hound
-  plott_hound
-  pointer
-  polish_lowland_sheepdog
-  pomeranian
-  poodle
-  portuguese_water_dog
-  pug
-  puli
-  pyrenean_shepherd
-  ragdoll
-  redbone_coonhound
-  rhodesian_ridgeback
-  rottweiler
-  russian_blue
-  saint_bernard
-  saluki
-  samoyed
-  scottish_deerhound
-  scottish_fold
-  scottish_terrier
-  sealyham_terrier
-  selkirk_rex
-  shetland_sheepdog
-  shiba_inu
-  shih_tzu
-  siberian
-  siberian_husky
-  singapura
-  skye_terrier
-  sloughi
-  soft_coated_wheaten_terrier
-  somali
-  sphynx
-  staffordshire_bull_terrier
-  sussex_spaniel
-  swedish_vallhund
-  tibetan_mastiff
-  tibetan_spaniel
-  tibetan_terrier
-  tonkinese
-  toy_fox_terrier
-  treeing_walker_coonhound
-  turkish_angora
-  turkish_van
-  vizsla
-  weimaraner
-  welsh_springer_spaniel
-  welsh_terrier
-  west_highland_white_terrier
-  whippet
-  wirehaired_pointing_griffon
-  xoloitzcuintli
-  yorkshire_terrier
-  others                             @map("others")
+    abyssinian
+    affenpinscher
+    afghan_hound
+    akbash
+    akita
+    alaskan_klee_kai
+    alaskan_malamute
+    american_bobtail
+    american_bulldog
+    american_curl
+    american_eskimo_dog
+    american_foxhound
+    american_pit_bull_terrier
+    american_shorthair
+    american_staffordshire_terrier
+    american_water_spaniel
+    anatolian_shepherd_dog
+    australian_cattle_dog
+    australian_kelpie
+    australian_shepherd
+    australian_terrier
+    balinese
+    barbet
+    basenji
+    basset_hound
+    beagle
+    bearded_collie
+    beauceron
+    bedlington_terrier
+    belgian_malinois
+    belgian_shepherd
+    belgian_tervuren
+    bengal
+    bernese_mountain_dog
+    bichon_frise
+    birman
+    black_and_tan_coonhound
+    black_russian_terrier
+    bloodhound
+    bluetick_coonhound
+    boerboel
+    border_collie
+    border_terrier
+    borzoi
+    boston_terrier
+    bouvier_des_flandres
+    boxer
+    boykin_spaniel
+    briard
+    british_longhair
+    british_shorthair
+    brittany
+    brussels_griffon
+    bulldog
+    bulldog_french
+    bullmastiff
+    burmese
+    cairn_terrier
+    canaan_dog
+    cane_corso
+    carpathian_shepherd_dog
+    cavalier_king_charles_spaniel
+    chartreux
+    chesapeake_bay_retriever
+    chihuahua
+    chinese_crested
+    chinese_lihua
+    chinese_shar_pei
+    chinook
+    chow_chow
+    clumber_spaniel
+    cocker_spaniel
+    collie
+    coton_de_tulear
+    cur_southern_black_mouth
+    dachshund
+    dalmatian
+    devon_rex
+    doberman_pinscher
+    dogo_argentino
+    dutch_shepherd
+    egyptian_mau
+    english_bulldog
+    english_cocker_spaniel
+    english_foxhound
+    english_setter
+    english_springer_spaniel
+    english_toy_spaniel
+    entlebucher_mountain_dog
+    eurasier
+    field_spaniel
+    finnish_lapphund
+    finnish_spitz
+    flat_coated_retriever
+    french_bulldog
+    german_pinscher
+    german_shepherd
+    german_shorthaired_pointer
+    german_spitz
+    german_wirehaired_pointer
+    giant_schnauzer
+    glen_of_imaal_terrier
+    golden_retriever
+    gordon_setter
+    great_dane
+    great_pyrenees
+    greater_swiss_mountain_dog
+    greyhound
+    havanese
+    ibizan_hound
+    icelandic_sheepdog
+    irish_setter
+    irish_terrier
+    irish_water_spaniel
+    irish_wolfhound
+    italian_greyhound
+    jack_russell_terrier
+    japanese_bobtail
+    japanese_chin
+    japanese_spitz
+    keeshond
+    kerry_blue_terrier
+    king_charles_spaniel
+    komondor
+    kooikerhondje
+    kuvasz
+    labrador_retriever
+    lagotto_romagnolo
+    laika
+    lakeland_terrier
+    lhasa_apso
+    leonberger
+    maine_coon
+    maltese
+    manchester_terrier
+    manx
+    mastiff
+    miniature_pinscher
+    miniature_schnauzer
+    nebelung
+    neapolitan_mastiff
+    newfoundland
+    norfolk_terrier
+    norwegian_buhund
+    norwegian_forest_cat
+    norwegian_lundehund
+    norwich_terrier
+    nova_scotia_duck_tolling_retriever
+    old_english_sheepdog
+    oriental_longhair
+    oriental_shorthair
+    papillon
+    parson_russell_terrier
+    pekingese
+    pembroke_welsh_corgi
+    persian
+    petit_basset_griffon_vendeen
+    pharaoh_hound
+    plott_hound
+    pointer
+    polish_lowland_sheepdog
+    pomeranian
+    poodle
+    portuguese_water_dog
+    pug
+    puli
+    pyrenean_shepherd
+    ragdoll
+    redbone_coonhound
+    rhodesian_ridgeback
+    rottweiler
+    russian_blue
+    saint_bernard
+    saluki
+    samoyed
+    scottish_deerhound
+    scottish_fold
+    scottish_terrier
+    sealyham_terrier
+    selkirk_rex
+    shetland_sheepdog
+    shiba_inu
+    shih_tzu
+    siberian
+    siberian_husky
+    singapura
+    skye_terrier
+    sloughi
+    soft_coated_wheaten_terrier
+    somali
+    sphynx
+    staffordshire_bull_terrier
+    sussex_spaniel
+    swedish_vallhund
+    tibetan_mastiff
+    tibetan_spaniel
+    tibetan_terrier
+    tonkinese
+    toy_fox_terrier
+    treeing_walker_coonhound
+    turkish_angora
+    turkish_van
+    vizsla
+    weimaraner
+    welsh_springer_spaniel
+    welsh_terrier
+    west_highland_white_terrier
+    whippet
+    wirehaired_pointing_griffon
+    xoloitzcuintli
+    yorkshire_terrier
+    others                             @map("others")
 }
 
 enum theme_mode {
@@ -621,21 +644,21 @@ enum theme_mode {
 }
 
 enum role_type {
-  user
-  admin
-  client
-  veterinarian
+    user
+    admin
+    client
+    veterinarian
 }
 
 enum pet_sex_type {
-  male
-  female
-  prefer_not_to_say @map("prefer not to say")
+    male
+    female
+    prefer_not_to_say @map("prefer not to say")
 }
 
 enum species_type {
-  dog
-  cat
+    dog
+    cat
 }
 
 enum appointment_type {
@@ -684,42 +707,42 @@ enum veterinary_specialization {
 }
 
 enum appointment_status {
-  requested
-  confirmed
-  checked_in
-  completed
-  cancelled
-  no_show
+    requested
+    confirmed
+    checked_in
+    completed
+    cancelled
+    no_show
 }
 
 enum notification_type {
-  account_security
-  appointment_cancelled
-  appointment_confirmation
-  appointment_reminder
-  appointment_rescheduled
-  document_shared
-  forum_mention
-  forum_reply
-  health_alert
-  health_checkup_due
-  lab_results_ready
-  medical_record_updated
-  medication_completed
-  medication_refill_needed
-  medication_reminder
-  medication_started
-  message_received
-  pet_birthday
-  system_maintenance
-  vaccine_administered
-  vaccine_due
-  vaccine_overdue
+    account_security
+    appointment_cancelled
+    appointment_confirmation
+    appointment_reminder
+    appointment_rescheduled
+    document_shared
+    forum_mention
+    forum_reply
+    health_alert
+    health_checkup_due
+    lab_results_ready
+    medical_record_updated
+    medication_completed
+    medication_refill_needed
+    medication_reminder
+    medication_started
+    message_received
+    pet_birthday
+    system_maintenance
+    vaccine_administered
+    vaccine_due
+    vaccine_overdue
 }
 
 enum notification_priority {
-  low
-  normal
-  high
-  urgent
+    low
+    normal
+    high
+    urgent
 }

@@ -1,20 +1,15 @@
 "use server";
-
-import { messages } from "@prisma/client";
 import { prisma } from "@/lib";
 import { ActionResponse } from "@/types/server-action-response";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { getUserId } from "./user";
-import { getAppointmentId } from "./appointment";
 
-const sendMessage = async (text: string, appointment_uuid: string): Promise<ActionResponse<{ data: object }>> => {
+const sendMessage = async (text: string, appointment_id: number): Promise<ActionResponse | void> => {
     try {
         const user = await auth();
         if (!user || !user.user?.email) redirect("/auth/login");
         const user_data = await getUserId(user.user.email);
-        const appointment = await getAppointmentId(appointment_uuid);
-        const appointment_id = appointment.success ? appointment.data.appointment_id : undefined;
         // TODO: We need to get the receiver id from the appointment
         if (!appointment_id) {
             return {
@@ -26,29 +21,25 @@ const sendMessage = async (text: string, appointment_uuid: string): Promise<Acti
         await prisma.messages.create({
             data: {
                 appointment_id: appointment_id,
+                receiver_id: 1, // TODO: Get the receiver id from the appointment
                 content: text,
                 sender_id: Number(user_data),
             },
         });
 
-        return {
-            success: true,
-            data: { data: {} },
-        };
+        return
     } catch (error) {
         return {
             success: false,
-            error: error as string,
+            error: error instanceof Error ? error.message : "An unexpected error occurred",
         };
     }
 };
 
-const getMessages = async (appointment_uuid: string): Promise<ActionResponse<messages[]>> => {
+const getMessages = async (appointment_id: number): Promise<ActionResponse | void> => {
     try {
         const user = await auth();
         if (!user || !user.user?.email) redirect("/auth/login");
-        const appointment = await getAppointmentId(appointment_uuid);
-        const appointment_id = appointment.success ? appointment.data.appointment_id : undefined;
         if (appointment_id) {
             return {
                 success: false,
@@ -56,7 +47,7 @@ const getMessages = async (appointment_uuid: string): Promise<ActionResponse<mes
             };
         }
 
-        const messages_data = await prisma.messages.findMany({
+        await prisma.messages.findMany({
             where: {
                 appointment_id: appointment_id,
             },
@@ -65,14 +56,11 @@ const getMessages = async (appointment_uuid: string): Promise<ActionResponse<mes
             },
         });
 
-        return {
-            success: true,
-            data: messages_data,
-        };
+        return;
     } catch (error) {
         return {
             success: false,
-            error: error as string,
+            error: error instanceof Error ? error.message : "An unexpected error occurred",
         };
     }
 };

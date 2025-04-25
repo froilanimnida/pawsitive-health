@@ -3,7 +3,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { appointment_type, type vet_availability } from "@prisma/client";
 import { AppointmentSchema, AppointmentType } from "@/schemas";
-import { AppointmentSchema, AppointmentType } from "@/schemas";
 import { addMinutes, format } from "date-fns";
 import {
     getVeterinariansByClinic,
@@ -65,7 +64,6 @@ export function useAppointmentForm(uuid: string) {
                 setVeterinarians(
                     vets.map((vet) => ({
                         label: `${vet.name} (${toTitleCase(vet.specialization)})`,
-                        value: vet.id.toString(),
                         value: vet.id.toString(),
                     })),
                 );

@@ -127,9 +127,6 @@ function UserSignUpForm() {
                             <FormItem>
                                 <FormLabel htmlFor={field.name}>{signUpFormField.label}</FormLabel>
                                 <FormControl>
-                            <FormItem>
-                                <FormLabel htmlFor={field.name}>{signUpFormField.label}</FormLabel>
-                                <FormControl>
                                     <Input
                                         id={field.name}
                                         type={signUpFormField.type}
