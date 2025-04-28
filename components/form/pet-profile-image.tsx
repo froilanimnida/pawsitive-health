@@ -17,6 +17,8 @@ import { Camera, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { FileUpload } from "../ui/file-upload";
+import { updatePetProfileImage } from "@/actions/pets"; // Ensure this import points to your new action
+
 function PetProfileImage({
     name,
     pet_id,
@@ -32,6 +34,7 @@ function PetProfileImage({
     const [isUploading, setIsUploading] = useState(false);
     const [showImageDialog, setShowImageDialog] = useState(false);
     const [profileImage, setProfileImage] = useState<File | null>(null);
+    const [imageUrl, setImageUrl] = useState<string | null>(profile_picture_url);
 
     const handleMouseEnter = () => setIsHovering(true);
     const handleMouseLeave = () => setIsHovering(false);
@@ -52,30 +55,55 @@ function PetProfileImage({
 
         setIsUploading(true);
         try {
-            // Upload the image to R2
+            // Upload the image and get back a presigned URL
             const uploadResult = await uploadPetImage(profileImage);
 
-            // Update the pet with the new profile picture URL
-            const updateResult = await updatePet({
-                pet_id: pet_id,
-                name: name,
-                weight_kg: Number(weight_kg),
-                profile_picture_url: uploadResult.url,
-            });
+            // Call the new updatePetProfileImage action which stores both URL and key
+            const updateResult = await updatePetProfileImage(
+                pet_id,
+                uploadResult.key, // Store the key for future URL generation
+                uploadResult.url, // Store the current presigned URL
+            );
 
-            if (updateResult === undefined) {
+            if (updateResult.success) {
                 toast.success("Pet profile picture updated successfully");
-                // Force a reload to show the updated image
-                window.location.reload();
+                // Update the local state with the new URL
+                setImageUrl(uploadResult.url);
+
+                // Close the dialog
+                setShowImageDialog(false);
             } else {
-                toast.error("Failed to update pet profile picture");
+                toast.error(updateResult.error || "Failed to update pet profile picture");
             }
         } catch (error) {
             console.error("Error updating profile picture:", error);
             toast.error("Failed to upload image");
         } finally {
             setIsUploading(false);
-            setShowImageDialog(false);
+        }
+    };
+
+    const handleRemoveImage = async () => {
+        setIsUploading(true);
+        try {
+            // Call the updatePetProfileImage action with null values to remove the image
+            const updateResult = await updatePetProfileImage(pet_id, null, null);
+
+            if (updateResult.success) {
+                toast.success("Profile picture removed");
+                // Update local state
+                setImageUrl(null);
+                setProfileImage(null);
+                // Close the dialog
+                setShowImageDialog(false);
+            } else {
+                toast.error(updateResult.error || "Failed to remove profile picture");
+            }
+        } catch (error) {
+            console.error("Error removing profile picture:", error);
+            toast.error("Failed to remove image");
+        } finally {
+            setIsUploading(false);
         }
     };
 
@@ -92,8 +120,8 @@ function PetProfileImage({
                 onClick={handleImageClick}
             >
                 <Avatar className="h-32 w-32 border-2 border-primary/10">
-                    {profile_picture_url ? (
-                        <AvatarImage src={profile_picture_url} alt={name} />
+                    {imageUrl ? (
+                        <AvatarImage src={imageUrl} alt={name} />
                     ) : (
                         <AvatarFallback className="text-3xl bg-primary/10">{getInitials(name)}</AvatarFallback>
                     )}
@@ -117,25 +145,34 @@ function PetProfileImage({
                     <div className="space-y-4 py-4">
                         <FileUpload
                             onFileChange={handleFileChange}
-                            currentImageUrl={profile_picture_url || null}
+                            currentImageUrl={imageUrl || null}
                             label={`Upload a picture of ${name}`}
                         />
                     </div>
 
-                    <div className="flex justify-end gap-3">
-                        <Button variant="outline" onClick={() => setShowImageDialog(false)} disabled={isUploading}>
-                            Cancel
-                        </Button>
-                        <Button onClick={handleImageUpdate} disabled={isUploading}>
-                            {isUploading ? (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Uploading...
-                                </>
-                            ) : (
-                                "Save Changes"
-                            )}
-                        </Button>
+                    <div className="flex justify-between gap-3">
+                        {/* Add Remove button if there's a current image */}
+                        {imageUrl && (
+                            <Button variant="destructive" onClick={handleRemoveImage} disabled={isUploading}>
+                                Remove Image
+                            </Button>
+                        )}
+
+                        <div className="flex gap-3 ml-auto">
+                            <Button variant="outline" onClick={() => setShowImageDialog(false)} disabled={isUploading}>
+                                Cancel
+                            </Button>
+                            <Button onClick={handleImageUpdate} disabled={isUploading || !profileImage}>
+                                {isUploading ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Uploading...
+                                    </>
+                                ) : (
+                                    "Save Changes"
+                                )}
+                            </Button>
+                        </div>
                     </div>
                 </DialogContent>
             </Dialog>
