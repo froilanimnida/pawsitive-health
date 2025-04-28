@@ -26,39 +26,47 @@ import {
     TabsContent,
     Tabs,
 } from "@/components/ui";
+import { FileUpload } from "@/components/ui/file-upload";
 import { CatBreeds, DogBreeds } from "@/types";
-import { cn, createFormConfig } from "@/lib";
+import { cn, createFormConfig, toTitleCase } from "@/lib";
 import { Calendar as CalendarIcon, Plus, X } from "lucide-react";
 import { format } from "date-fns";
-import { PetOnboardingSchema, type PetSchema } from "@/schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { addPet } from "@/actions/pets";
-import { toTitleCase } from "@/lib";
 import { breed_type, pet_sex_type, procedure_type, species_type } from "@prisma/client";
 import { SelectFormField } from "@/types/forms/select-form-field";
+import { uploadPetImage } from "@/lib/functions/upload/upload-pet-image";
+import { OnboardingPetSchema, type PetOnboardingSchema, type PetType } from "@/schemas";
+
+// Define procedure interface for better type safety
+interface ProcedureEntry {
+    procedure_type: procedure_type;
+    procedure_date: Date;
+    product_used: string;
+    dosage: string;
+    notes: string;
+}
+
+// Define vaccination interface for better type safety
+interface VaccinationEntry {
+    vaccine_name: string;
+    administered_date: Date;
+    next_due_date: Date | null;
+    batch_number: string;
+}
 
 const AddPetForm = () => {
+    // State management
     const [selectedBreed, setSelectedBreed] = useState<breed_type | string>("");
     const [selectedSpecies, setSelectedSpecies] = useState<species_type>("dog");
-    const [procedures, setProcedures] = useState<
-        {
-            procedure_type: procedure_type;
-            procedure_date: Date;
-            product_used: string;
-            dosage: string;
-            notes: string;
-        }[]
-    >([]);
-    const [vaccinations, setVaccinations] = useState<
-        {
-            vaccine_name: string;
-            administered_date: Date;
-            next_due_date: Date | null;
-            batch_number: string;
-        }[]
-    >([]);
+    const [isUploading, setIsUploading] = useState<boolean>(false);
+    const [procedures, setProcedures] = useState<ProcedureEntry[]>([]);
+    const [vaccinations, setVaccinations] = useState<VaccinationEntry[]>([]);
+    const [profileImage, setProfileImage] = useState<File | null>(null);
+    const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
 
+    // Get breed options based on selected species
     const getBreedOptions = () => {
         if (selectedSpecies === "dog") {
             return Object.values(DogBreeds);
@@ -67,22 +75,10 @@ const AddPetForm = () => {
         }
         return [];
     };
-    //const newPetForm = useForm({
-    //    shouldFocusError: true,
-    //    defaultValues: {
-    //        name: "",
-    //        species: "dog",
-    //        breed: "",
-    //        weight_kg: 0,
-    //        sex: pet_sex_type.prefer_not_to_say,
-    //        date_of_birth: undefined,
-    //    },
-    //    progressive: true,
-    //    resolver: zodResolver(PetSchema),
-    //});
-    const newPetForm = useForm<PetSchema> ( {
+
+    // Initialize form with validation
+    const form = useForm<PetType>(
         createFormConfig({
-            resolver: zodResolver(PetOnboardingSchema),
             defaultValues: {
                 name: "",
                 species: "dog",
@@ -90,26 +86,35 @@ const AddPetForm = () => {
                 weight_kg: 0,
                 sex: pet_sex_type.prefer_not_to_say,
                 date_of_birth: undefined,
+                profile_picture_url: "",
             },
+            resolver: zodResolver(OnboardingPetSchema),
         }),
-} )
+    );
 
-    const textFields: {
-        name: "name" | "species" | "breed" | "sex" | "weight_kg";
-        label: string;
-        placeholder: string;
-        description: string;
-        type: string;
-    }[] = [
+    // Handle profile image changes
+    const handleImageChange = (file: File | null) => {
+        setProfileImage(file);
+
+        // If we're removing the image
+        if (!file) {
+            setProfileImageUrl(null);
+            form.setValue("profile_picture_url", "");
+            return;
+        }
+    };
+
+    // Form field definitions for basic text inputs
+    const textFields = [
         {
-            name: "name",
+            name: "name" as const,
             label: "Name",
             placeholder: "Name",
             description: "Enter your pet name",
             type: "text",
         },
         {
-            name: "weight_kg",
+            name: "weight_kg" as const,
             label: "Weight (kg)",
             placeholder: "Weight",
             description: "Enter your pet's weight in kilograms",
@@ -117,6 +122,7 @@ const AddPetForm = () => {
         },
     ];
 
+    // Form field definitions for select inputs
     const selectFields: SelectFormField[] = [
         {
             name: "species",
@@ -131,7 +137,7 @@ const AddPetForm = () => {
             required: true,
             onChange: (value) => {
                 setSelectedSpecies(value as species_type);
-                newPetForm.setValue("breed", "");
+                form.setValue("breed", "");
             },
         },
         {
@@ -163,6 +169,8 @@ const AddPetForm = () => {
             required: true,
         },
     ];
+
+    // Add new procedure to the list
     const addProcedure = () => {
         setProcedures([
             ...procedures,
@@ -176,6 +184,7 @@ const AddPetForm = () => {
         ]);
     };
 
+    // Add new vaccination to the list
     const addVaccination = () => {
         setVaccinations([
             ...vaccinations,
@@ -187,31 +196,70 @@ const AddPetForm = () => {
             },
         ]);
     };
+
+    // Form submission handler
     const onSubmit = async (values: PetOnboardingSchema) => {
-        toast.loading("Adding pet...");
-        const result = await addPet(values);
-        if (result === undefined) {
-            toast.dismiss();
-            toast.success("Pet added successfully");
-            return;
+        try {
+            toast.loading("Adding pet...");
+            setIsUploading(true);
+
+            // Upload image if present
+            if (profileImage) {
+                try {
+                    const uploadResult = await uploadPetImage(profileImage);
+                    values.profile_picture_url = uploadResult.url;
+                } catch (error) {
+                    console.error("Failed to upload profile image:", error);
+                    toast.error("Failed to upload profile image. Pet will be added without a profile picture.");
+                }
+            }
+
+            const result = await addPet(values);
+            setIsUploading(false);
+
+            if (result === undefined) {
+                toast.dismiss();
+                toast.success("Pet added successfully");
+                return;
+            }
+            toast.error("Failed to add pet");
+        } catch (error) {
+            setIsUploading(false);
+            toast.error("An error occurred while adding the pet");
+            console.error("Error adding pet:", error);
         }
-        toast.error("Failed to add pet");
     };
 
     return (
-        <Form {...newPetForm}>
-            <form onSubmit={newPetForm.handleSubmit(onSubmit)} className="space-y-4 w-full">
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 w-full">
                 <Tabs defaultValue="basic" className="w-full">
                     <TabsList className="flex flex-wrap justify-start items-start w-full mb-4">
                         <TabsTrigger value="basic">Basic Information</TabsTrigger>
                         <TabsTrigger value="healthcare">Healthcare History</TabsTrigger>
                     </TabsList>
+
+                    {/* Basic Information Tab */}
                     <TabsContent value="basic" className="space-y-4 w-full">
+                        {/* Profile Picture Upload */}
+                        <div className="mb-4">
+                            <FormLabel>Pet Profile Picture</FormLabel>
+                            <div className="mt-1">
+                                <FileUpload
+                                    onFileChange={handleImageChange}
+                                    currentImageUrl={profileImageUrl}
+                                    label="Upload a profile picture for your pet"
+                                />
+                            </div>
+                            <FormDescription>Upload a profile picture for your pet (optional)</FormDescription>
+                        </div>
+
+                        {/* Text Fields */}
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 justify-start items-start">
                             {textFields.map((textField) => (
                                 <FormField
                                     key={textField.name}
-                                    control={newPetForm.control}
+                                    control={form.control}
                                     name={textField.name}
                                     render={({ field, formState }) => (
                                         <FormItem>
@@ -236,9 +284,11 @@ const AddPetForm = () => {
                                 />
                             ))}
                         </div>
+
+                        {/* Date of Birth Field */}
                         <FormField
                             name="date_of_birth"
-                            control={newPetForm.control}
+                            control={form.control}
                             render={({ field, fieldState }) => (
                                 <FormItem>
                                     <FormLabel>Date of Birth</FormLabel>
@@ -290,11 +340,13 @@ const AddPetForm = () => {
                                 </FormItem>
                             )}
                         />
+
+                        {/* Select Fields */}
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 justify-start items-start">
                             {selectFields.map((selectField) => (
                                 <FormField
                                     key={selectField.name}
-                                    control={newPetForm.control}
+                                    control={form.control}
                                     name={selectField.name as "species" | "breed" | "sex"}
                                     render={({ field, fieldState }) => (
                                         <FormItem>
@@ -328,7 +380,10 @@ const AddPetForm = () => {
                             ))}
                         </div>
                     </TabsContent>
+
+                    {/* Healthcare History Tab */}
                     <TabsContent value="healthcare" className="space-y-6">
+                        {/* Vaccinations */}
                         <div className="grid grid-cols-1 gap-4 mb-6">
                             {vaccinations.map((vaccination, index) => (
                                 <div
@@ -413,6 +468,7 @@ const AddPetForm = () => {
                             Add Vaccination
                         </Button>
 
+                        {/* Medical Procedures */}
                         {procedures.map((procedure, index) => (
                             <div
                                 key={index}
@@ -448,13 +504,11 @@ const AddPetForm = () => {
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            {Object.values(procedure_type).map((type) => {
-                                                return (
-                                                    <SelectItem key={type} value={type}>
-                                                        {toTitleCase(type)}
-                                                    </SelectItem>
-                                                );
-                                            })}
+                                            {Object.values(procedure_type).map((type) => (
+                                                <SelectItem key={type} value={type}>
+                                                    {toTitleCase(type)}
+                                                </SelectItem>
+                                            ))}
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -535,8 +589,10 @@ const AddPetForm = () => {
                             Add Procedure
                         </Button>
                     </TabsContent>
-                    <Button type="submit" className="mt-6">
-                        Add Pet
+
+                    {/* Submit Button - Outside TabsContent to be visible on all tabs */}
+                    <Button type="submit" className="mt-6" disabled={isUploading}>
+                        {isUploading ? "Uploading..." : "Add Pet"}
                     </Button>
                 </Tabs>
             </form>

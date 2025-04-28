@@ -1,25 +1,18 @@
 import { Suspense } from "react";
 import {
     Button,
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-    Dialog,
     DialogContent,
     DialogDescription,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
+    Dialog,
     SkeletonCard,
 } from "@/components/ui";
 import type { Metadata } from "next";
 import { getPets } from "@/actions";
-import { calculateAge, toTitleCase } from "@/lib";
-import Link from "next/link";
 import AddPetForm from "@/components/form/pet-form";
+import PetCard from "@/components/pet/pet-card";
 
 export const metadata: Metadata = {
     title: "PawsitiveHealth | User Pets",
@@ -40,23 +33,9 @@ async function PetList() {
     }
 
     return (
-        <div className="grid grid-cols-1 w-full lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 w-full md:grid-cols-2 lg:grid-cols-3 gap-6">
             {petsData.map((pet) => (
-                <Card key={pet.pet_id}>
-                    <CardHeader>
-                        <CardTitle>{toTitleCase(pet.name)}</CardTitle>
-                        <CardDescription>{toTitleCase(pet.breed)}</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <p>Species: {toTitleCase(pet.species)}</p>
-                        {pet.date_of_birth && <p>Age: {String(calculateAge(new Date(pet.date_of_birth), "full"))}</p>}
-                    </CardContent>
-                    <CardFooter>
-                        <Link href={`/user/pets/${pet.pet_uuid}`}>
-                            <Button>View</Button>
-                        </Link>
-                    </CardFooter>
-                </Card>
+                <PetCard key={pet.pet_id} pet={pet} />
             ))}
         </div>
     );
@@ -82,9 +61,13 @@ const PetsPage = () => {
                 </Dialog>
             </div>
             <Suspense
-                fallback={Array.from({ length: 16 }, (_, i) => (
-                    <SkeletonCard key={i} />
-                ))}
+                fallback={
+                    <div className="grid grid-cols-1 w-full md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {Array.from({ length: 6 }, (_, i) => (
+                            <SkeletonCard key={i} />
+                        ))}
+                    </div>
+                }
             >
                 <PetList />
             </Suspense>

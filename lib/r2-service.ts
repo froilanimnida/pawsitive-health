@@ -6,9 +6,13 @@ import { v4 as uuid } from "uuid";
 //const R2_ACCOUNT_ID = process.env.R2_ACCOUNT_ID;
 const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID;
 const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY;
-const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME;
+const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME || "pawsitive";
 const R2_PUBLIC_URL = process.env.R2_PUBLIC_URL;
-const R2_ENDPOINT = process.env.R2_ENDPOINT;
+
+// Fix: Extract just the endpoint URL without the bucket name
+const R2_ENDPOINT =
+    process.env.R2_ENDPOINT?.split("/pawsitive")[0] ||
+    "https://b700c33a8dd77e29da09cb700c5c6959.r2.cloudflarestorage.com";
 
 // Create S3 client with Cloudflare R2 endpoint
 const r2Client = new S3Client({
@@ -29,25 +33,30 @@ export async function uploadFileToR2(
     contentType: string,
     folder: string = "documents",
 ): Promise<FileUploadResult> {
-    const fileBuffer = file instanceof Blob ? Buffer.from(await file.arrayBuffer()) : file;
-    const key = `${folder}/${uuid()}-${filename}`;
+    try {
+        const fileBuffer = file instanceof Blob ? Buffer.from(await file.arrayBuffer()) : file;
+        const key = `${folder}/${uuid()}-${filename}`;
 
-    const command = new PutObjectCommand({
-        Bucket: R2_BUCKET_NAME,
-        Key: key,
-        Body: fileBuffer,
-        ContentType: contentType,
-    });
+        const command = new PutObjectCommand({
+            Bucket: R2_BUCKET_NAME,
+            Key: key,
+            Body: fileBuffer,
+            ContentType: contentType,
+        });
 
-    await r2Client.send(command);
+        await r2Client.send(command);
 
-    return {
-        key,
-        url: `${R2_PUBLIC_URL}/${key}`,
-        filename,
-        contentType,
-        size: fileBuffer.length,
-    };
+        return {
+            key,
+            url: `${R2_PUBLIC_URL}/${key}`,
+            filename,
+            contentType,
+            size: fileBuffer.length,
+        };
+    } catch (error) {
+        console.error("Error in uploadFileToR2:", error);
+        throw error;
+    }
 }
 
 /**

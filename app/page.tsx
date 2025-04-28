@@ -39,13 +39,11 @@ export default function LandingPage() {
                                 </p>
                             </div>
                             <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                                <Button size="lg" className="bg-teal-600 hover:bg-teal-700">
+                                <Button>
                                     Get Started
                                     <ArrowRight className="ml-2 h-4 w-4" />
                                 </Button>
-                                <Button size="lg" variant="outline">
-                                    Book a Demo
-                                </Button>
+                                <Button variant="outline">Book a Demo</Button>
                             </div>
                         </div>
                     </div>
@@ -56,12 +54,7 @@ export default function LandingPage() {
                     <div className="container px-4 md:px-6">
                         <div className="flex flex-col items-center justify-center space-y-4 text-center">
                             <div className="space-y-2">
-                                <Badge
-                                    variant="outline"
-                                    className="bg-teal-100 text-teal-800 hover:bg-teal-100 border-teal-200"
-                                >
-                                    Features
-                                </Badge>
+                                <Badge variant="outline">Features</Badge>
                                 <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight">
                                     Everything you need for your pet&apos;s health
                                 </h2>
@@ -72,10 +65,10 @@ export default function LandingPage() {
                             </div>
                         </div>
                         <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 py-12 md:grid-cols-2 lg:grid-cols-3">
-                            <Card className="border-2 border-transparent transition-all hover:border-teal-500/20 hover:shadow-md">
+                            <Card className="border-2 border-transparent transition-all hover:shadow-md">
                                 <CardHeader className="pb-2">
-                                    <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-lg bg-teal-100">
-                                        <Activity className="h-6 w-6 text-teal-600" />
+                                    <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-lg">
+                                        <Activity className="h-6 w-6" />
                                     </div>
                                     <CardTitle>Health Monitoring</CardTitle>
                                 </CardHeader>
@@ -86,10 +79,10 @@ export default function LandingPage() {
                                     </p>
                                 </CardContent>
                             </Card>
-                            <Card className="border-2 border-transparent transition-all hover:border-teal-500/20 hover:shadow-md">
+                            <Card className="border-2 border-transparent transition-all hover:shadow-md">
                                 <CardHeader className="pb-2">
-                                    <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-lg bg-teal-100">
-                                        <Calendar className="h-6 w-6 text-teal-600" />
+                                    <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-lg ">
+                                        <Calendar className="h-6 w-6" />
                                     </div>
                                     <CardTitle>Appointment Scheduling</CardTitle>
                                 </CardHeader>
@@ -100,10 +93,10 @@ export default function LandingPage() {
                                     </p>
                                 </CardContent>
                             </Card>
-                            <Card className="border-2 border-transparent transition-all hover:border-teal-500/20 hover:shadow-md">
+                            <Card className="border-2 border-transparent transition-all hover:shadow-md">
                                 <CardHeader className="pb-2">
-                                    <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-lg bg-teal-100">
-                                        <Bell className="h-6 w-6 text-teal-600" />
+                                    <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-lg ">
+                                        <Bell className="h-6 w-6" />
                                     </div>
                                     <CardTitle>Health Alerts</CardTitle>
                                 </CardHeader>
@@ -114,10 +107,10 @@ export default function LandingPage() {
                                     </p>
                                 </CardContent>
                             </Card>
-                            <Card className="border-2 border-transparent transition-all hover:border-teal-500/20 hover:shadow-md">
+                            <Card className="border-2 border-transparent transition-all hover:shadow-md">
                                 <CardHeader className="pb-2">
-                                    <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-lg bg-teal-100">
-                                        <Shield className="h-6 w-6 text-teal-600" />
+                                    <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-lg ">
+                                        <Shield className="h-6 w-6" />
                                     </div>
                                     <CardTitle>Medical Records</CardTitle>
                                 </CardHeader>
@@ -128,10 +121,10 @@ export default function LandingPage() {
                                     </p>
                                 </CardContent>
                             </Card>
-                            <Card className="border-2 border-transparent transition-all hover:border-teal-500/20 hover:shadow-md">
+                            <Card className="border-2 border-transparent transition-all hover:shadow-md">
                                 <CardHeader className="pb-2">
-                                    <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-lg bg-teal-100">
-                                        <Star className="h-6 w-6 text-teal-600" />
+                                    <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-lg ">
+                                        <Star className="h-6 w-6" />
                                     </div>
                                     <CardTitle>Vet Consultations</CardTitle>
                                 </CardHeader>
@@ -142,10 +135,10 @@ export default function LandingPage() {
                                     </p>
                                 </CardContent>
                             </Card>
-                            <Card className="border-2 border-transparent transition-all hover:border-teal-500/20 hover:shadow-md">
+                            <Card className="border-2 border-transparent transition-all hover:shadow-md">
                                 <CardHeader className="pb-2">
-                                    <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-lg bg-teal-100">
-                                        <PawPrint className="h-6 w-6 text-teal-600" />
+                                    <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-lg ">
+                                        <PawPrint className="h-6 w-6" />
                                     </div>
                                     <CardTitle>Wellness Programs</CardTitle>
                                 </CardHeader>
@@ -165,12 +158,7 @@ export default function LandingPage() {
                     <div className="container px-4 md:px-6">
                         <div className="flex flex-col items-center justify-center space-y-4 text-center">
                             <div className="space-y-2">
-                                <Badge
-                                    variant="outline"
-                                    className="bg-teal-100 text-teal-800 hover:bg-teal-100 border-teal-200"
-                                >
-                                    Testimonials
-                                </Badge>
+                                <Badge variant="outline">Testimonials</Badge>
                                 <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight">
                                     Trusted by pet owners everywhere
                                 </h2>
@@ -204,12 +192,12 @@ export default function LandingPage() {
                                     </p>
                                 </CardContent>
                                 <CardFooter>
-                                    <div className="flex text-teal-500">
-                                        <Star className="fill-teal-500 h-4 w-4" />
-                                        <Star className="fill-teal-500 h-4 w-4" />
-                                        <Star className="fill-teal-500 h-4 w-4" />
-                                        <Star className="fill-teal-500 h-4 w-4" />
-                                        <Star className="fill-teal-500 h-4 w-4" />
+                                    <div className="flex ">
+                                        <Star className=" h-4 w-4" />
+                                        <Star className=" h-4 w-4" />
+                                        <Star className=" h-4 w-4" />
+                                        <Star className=" h-4 w-4" />
+                                        <Star className=" h-4 w-4" />
                                     </div>
                                 </CardFooter>
                             </Card>
@@ -236,12 +224,12 @@ export default function LandingPage() {
                                     </p>
                                 </CardContent>
                                 <CardFooter>
-                                    <div className="flex text-teal-500">
-                                        <Star className="fill-teal-500 h-4 w-4" />
-                                        <Star className="fill-teal-500 h-4 w-4" />
-                                        <Star className="fill-teal-500 h-4 w-4" />
-                                        <Star className="fill-teal-500 h-4 w-4" />
-                                        <Star className="fill-teal-500 h-4 w-4" />
+                                    <div className="flex ">
+                                        <Star className=" h-4 w-4" />
+                                        <Star className=" h-4 w-4" />
+                                        <Star className=" h-4 w-4" />
+                                        <Star className=" h-4 w-4" />
+                                        <Star className=" h-4 w-4" />
                                     </div>
                                 </CardFooter>
                             </Card>
@@ -268,12 +256,12 @@ export default function LandingPage() {
                                     </p>
                                 </CardContent>
                                 <CardFooter>
-                                    <div className="flex text-teal-500">
-                                        <Star className="fill-teal-500 h-4 w-4" />
-                                        <Star className="fill-teal-500 h-4 w-4" />
-                                        <Star className="fill-teal-500 h-4 w-4" />
-                                        <Star className="fill-teal-500 h-4 w-4" />
-                                        <Star className="fill-teal-500 h-4 w-4" />
+                                    <div className="flex ">
+                                        <Star className=" h-4 w-4" />
+                                        <Star className=" h-4 w-4" />
+                                        <Star className=" h-4 w-4" />
+                                        <Star className=" h-4 w-4" />
+                                        <Star className=" h-4 w-4" />
                                     </div>
                                 </CardFooter>
                             </Card>
@@ -286,12 +274,7 @@ export default function LandingPage() {
                     <div className="container px-4 md:px-6">
                         <div className="flex flex-col items-center justify-center space-y-4 text-center">
                             <div className="space-y-2">
-                                <Badge
-                                    variant="outline"
-                                    className="bg-teal-100 text-teal-800 hover:bg-teal-100 border-teal-200"
-                                >
-                                    Pricing
-                                </Badge>
+                                <Badge variant="outline">Pricing</Badge>
                                 <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight">
                                     Simple, transparent pricing
                                 </h2>
@@ -324,19 +307,19 @@ export default function LandingPage() {
                                             <CardContent className="flex-1">
                                                 <ul className="space-y-2">
                                                     <li className="flex items-center">
-                                                        <CheckCircle2 className="mr-2 h-4 w-4 text-teal-500" />
+                                                        <CheckCircle2 className="mr-2 h-4 w-4 " />
                                                         <span>1 pet profile</span>
                                                     </li>
                                                     <li className="flex items-center">
-                                                        <CheckCircle2 className="mr-2 h-4 w-4 text-teal-500" />
+                                                        <CheckCircle2 className="mr-2 h-4 w-4 " />
                                                         <span>Basic health monitoring</span>
                                                     </li>
                                                     <li className="flex items-center">
-                                                        <CheckCircle2 className="mr-2 h-4 w-4 text-teal-500" />
+                                                        <CheckCircle2 className="mr-2 h-4 w-4 " />
                                                         <span>Appointment scheduling</span>
                                                     </li>
                                                     <li className="flex items-center">
-                                                        <CheckCircle2 className="mr-2 h-4 w-4 text-teal-500" />
+                                                        <CheckCircle2 className="mr-2 h-4 w-4 " />
                                                         <span>Medication reminders</span>
                                                     </li>
                                                 </ul>
@@ -362,23 +345,23 @@ export default function LandingPage() {
                                             <CardContent className="flex-1">
                                                 <ul className="space-y-2">
                                                     <li className="flex items-center">
-                                                        <CheckCircle2 className="mr-2 h-4 w-4 text-teal-500" />
+                                                        <CheckCircle2 className="mr-2 h-4 w-4 " />
                                                         <span>Up to 5 pet profiles</span>
                                                     </li>
                                                     <li className="flex items-center">
-                                                        <CheckCircle2 className="mr-2 h-4 w-4 text-teal-500" />
+                                                        <CheckCircle2 className="mr-2 h-4 w-4 " />
                                                         <span>Advanced health monitoring</span>
                                                     </li>
                                                     <li className="flex items-center">
-                                                        <CheckCircle2 className="mr-2 h-4 w-4 text-teal-500" />
+                                                        <CheckCircle2 className="mr-2 h-4 w-4 " />
                                                         <span>Unlimited appointment scheduling</span>
                                                     </li>
                                                     <li className="flex items-center">
-                                                        <CheckCircle2 className="mr-2 h-4 w-4 text-teal-500" />
+                                                        <CheckCircle2 className="mr-2 h-4 w-4 " />
                                                         <span>Video consultations (2/month)</span>
                                                     </li>
                                                     <li className="flex items-center">
-                                                        <CheckCircle2 className="mr-2 h-4 w-4 text-teal-500" />
+                                                        <CheckCircle2 className="mr-2 h-4 w-4 " />
                                                         <span>Personalized wellness plans</span>
                                                     </li>
                                                 </ul>
@@ -401,23 +384,23 @@ export default function LandingPage() {
                                             <CardContent className="flex-1">
                                                 <ul className="space-y-2">
                                                     <li className="flex items-center">
-                                                        <CheckCircle2 className="mr-2 h-4 w-4 text-teal-500" />
+                                                        <CheckCircle2 className="mr-2 h-4 w-4 " />
                                                         <span>Unlimited pet profiles</span>
                                                     </li>
                                                     <li className="flex items-center">
-                                                        <CheckCircle2 className="mr-2 h-4 w-4 text-teal-500" />
+                                                        <CheckCircle2 className="mr-2 h-4 w-4 " />
                                                         <span>Premium health analytics</span>
                                                     </li>
                                                     <li className="flex items-center">
-                                                        <CheckCircle2 className="mr-2 h-4 w-4 text-teal-500" />
+                                                        <CheckCircle2 className="mr-2 h-4 w-4 " />
                                                         <span>Client management tools</span>
                                                     </li>
                                                     <li className="flex items-center">
-                                                        <CheckCircle2 className="mr-2 h-4 w-4 text-teal-500" />
+                                                        <CheckCircle2 className="mr-2 h-4 w-4 " />
                                                         <span>Unlimited video consultations</span>
                                                     </li>
                                                     <li className="flex items-center">
-                                                        <CheckCircle2 className="mr-2 h-4 w-4 text-teal-500" />
+                                                        <CheckCircle2 className="mr-2 h-4 w-4 " />
                                                         <span>Priority support</span>
                                                     </li>
                                                 </ul>
@@ -445,19 +428,19 @@ export default function LandingPage() {
                                             <CardContent className="flex-1">
                                                 <ul className="space-y-2">
                                                     <li className="flex items-center">
-                                                        <CheckCircle2 className="mr-2 h-4 w-4 text-teal-500" />
+                                                        <CheckCircle2 className="mr-2 h-4 w-4 " />
                                                         <span>1 pet profile</span>
                                                     </li>
                                                     <li className="flex items-center">
-                                                        <CheckCircle2 className="mr-2 h-4 w-4 text-teal-500" />
+                                                        <CheckCircle2 className="mr-2 h-4 w-4 " />
                                                         <span>Basic health monitoring</span>
                                                     </li>
                                                     <li className="flex items-center">
-                                                        <CheckCircle2 className="mr-2 h-4 w-4 text-teal-500" />
+                                                        <CheckCircle2 className="mr-2 h-4 w-4 " />
                                                         <span>Appointment scheduling</span>
                                                     </li>
                                                     <li className="flex items-center">
-                                                        <CheckCircle2 className="mr-2 h-4 w-4 text-teal-500" />
+                                                        <CheckCircle2 className="mr-2 h-4 w-4 " />
                                                         <span>Medication reminders</span>
                                                     </li>
                                                 </ul>
@@ -484,23 +467,23 @@ export default function LandingPage() {
                                             <CardContent className="flex-1">
                                                 <ul className="space-y-2">
                                                     <li className="flex items-center">
-                                                        <CheckCircle2 className="mr-2 h-4 w-4 text-teal-500" />
+                                                        <CheckCircle2 className="mr-2 h-4 w-4 " />
                                                         <span>Up to 5 pet profiles</span>
                                                     </li>
                                                     <li className="flex items-center">
-                                                        <CheckCircle2 className="mr-2 h-4 w-4 text-teal-500" />
+                                                        <CheckCircle2 className="mr-2 h-4 w-4 " />
                                                         <span>Advanced health monitoring</span>
                                                     </li>
                                                     <li className="flex items-center">
-                                                        <CheckCircle2 className="mr-2 h-4 w-4 text-teal-500" />
+                                                        <CheckCircle2 className="mr-2 h-4 w-4 " />
                                                         <span>Unlimited appointment scheduling</span>
                                                     </li>
                                                     <li className="flex items-center">
-                                                        <CheckCircle2 className="mr-2 h-4 w-4 text-teal-500" />
+                                                        <CheckCircle2 className="mr-2 h-4 w-4 " />
                                                         <span>Video consultations (2/month)</span>
                                                     </li>
                                                     <li className="flex items-center">
-                                                        <CheckCircle2 className="mr-2 h-4 w-4 text-teal-500" />
+                                                        <CheckCircle2 className="mr-2 h-4 w-4 " />
                                                         <span>Personalized wellness plans</span>
                                                     </li>
                                                 </ul>
@@ -524,23 +507,23 @@ export default function LandingPage() {
                                             <CardContent className="flex-1">
                                                 <ul className="space-y-2">
                                                     <li className="flex items-center">
-                                                        <CheckCircle2 className="mr-2 h-4 w-4 text-teal-500" />
+                                                        <CheckCircle2 className="mr-2 h-4 w-4 " />
                                                         <span>Unlimited pet profiles</span>
                                                     </li>
                                                     <li className="flex items-center">
-                                                        <CheckCircle2 className="mr-2 h-4 w-4 text-teal-500" />
+                                                        <CheckCircle2 className="mr-2 h-4 w-4 " />
                                                         <span>Premium health analytics</span>
                                                     </li>
                                                     <li className="flex items-center">
-                                                        <CheckCircle2 className="mr-2 h-4 w-4 text-teal-500" />
+                                                        <CheckCircle2 className="mr-2 h-4 w-4 " />
                                                         <span>Client management tools</span>
                                                     </li>
                                                     <li className="flex items-center">
-                                                        <CheckCircle2 className="mr-2 h-4 w-4 text-teal-500" />
+                                                        <CheckCircle2 className="mr-2 h-4 w-4 " />
                                                         <span>Unlimited video consultations</span>
                                                     </li>
                                                     <li className="flex items-center">
-                                                        <CheckCircle2 className="mr-2 h-4 w-4 text-teal-500" />
+                                                        <CheckCircle2 className="mr-2 h-4 w-4 " />
                                                         <span>Priority support</span>
                                                     </li>
                                                 </ul>
@@ -584,7 +567,7 @@ export default function LandingPage() {
                     <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
                         <div className="space-y-4">
                             <div className="flex gap-2 items-center">
-                                <PawPrint className="h-6 w-6 text-teal-500" />
+                                <PawPrint className="h-6 w-6 " />
                                 <span className="font-bold text-xl">PetCare</span>
                             </div>
                             <p className="text-sm text-muted-foreground">

@@ -29,6 +29,7 @@ export const PetSchema = z.object({
     weight_kg: z.number().refine((value) => value > 0, {
         message: "Weight must be a positive number",
     }),
+    profile_picture_url: z.string().optional(),
 });
 
 export const UpdatePetSchema = z.object({
@@ -43,6 +44,7 @@ export const UpdatePetSchema = z.object({
     pet_id: z.number().int().positive({
         message: "Pet ID must be a positive integer",
     }),
+    profile_picture_url: z.string().optional(),
 });
 
 export type PetType = z.infer<typeof PetSchema>;

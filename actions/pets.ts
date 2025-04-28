@@ -15,6 +15,7 @@ const addPet = async (values: PetOnboardingSchema): Promise<ActionResponse | voi
         if (!newPetData.success) return { success: false, error: "Please check the form inputs" };
 
         if (!session || !session.user || !session.user.id) redirect("/signin");
+
         const pet = await prisma.pets.create({
             data: {
                 name: newPetData.data.name,
@@ -24,6 +25,7 @@ const addPet = async (values: PetOnboardingSchema): Promise<ActionResponse | voi
                 date_of_birth: newPetData.data.date_of_birth,
                 weight_kg: newPetData.data.weight_kg,
                 user_id: Number(session.user.id),
+                profile_picture_url: newPetData.data.profile_picture_url || null,
             },
         });
 
@@ -201,14 +203,23 @@ const updatePet = async (values: UpdatePetType): Promise<ActionResponse | void> 
         const petData = UpdatePetSchema.safeParse(values);
         if (!petData.success) return { success: false, error: "Please check the form inputs" };
 
+        const updateData = {
+            name: petData.data.name,
+            weight_kg: petData.data.weight_kg,
+            updated_at: getCurrentUtcDate(),
+            profile_picture_url: "",
+        };
+
+        // Only include profile picture if it's provided
+        if (petData.data.profile_picture_url) {
+            updateData.profile_picture_url = petData.data.profile_picture_url;
+        }
+
         const pet = await prisma.pets.update({
             where: { pet_id: petData.data.pet_id },
-            data: {
-                name: petData.data.name,
-                weight_kg: petData.data.weight_kg,
-                updated_at: getCurrentUtcDate(),
-            },
+            data: updateData,
         });
+
         if (!pet) return { success: false, error: "Failed to update pet" };
         revalidatePath(`/user/pets/${pet.pet_uuid}`);
     } catch (error) {
