@@ -310,6 +310,13 @@ export async function getDashboardHealthcareData(petId?: number): Promise<
                     pets: rx.pets,
                     medications: rx.medications,
                     appointment_id: rx.appointment_id,
+                    calendar_event_ids: rx.calendar_event_ids,
+                    calendar_sync_enabled: rx.calendar_sync_enabled,
+                    custom_instructions: rx.custom_instructions,
+                    last_calendar_sync: rx.last_calendar_sync,
+                    reminder_minutes_before: rx.reminder_minutes_before,
+                    schedule_type: rx.schedule_type,
+                    time_slots: rx.time_slots,
                 })) as UpcomingPrescription[],
             },
         };

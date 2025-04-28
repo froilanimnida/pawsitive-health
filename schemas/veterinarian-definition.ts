@@ -6,7 +6,7 @@ export const VeterinarianSchema = z.object({
     ...SignUpSchema.innerType().shape,
     license_number: z.string().nonempty({ message: "License number is required." }),
     specialization: z
-        .enum(Object.values(veterinary_specialization) as [string, ...string[]], {
+        .enum(Object.values(veterinary_specialization) as [veterinary_specialization, ...veterinary_specialization[]], {
             message: "Invalid specialization type",
             required_error: "Specialization is required",
             invalid_type_error: "Invalid specialization type",

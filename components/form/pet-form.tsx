@@ -27,10 +27,10 @@ import {
     Tabs,
 } from "@/components/ui";
 import { CatBreeds, DogBreeds } from "@/types";
-import { cn } from "@/lib";
+import { cn, createFormConfig } from "@/lib";
 import { Calendar as CalendarIcon, Plus, X } from "lucide-react";
 import { format } from "date-fns";
-import { PetOnboardingSchema, PetSchema } from "@/schemas";
+import { PetOnboardingSchema, type PetSchema } from "@/schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { addPet } from "@/actions/pets";
@@ -67,19 +67,32 @@ const AddPetForm = () => {
         }
         return [];
     };
-    const form = useForm({
-        shouldFocusError: true,
-        defaultValues: {
-            name: "",
-            species: "dog",
-            breed: "",
-            weight_kg: 0,
-            sex: "prefer-not-to-say",
-            date_of_birth: undefined,
-        },
-        progressive: true,
-        resolver: zodResolver(PetSchema),
-    });
+    //const newPetForm = useForm({
+    //    shouldFocusError: true,
+    //    defaultValues: {
+    //        name: "",
+    //        species: "dog",
+    //        breed: "",
+    //        weight_kg: 0,
+    //        sex: pet_sex_type.prefer_not_to_say,
+    //        date_of_birth: undefined,
+    //    },
+    //    progressive: true,
+    //    resolver: zodResolver(PetSchema),
+    //});
+    const newPetForm = useForm<PetSchema> ( {
+        createFormConfig({
+            resolver: zodResolver(PetOnboardingSchema),
+            defaultValues: {
+                name: "",
+                species: "dog",
+                breed: "",
+                weight_kg: 0,
+                sex: pet_sex_type.prefer_not_to_say,
+                date_of_birth: undefined,
+            },
+        }),
+} )
 
     const textFields: {
         name: "name" | "species" | "breed" | "sex" | "weight_kg";
@@ -118,7 +131,7 @@ const AddPetForm = () => {
             required: true,
             onChange: (value) => {
                 setSelectedSpecies(value as species_type);
-                form.setValue("breed", "");
+                newPetForm.setValue("breed", "");
             },
         },
         {
@@ -186,8 +199,8 @@ const AddPetForm = () => {
     };
 
     return (
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 w-full">
+        <Form {...newPetForm}>
+            <form onSubmit={newPetForm.handleSubmit(onSubmit)} className="space-y-4 w-full">
                 <Tabs defaultValue="basic" className="w-full">
                     <TabsList className="flex flex-wrap justify-start items-start w-full mb-4">
                         <TabsTrigger value="basic">Basic Information</TabsTrigger>
@@ -198,7 +211,7 @@ const AddPetForm = () => {
                             {textFields.map((textField) => (
                                 <FormField
                                     key={textField.name}
-                                    control={form.control}
+                                    control={newPetForm.control}
                                     name={textField.name}
                                     render={({ field, formState }) => (
                                         <FormItem>
@@ -225,7 +238,7 @@ const AddPetForm = () => {
                         </div>
                         <FormField
                             name="date_of_birth"
-                            control={form.control}
+                            control={newPetForm.control}
                             render={({ field, fieldState }) => (
                                 <FormItem>
                                     <FormLabel>Date of Birth</FormLabel>
@@ -281,7 +294,7 @@ const AddPetForm = () => {
                             {selectFields.map((selectField) => (
                                 <FormField
                                     key={selectField.name}
-                                    control={form.control}
+                                    control={newPetForm.control}
                                     name={selectField.name as "species" | "breed" | "sex"}
                                     render={({ field, fieldState }) => (
                                         <FormItem>

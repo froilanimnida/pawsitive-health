@@ -2,7 +2,7 @@ import { z } from "zod";
 import { procedure_type } from "@prisma/client";
 
 export const ProcedureSchema = z.object({
-    procedure_type: z.enum(Object.values(procedure_type) as [string, ...string[]]),
+    procedure_type: z.enum(Object.values(procedure_type) as [procedure_type, ...procedure_type[]]),
     procedure_date: z.date().optional(),
     next_due_date: z.date().optional(),
     product_used: z.string().max(100).optional(),

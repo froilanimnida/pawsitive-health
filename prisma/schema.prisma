@@ -118,16 +118,16 @@ model forum_posts {
 }
 
 model health_monitoring {
-    monitoring_id       Int      @id @default(autoincrement())
-    monitoring_uuid     String   @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+    monitoring_id       Int            @id @default(autoincrement())
+    monitoring_uuid     String         @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
     pet_id              Int?
-    activity_level      String   @db.VarChar(20)
-    weight_kg           Decimal  @db.Decimal(5, 2)
-    temperature_celsius Decimal  @db.Decimal(4, 2)
+    activity_level      activity_level
+    weight_kg           Decimal        @db.Decimal(5, 2)
+    temperature_celsius Decimal        @db.Decimal(4, 2)
     symptoms            String
     notes               String?
-    recorded_at         DateTime @default(now()) @db.Timestamptz(6)
-    pets                pets?    @relation(fields: [pet_id], references: [pet_id], onDelete: NoAction, onUpdate: NoAction)
+    recorded_at         DateTime       @default(now()) @db.Timestamptz(6)
+    pets                pets?          @relation(fields: [pet_id], references: [pet_id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model medical_records {
@@ -205,22 +205,43 @@ model pets {
 }
 
 model prescriptions {
-    prescription_id   Int            @id @default(autoincrement())
-    prescription_uuid String         @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-    pet_id            Int?
-    medication_id     Int?
-    vet_id            Int?
-    dosage            String         @db.VarChar(50)
-    frequency         String         @db.VarChar(50)
-    start_date        DateTime?      @db.Date
-    end_date          DateTime?      @db.Date
-    refills_remaining Int?
-    created_at        DateTime?      @default(now()) @db.Timestamptz(6)
-    appointment_id    Int?
-    appointments      appointments?  @relation(fields: [appointment_id], references: [appointment_id], onUpdate: NoAction)
-    medications       medications?   @relation(fields: [medication_id], references: [medication_id], onDelete: NoAction, onUpdate: NoAction)
-    pets              pets?          @relation(fields: [pet_id], references: [pet_id], onDelete: NoAction, onUpdate: NoAction)
-    veterinarians     veterinarians? @relation(fields: [vet_id], references: [vet_id], onDelete: NoAction, onUpdate: NoAction)
+    prescription_id         Int                         @id @default(autoincrement())
+    prescription_uuid       String                      @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+    pet_id                  Int?
+    medication_id           Int?
+    vet_id                  Int?
+    dosage                  String                      @db.VarChar(50)
+    frequency               String                      @db.VarChar(50)
+    start_date              DateTime?                   @db.Date
+    end_date                DateTime?                   @db.Date
+    refills_remaining       Int?
+    created_at              DateTime?                   @default(now()) @db.Timestamptz(6)
+    appointment_id          Int?
+    schedule_type           prescription_schedule_type?
+    time_slots              Json? // Array of time slots for administration times
+    calendar_event_ids      Json? // IDs of created Google Calendar events
+    reminder_minutes_before Int?                        @default(15)
+    last_calendar_sync      DateTime?                   @db.Timestamptz(6)
+    calendar_sync_enabled   Boolean?                    @default(false)
+    custom_instructions     String?
+    appointments            appointments?               @relation(fields: [appointment_id], references: [appointment_id], onUpdate: NoAction)
+    medications             medications?                @relation(fields: [medication_id], references: [medication_id], onDelete: NoAction, onUpdate: NoAction)
+    pets                    pets?                       @relation(fields: [pet_id], references: [pet_id], onDelete: NoAction, onUpdate: NoAction)
+    veterinarians           veterinarians?              @relation(fields: [vet_id], references: [vet_id], onDelete: NoAction, onUpdate: NoAction)
+    time_slot_details       prescription_time_slots[]
+}
+
+// New model for normalized time slots
+model prescription_time_slots {
+    slot_id         Int           @id @default(autoincrement())
+    prescription_id Int
+    hour            Int
+    minute          Int
+    enabled         Boolean       @default(true)
+    created_at      DateTime      @default(now()) @db.Timestamptz(6)
+    prescription    prescriptions @relation(fields: [prescription_id], references: [prescription_id], onDelete: Cascade)
+
+    @@index([prescription_id])
 }
 
 model user_settings {
@@ -247,6 +268,7 @@ model users {
     role                          role_type             @default(user)
     created_at                    DateTime              @default(now()) @db.Timestamptz(6)
     updated_at                    DateTime              @default(now()) @db.Timestamptz(6)
+    deleted                       Boolean?              @default(false)
     deleted_at                    DateTime?             @db.Timestamptz(6)
     disabled                      Boolean?              @default(false)
     email_verification_expires_at DateTime?             @db.Timestamptz(6)
@@ -379,6 +401,14 @@ model healthcare_procedures {
     veterinarians   veterinarians? @relation(fields: [administered_by], references: [vet_id], onDelete: NoAction, onUpdate: NoAction)
     appointments    appointments?  @relation(fields: [appointment_id], references: [appointment_id], onUpdate: NoAction)
     pets            pets?          @relation(fields: [pet_id], references: [pet_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+enum activity_level {
+    very_low
+    low
+    normal
+    high
+    very_high
 }
 
 enum procedure_type {
@@ -745,4 +775,15 @@ enum notification_priority {
     normal
     high
     urgent
+}
+
+enum prescription_schedule_type {
+    once_daily
+    twice_daily
+    three_times_daily
+    four_times_daily
+    every_other_day
+    weekly
+    as_needed
+    custom
 }

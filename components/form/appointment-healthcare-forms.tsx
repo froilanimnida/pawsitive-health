@@ -1,6 +1,6 @@
 "use client";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui";
-import PrescriptionForm from "./prescription-form"
+import PrescriptionForm from "./prescription-form";
 import { useState } from "react";
 import PetProcedureForm from "./pet-healthcare-procedure-form";
 import { VaccinationForm } from "./veccination-form";
@@ -15,6 +15,7 @@ interface AppointmentHealthcareFormsProps {
     isVetView?: boolean;
     isCheckedIn?: boolean;
     medicationList: medications[] | [];
+    petName: string;
 }
 
 export function AppointmentHealthcareForms({
@@ -26,6 +27,7 @@ export function AppointmentHealthcareForms({
     isVetView = false,
     isCheckedIn = true,
     medicationList,
+    petName,
 }: AppointmentHealthcareFormsProps) {
     const [activeTab, setActiveTab] = useState("vaccination");
 
@@ -91,6 +93,7 @@ export function AppointmentHealthcareForms({
                         appointmentUuid={appointmentUuid}
                         vetId={vetId}
                         isCheckIn={isCheckedIn}
+                        petName={petName}
                     />
                 </TabsContent>
             </Tabs>

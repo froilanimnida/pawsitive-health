@@ -13,7 +13,7 @@ import { formatDecimal } from "@/lib";
  * Add a new health monitoring record for a pet
  */
 export async function addHealthMonitoringRecord(
-    values: HealthMonitoringType & { pet_id: number; pet_uuid: string },
+    values: HealthMonitoringType,
 ): Promise<ActionResponse<{ monitoring_id: number }> | void> {
     try {
         const session = await getServerSession(authOptions);

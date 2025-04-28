@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { TooltipProvider, SidebarProvider, Toaster } from "@/components/ui";
 import SessionProviderWrapper from "@/context/session-provider-context";
-import { SidebarProvider } from "@/components/ui/sidebar";
-import { Toaster } from "@/components/ui";
-//import { ThemeProvider } from "@/context/next-theme-context";
+import { ThemeProvider } from "@/context/next-theme-context";
 
 const poppins = Poppins({
     variable: "--poppins-font",
@@ -28,26 +26,26 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="en">
+        <html lang="en" className="scroll-smooth" suppressHydrationWarning>
             <body className={`${poppins.className} antialiased w-full`}>
-                {/*<ThemeProvider attribute="class" defaultTheme="system" enableSystem={true} disableTransitionOnChange>*/}
-                <SidebarProvider>
-                    <TooltipProvider>
-                        <SessionProviderWrapper>
-                            {children}
-                            <Toaster
-                                toastOptions={{
-                                    className: "max-w-sm",
-                                    style: {
-                                        background: "#fff",
-                                        color: "#000",
-                                    },
-                                }}
-                            />
-                        </SessionProviderWrapper>
-                    </TooltipProvider>
-                </SidebarProvider>
-                {/*</ThemeProvider>*/}
+                <ThemeProvider attribute="class" defaultTheme="system" enableSystem={true} disableTransitionOnChange>
+                    <SidebarProvider>
+                        <TooltipProvider>
+                            <SessionProviderWrapper>
+                                {children}
+                                <Toaster
+                                    toastOptions={{
+                                        className: "max-w-sm",
+                                        style: {
+                                            background: "#fff",
+                                            color: "#000",
+                                        },
+                                    }}
+                                />
+                            </SessionProviderWrapper>
+                        </TooltipProvider>
+                    </SidebarProvider>
+                </ThemeProvider>
             </body>
         </html>
     );

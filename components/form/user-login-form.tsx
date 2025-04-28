@@ -36,7 +36,6 @@ import { createFormConfig } from "@/lib";
 
 const UserLoginForm = () => {
     const [isLoading, setIsLoading] = useState(false);
-    const [isOtpLoading, setIsOtpLoading] = useState(false);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showOtpDialog, setShowOtpDialog] = useState(false);
@@ -83,13 +82,14 @@ const UserLoginForm = () => {
         },
     ];
 
-    const otpForm = useForm({
-        defaultValues: {
-            otp: "",
-        },
-        resolver: zodResolver(OtpSchema),
-        shouldFocusError: true,
-    });
+    const otpForm = useForm<{ otp: string }>(
+        createFormConfig({
+            defaultValues: {
+                otp: "",
+            },
+            resolver: zodResolver(OtpSchema),
+        }),
+    );
 
     const loginForm = useForm<LoginType>(
         createFormConfig({
@@ -152,14 +152,14 @@ const UserLoginForm = () => {
     };
 
     const handleOtp = async (values: { otp: string }) => {
-        setIsOtpLoading(true);
+        setIsLoading(true);
 
         try {
             const otpResult = await verifyOTPToken(email, values.otp);
 
             if (!otpResult.success || !otpResult.data?.correct) {
                 toast.error("Invalid OTP code");
-                setIsOtpLoading(false);
+                setIsLoading(false);
                 return;
             }
 
@@ -171,7 +171,7 @@ const UserLoginForm = () => {
 
             if (signInResult?.error) {
                 toast.error("Authentication failed: " + signInResult.error);
-                setIsOtpLoading(false);
+                setIsLoading(false);
                 return;
             }
 
@@ -218,7 +218,7 @@ const UserLoginForm = () => {
             console.error("OTP handling error:", error);
             toast.error("An unexpected error occurred");
         } finally {
-            setIsOtpLoading(false);
+            setIsLoading(false);
         }
     };
 
@@ -308,7 +308,7 @@ const UserLoginForm = () => {
                                                 {...field}
                                                 placeholder="Enter 6-digit OTP"
                                                 maxLength={6}
-                                                disabled={isOtpLoading}
+                                                disabled={isLoading}
                                             />
                                         </FormControl>
                                         <FormDescription>The code is valid for 5 minutes.</FormDescription>
@@ -317,14 +317,14 @@ const UserLoginForm = () => {
                                 )}
                             />
                             <DialogFooter>
-                                <Button type="submit" disabled={isOtpLoading}>
-                                    {isOtpLoading ? "Verifying..." : "Verify"}
+                                <Button type="submit" disabled={isLoading}>
+                                    {isLoading ? "Verifying..." : "Verify"}
                                 </Button>
                                 <Button
                                     variant="outline"
                                     type="button"
                                     onClick={() => handleResendOtp()}
-                                    disabled={isOtpLoading}
+                                    disabled={isLoading}
                                 >
                                     Resend OTP
                                 </Button>

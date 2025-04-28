@@ -21,7 +21,8 @@ import {
 } from "@/components/ui";
 import { toast } from "sonner";
 import { addHealthMonitoringRecord } from "@/actions";
-import { createFormConfig } from "@/lib";
+import { createFormConfig, toTitleCase } from "@/lib";
+import { activity_level } from "@prisma/client";
 
 interface HealthMonitoringFormProps {
     petId: number;
@@ -31,32 +32,16 @@ interface HealthMonitoringFormProps {
 }
 
 export const HealthMonitoringForm = ({ petId, petUuid, onSuccess, onCancel }: HealthMonitoringFormProps) => {
-    const activityLevelOptions = [
-        { value: "very_low", label: "Very Low" },
-        { value: "low", label: "Low" },
-        { value: "normal", label: "Normal" },
-        { value: "high", label: "High" },
-        { value: "very_high", label: "Very High" },
-    ];
-
-    //const form = useForm<HealthMonitoringType>({
-    //    defaultValues: {
-    //        activity_level: "",
-    //        weight_kg: 0,
-    //        temperature_celsius: 37.0,
-    //        symptoms: "",
-    //        notes: "",
-    //    },
-    //    resolver: zodResolver(HealthMonitoringSchema),
-    //});
     const healthMonitoringForm = useForm<HealthMonitoringType>(
         createFormConfig({
             defaultValues: {
-                activity_level: "",
+                activity_level: activity_level.normal,
                 weight_kg: 0,
                 temperature_celsius: 37.0,
                 symptoms: "",
                 notes: "",
+                pet_id: petId,
+                pet_uuid: petUuid,
             },
             resolver: zodResolver(HealthMonitoringSchema),
         }),
@@ -70,11 +55,7 @@ export const HealthMonitoringForm = ({ petId, petUuid, onSuccess, onCancel }: He
 
     const onSubmit = async (data: HealthMonitoringType) => {
         try {
-            const result = await addHealthMonitoringRecord({
-                ...data,
-                pet_id: petId,
-                pet_uuid: petUuid,
-            });
+            const result = await addHealthMonitoringRecord(data);
 
             if (result && !result.success) {
                 toast.error(result.error || "Failed to save health monitoring data");
@@ -105,9 +86,9 @@ export const HealthMonitoringForm = ({ petId, petUuid, onSuccess, onCancel }: He
                                     </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                    {activityLevelOptions.map((option) => (
-                                        <SelectItem key={option.value} value={option.value}>
-                                            {option.label}
+                                    {Object.values(activity_level).map((option) => (
+                                        <SelectItem key={option} value={option}>
+                                            {toTitleCase(option)}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
