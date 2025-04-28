@@ -33,6 +33,7 @@ import { PetHistoryTabs } from "@/components/pet/pet-history-tabs";
 import { HealthMonitoringDialog } from "@/components/pet/health-monitoring-dialog";
 import { HealthMonitoringHistory } from "@/components/pet/health-monitoring-history";
 import type { UUIDPageParams } from "@/types";
+import PetProfileImage from "@/components/form/pet-profile-image";
 
 // Create a cached version of getPet
 const getPetCached = cache(async (uuid: string) => {
@@ -113,6 +114,14 @@ const PetDetails = async ({ params }: UUIDPageParams) => {
                                 <h1 className="text-sm font-medium text-muted-foreground">Last Updated</h1>
                                 <p>{formatDistanceToNow(updated_at, { addSuffix: true, includeSeconds: true })}</p>
                             </div>
+                        </div>
+                        <div className="flex justify-center items-center">
+                            <PetProfileImage
+                                pet_id={pet.pet_id}
+                                profile_picture_url={pet.profile_picture_url}
+                                weight_kg={pet.weight_kg}
+                                name={pet.name}
+                            />
                         </div>
                     </div>
                 </CardContent>

@@ -26,6 +26,7 @@ import {
     TabsContent,
     Tabs,
 } from "@/components/ui";
+import { FileUpload } from "@/components/ui/file-upload";
 import { CatBreeds, DogBreeds } from "@/types";
 import { cn } from "@/lib";
 import { Calendar as CalendarIcon, Plus, X } from "lucide-react";
@@ -37,10 +38,12 @@ import { addPet } from "@/actions/pets";
 import { toTitleCase } from "@/lib";
 import { breed_type, pet_sex_type, procedure_type, species_type } from "@prisma/client";
 import { SelectFormField } from "@/types/forms/select-form-field";
+import { uploadPetImage } from "@/lib/functions/upload/upload-pet-image";
 
 const AddPetForm = () => {
     const [selectedBreed, setSelectedBreed] = useState<breed_type | string>("");
     const [selectedSpecies, setSelectedSpecies] = useState<species_type>("dog");
+    const [isUploading, setIsUploading] = useState<boolean>(false);
     const [procedures, setProcedures] = useState<
         {
             procedure_type: procedure_type;
@@ -58,6 +61,8 @@ const AddPetForm = () => {
             batch_number: string;
         }[]
     >([]);
+    const [profileImage, setProfileImage] = useState<File | null>(null);
+    const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
 
     const getBreedOptions = () => {
         if (selectedSpecies === "dog") {
@@ -76,10 +81,22 @@ const AddPetForm = () => {
             weight_kg: 0,
             sex: "prefer-not-to-say",
             date_of_birth: undefined,
+            profile_picture_url: "",
         },
         progressive: true,
         resolver: zodResolver(PetSchema),
     });
+
+    const handleImageChange = async (file: File | null) => {
+        setProfileImage(file);
+
+        // If we're removing the image
+        if (!file) {
+            setProfileImageUrl(null);
+            form.setValue("profile_picture_url", "");
+            return;
+        }
+    };
 
     const textFields: {
         name: "name" | "species" | "breed" | "sex" | "weight_kg";
@@ -175,14 +192,35 @@ const AddPetForm = () => {
         ]);
     };
     const onSubmit = async (values: PetOnboardingSchema) => {
-        toast.loading("Adding pet...");
-        const result = await addPet(values);
-        if (result === undefined) {
-            toast.dismiss();
-            toast.success("Pet added successfully");
-            return;
+        try {
+            toast.loading("Adding pet...");
+            setIsUploading(true);
+
+            // Upload image if present
+            if (profileImage) {
+                try {
+                    const uploadResult = await uploadPetImage(profileImage);
+                    values.profile_picture_url = uploadResult.url;
+                } catch (error) {
+                    console.error("Failed to upload profile image:", error);
+                    toast.error("Failed to upload profile image. Pet will be added without a profile picture.");
+                }
+            }
+
+            const result = await addPet(values);
+            setIsUploading(false);
+
+            if (result === undefined) {
+                toast.dismiss();
+                toast.success("Pet added successfully");
+                return;
+            }
+            toast.error("Failed to add pet");
+        } catch (error) {
+            setIsUploading(false);
+            toast.error("An error occurred while adding the pet");
+            console.error("Error adding pet:", error);
         }
-        toast.error("Failed to add pet");
     };
 
     return (
@@ -194,6 +232,18 @@ const AddPetForm = () => {
                         <TabsTrigger value="healthcare">Healthcare History</TabsTrigger>
                     </TabsList>
                     <TabsContent value="basic" className="space-y-4 w-full">
+                        <div className="mb-4">
+                            <FormLabel>Pet Profile Picture</FormLabel>
+                            <div className="mt-1">
+                                <FileUpload
+                                    onFileChange={handleImageChange}
+                                    currentImageUrl={profileImageUrl}
+                                    label="Upload a profile picture for your pet"
+                                />
+                            </div>
+                            <FormDescription>Upload a profile picture for your pet (optional)</FormDescription>
+                        </div>
+
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 justify-start items-start">
                             {textFields.map((textField) => (
                                 <FormField
@@ -522,8 +572,8 @@ const AddPetForm = () => {
                             Add Procedure
                         </Button>
                     </TabsContent>
-                    <Button type="submit" className="mt-6">
-                        Add Pet
+                    <Button type="submit" className="mt-6" disabled={isUploading}>
+                        {isUploading ? "Uploading..." : "Add Pet"}
                     </Button>
                 </Tabs>
             </form>
