@@ -37,6 +37,7 @@ import { addPet } from "@/actions/pets";
 import { breed_type, pet_sex_type, procedure_type, species_type } from "@prisma/client";
 import { SelectFormField } from "@/types/forms/select-form-field";
 import { uploadPetImage } from "@/lib/functions/upload/upload-pet-image";
+import { updatePetProfileImage } from "@/lib/functions/upload/update-pet-profile-image";
 import { OnboardingPetSchema, type PetOnboardingSchema, type PetType } from "@/schemas";
 
 // Define procedure interface for better type safety
@@ -203,11 +204,14 @@ const AddPetForm = () => {
             toast.loading("Adding pet...");
             setIsUploading(true);
 
-            // Upload image if present
+            // Upload image if present - we'll still use uploadPetImage directly here
+            // since we don't have a pet_id yet (we need to create the pet first)
             if (profileImage) {
                 try {
                     const uploadResult = await uploadPetImage(profileImage);
                     values.profile_picture_url = uploadResult.url;
+                    // Save the key for future use
+                    values.profile_picture_key = uploadResult.key;
                 } catch (error) {
                     console.error("Failed to upload profile image:", error);
                     toast.error("Failed to upload profile image. Pet will be added without a profile picture.");

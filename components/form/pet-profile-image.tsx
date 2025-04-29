@@ -1,5 +1,4 @@
 "use client";
-import { updatePet } from "@/actions";
 import {
     Avatar,
     AvatarImage,
@@ -12,23 +11,20 @@ import {
     DialogTitle,
 } from "@/components/ui";
 import { toTitleCase } from "@/lib";
-import { uploadPetImage } from "@/lib/functions/upload/upload-pet-image";
 import { Camera, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { FileUpload } from "../ui/file-upload";
-import { updatePetProfileImage } from "@/actions/pets"; // Ensure this import points to your new action
+import { updatePetProfileImage } from "@/lib/functions/upload/update-pet-profile-image";
 
 function PetProfileImage({
     name,
     pet_id,
     profile_picture_url,
-    weight_kg,
 }: {
     name: string;
     pet_id: number;
     profile_picture_url: string | null;
-    weight_kg: string;
 }) {
     const [isHovering, setIsHovering] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
@@ -55,25 +51,19 @@ function PetProfileImage({
 
         setIsUploading(true);
         try {
-            // Upload the image and get back a presigned URL
-            const uploadResult = await uploadPetImage(profileImage);
+            // Use the new comprehensive function that handles both upload and DB update
+            const result = await updatePetProfileImage(pet_id, profileImage);
 
-            // Call the new updatePetProfileImage action which stores both URL and key
-            const updateResult = await updatePetProfileImage(
-                pet_id,
-                uploadResult.key, // Store the key for future URL generation
-                uploadResult.url, // Store the current presigned URL
-            );
-
-            if (updateResult.success) {
+            if (result.success) {
                 toast.success("Pet profile picture updated successfully");
-                // Update the local state with the new URL
-                setImageUrl(uploadResult.url);
-
+                // We need to refresh the image URL from the result
+                if (result.data?.imageUrl) {
+                    setImageUrl(result.data.imageUrl);
+                }
                 // Close the dialog
                 setShowImageDialog(false);
             } else {
-                toast.error(updateResult.error || "Failed to update pet profile picture");
+                toast.error(result.error || "Failed to update pet profile picture");
             }
         } catch (error) {
             console.error("Error updating profile picture:", error);
@@ -86,10 +76,10 @@ function PetProfileImage({
     const handleRemoveImage = async () => {
         setIsUploading(true);
         try {
-            // Call the updatePetProfileImage action with null values to remove the image
-            const updateResult = await updatePetProfileImage(pet_id, null, null);
+            // Use null to indicate image removal
+            const result = await updatePetProfileImage(pet_id, null);
 
-            if (updateResult.success) {
+            if (result.success) {
                 toast.success("Profile picture removed");
                 // Update local state
                 setImageUrl(null);
@@ -97,7 +87,7 @@ function PetProfileImage({
                 // Close the dialog
                 setShowImageDialog(false);
             } else {
-                toast.error(updateResult.error || "Failed to remove profile picture");
+                toast.error(result.error || "Failed to remove profile picture");
             }
         } catch (error) {
             console.error("Error removing profile picture:", error);
