@@ -305,4 +305,52 @@ const getPetId = async (pet_uuid: string): Promise<ActionResponse<{ pet_id: numb
     }
 };
 
-export { addPet, getPet, updatePet, getPets, getPetId };
+/**
+ * Updates a pet's profile image information in the database
+ * @param petId The ID of the pet to update
+ * @param imageKey The key of the uploaded image in R2 storage (can be null to remove image)
+ * @param imageUrl The presigned URL of the image (can be null to remove image)
+ */
+const updatePetProfileImage = async (
+    petId: number,
+    imageKey: string | null,
+    imageUrl: string | null,
+): Promise<ActionResponse> => {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.id) return { success: false, error: "Unauthorized" };
+
+        // First, check if this pet belongs to the authenticated user
+        const pet = await prisma.pets.findFirst({
+            where: {
+                pet_id: petId,
+                user_id: Number(session.user.id),
+                deleted: false,
+            },
+        });
+
+        if (!pet) return { success: false, error: "Pet not found or you don't have permission to modify it" };
+
+        // Update the pet with the new profile image information
+        console.log(imageKey, imageUrl);
+        console.log("Length", imageKey?.length, imageUrl?.length);
+        await prisma.pets.update({
+            where: { pet_id: petId },
+            data: {
+                profile_picture_url: imageUrl,
+                profile_picture_key: imageKey,
+                updated_at: new Date(),
+            },
+        });
+
+        return;
+    } catch (error) {
+        console.error("Error updating pet profile image:", error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "An unexpected error occurred",
+        };
+    }
+};
+
+export { addPet, getPet, updatePet, getPets, getPetId, updatePetProfileImage };
