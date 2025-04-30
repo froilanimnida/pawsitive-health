@@ -8,14 +8,14 @@
 		"start": "next start",
 		"lint": "next lint",
 		"postinstall": "prisma generate",
-        "format": "prettier --write .",
-        "format:check": "prettier --check .",
-        "test": "jest --passWithNoTests --detectOpenHandles --forceExit",
-        "test:watch": "jest --passWithNoTests --detectOpenHandles --watch",
-        "test:coverage": "jest --passWithNoTests --detectOpenHandles --coverage",
-        "test:coverage:watch": "jest --passWithNoTests --detectOpenHandles --coverage --watch",
-        "test:parallel": "jest --passWithNoTests --detectOpenHandles --maxWorkers=50%",
-        "test:ci": "jest --passWithNoTests --detectOpenHandles --runInBand"
+		"format": "prettier --write .",
+		"format:check": "prettier --check .",
+		"test": "jest --passWithNoTests --detectOpenHandles --forceExit",
+		"test:watch": "jest --passWithNoTests --detectOpenHandles --watch",
+		"test:coverage": "jest --passWithNoTests --detectOpenHandles --coverage",
+		"test:coverage:watch": "jest --passWithNoTests --detectOpenHandles --coverage --watch",
+		"test:parallel": "jest --passWithNoTests --detectOpenHandles --maxWorkers=50%",
+		"test:ci": "jest --passWithNoTests --detectOpenHandles --runInBand"
 	},
 	"dependencies": {
 		"@aws-sdk/client-s3": "^3.782.0",
@@ -67,6 +67,8 @@
 		"zustand": "^5.0.3"
 	},
 	"devDependencies": {
+        "ts-node": "^10.9.2",
+        "jest-environment-jsdom": "^29.7.0",
 		"@eslint/eslintrc": "^3",
 		"@prisma/client": "^6.7.0",
 		"@tailwindcss/postcss": "^4",
