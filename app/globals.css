@@ -1,3 +1,6 @@
+/* eslint-disable */
+/* stylelint-disable */
+/* This file uses Tailwind CSS 4.0 experimental syntax */
 @import "tailwindcss";
 
 @plugin 'tailwindcss-animate';

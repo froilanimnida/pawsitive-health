@@ -196,7 +196,7 @@ export function NotificationCard({ notification }: NotificationCardProps) {
         }
 
         if (notification.appointment_id && notification.appointments) {
-            return `/user/appointments/${notification.appointments.appointment_uuid}`;
+            return `/user/appointments/view/${notification.appointments.appointment_uuid}`;
         }
 
         if (notification.pet_id && notification.pets) {

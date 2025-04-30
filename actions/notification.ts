@@ -1,10 +1,10 @@
 "use server";
 import { notifications } from "@prisma/client";
 import { prisma } from "@/lib";
-import { ActionResponse } from "@/types/server-action-response";
 import { redirect } from "next/navigation";
 import type {
     NotificationFilters,
+    ActionResponse,
     NotificationWithRelations,
     NotificationsResult,
     CreateNotificationProps,

@@ -1,7 +1,6 @@
 "use server";
 import { EmailService } from "@/lib/email-service";
-import type { EmailTemplate, EmailOptions } from "@/types";
-import type { ActionResponse } from "@/types/server-action-response";
+import type { EmailTemplate, EmailOptions, ActionResponse } from "@/types";
 
 const emailService = new EmailService();
 

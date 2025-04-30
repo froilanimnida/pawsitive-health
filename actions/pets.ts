@@ -2,8 +2,7 @@
 import { formatDecimal, getCurrentUtcDate, prisma, toTitleCase } from "@/lib";
 import { PetOnboardingSchema, UpdatePetSchema, type UpdatePetType, OnboardingPetSchema } from "@/schemas";
 import { procedure_type, type breed_type, type pet_sex_type, type species_type } from "@prisma/client";
-import { type ActionResponse } from "@/types/server-action-response";
-import type { Pets } from "@/types/pets";
+import type { ActionResponse, Pets } from "@/types";
 import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
@@ -16,6 +15,7 @@ const addPet = async (values: PetOnboardingSchema): Promise<ActionResponse | voi
         if (!newPetData.success) return { success: false, error: "Please check the form inputs" };
 
         if (!session || !session.user || !session.user.id) redirect("/signin");
+
         const pet = await prisma.pets.create({
             data: {
                 name: newPetData.data.name,
@@ -25,6 +25,7 @@ const addPet = async (values: PetOnboardingSchema): Promise<ActionResponse | voi
                 date_of_birth: newPetData.data.date_of_birth,
                 weight_kg: newPetData.data.weight_kg,
                 user_id: Number(session.user.id),
+                profile_picture_url: newPetData.data.profile_picture_url || null,
             },
         });
 
@@ -202,14 +203,23 @@ const updatePet = async (values: UpdatePetType): Promise<ActionResponse | void> 
         const petData = UpdatePetSchema.safeParse(values);
         if (!petData.success) return { success: false, error: "Please check the form inputs" };
 
+        const updateData = {
+            name: petData.data.name,
+            weight_kg: petData.data.weight_kg,
+            updated_at: getCurrentUtcDate(),
+            profile_picture_url: "",
+        };
+
+        // Only include profile picture if it's provided
+        if (petData.data.profile_picture_url) {
+            updateData.profile_picture_url = petData.data.profile_picture_url;
+        }
+
         const pet = await prisma.pets.update({
             where: { pet_id: petData.data.pet_id },
-            data: {
-                name: petData.data.name,
-                weight_kg: petData.data.weight_kg,
-                updated_at: getCurrentUtcDate(),
-            },
+            data: updateData,
         });
+
         if (!pet) return { success: false, error: "Failed to update pet" };
         revalidatePath(`/user/pets/${pet.pet_uuid}`);
     } catch (error) {
@@ -295,4 +305,54 @@ const getPetId = async (pet_uuid: string): Promise<ActionResponse<{ pet_id: numb
     }
 };
 
-export { addPet, getPet, updatePet, getPets, getPetId };
+/**
+ * Updates a pet's profile image information in the database
+ * @param petId The ID of the pet to update
+ * @param imageKey The key of the uploaded image in R2 storage (can be null to remove image)
+ * @param imageUrl The presigned URL of the image (can be null to remove image)
+ */
+const updatePetProfileImage = async (
+    petId: number,
+    petUuid: string,
+    imageKey: string | null,
+    imageUrl: string | null,
+): Promise<ActionResponse | void> => {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.id) redirect("/signin");
+
+        // First, check if this pet belongs to the authenticated user
+        const pet = await prisma.pets.findFirst({
+            where: {
+                pet_id: petId,
+                user_id: Number(session.user.id),
+                deleted: false,
+            },
+        });
+
+        if (!pet) return { success: false, error: "Pet not found or you don't have permission to modify it" };
+
+        // Update the pet with the new profile image information
+        console.log(imageKey, imageUrl);
+        console.log("Length", imageKey?.length, imageUrl?.length);
+        await prisma.pets.update({
+            where: { pet_id: petId },
+            data: {
+                profile_picture_url: imageUrl,
+                profile_picture_key: imageKey,
+                updated_at: getCurrentUtcDate(),
+            },
+        });
+        revalidatePath(`/user/pets/${petUuid}`);
+        revalidatePath("/user/pets");
+        return;
+    } catch (error) {
+        console.error("Error updating pet profile image:", error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "An unexpected error occurred",
+        };
+    }
+};
+
+export { addPet, getPet, updatePet, getPets, getPetId, updatePetProfileImage };

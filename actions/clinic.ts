@@ -1,6 +1,6 @@
 "use server";
 import { prisma } from "@/lib";
-import type { ActionResponse } from "@/types/server-action-response";
+import type { ActionResponse } from "@/types";
 import type { clinics } from "@prisma/client";
 
 const getClinics = async (): Promise<ActionResponse<{ clinics: clinics[] }>> => {

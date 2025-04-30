@@ -284,3 +284,5 @@ export async function getCalendarEvent(
         return null;
     }
 }
+
+export type { GoogleTokenData, CalendarEventDetails, GoogleCalendarEvent };

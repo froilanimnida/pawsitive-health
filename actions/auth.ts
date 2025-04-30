@@ -13,7 +13,7 @@ import { OtpVerificationEmail, ClinicOnboardingEmail, UserOnboardingEmail } from
 import { hashPassword, verifyPassword, prisma, generateOtp, generateVerificationToken, toTitleCase } from "@/lib";
 import { role_type, type users } from "@prisma/client";
 import { signOut } from "next-auth/react";
-import type { ActionResponse } from "@/types/server-action-response";
+import type { ActionResponse } from "@/types";
 import jwt from "jsonwebtoken";
 import { redirect } from "next/navigation";
 
@@ -218,7 +218,7 @@ const regenerateOTPToken = async (email: string): Promise<ActionResponse<{ user:
 
         if (!user) return { success: false, error: "User not found" };
 
-        const otpToken = generateOtp(user.email);
+        const otpToken = await generateOtp(user.email);
         const expiryTime = new Date(Date.now() + 5 * 60 * 1000);
 
         await prisma.users.update({
@@ -261,7 +261,7 @@ const loginAccount = async (values: LoginType): Promise<ActionResponse<{ data: o
         if (user.disabled) return { success: false, error: "User account is disabled" };
         if (user.email_verified === false) return { success: false, error: "Email not verified" };
 
-        const otp_token = generateOtp(user.email);
+        const otp_token = await generateOtp(user.email);
         const expiryTime = new Date(Date.now() + 5 * 60 * 1000);
 
         await prisma.users.update({
@@ -330,7 +330,7 @@ const changePassword = async (values: PasswordChangeType, userId: number): Promi
         if (!isPasswordValid) return { success: false, error: "Current password is incorrect" };
 
         // Generate OTP for verification
-        const otpToken = generateOtp(user.email);
+        const otpToken = await generateOtp(user.email);
         const expiryTime = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
 
         await prisma.users.update({

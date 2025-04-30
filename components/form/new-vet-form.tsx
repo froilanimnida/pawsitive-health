@@ -2,7 +2,6 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { VeterinarianSchema, VeterinarianType } from "@/schemas";
-import { useState } from "react";
 import {
     Form,
     Select,
@@ -23,12 +22,11 @@ import {
 } from "@/components/ui";
 import { veterinary_specialization } from "@prisma/client";
 import type { TextFormField } from "@/types/forms/text-form-field";
-import { toTitleCase } from "@/lib";
+import { createFormConfig, toTitleCase } from "@/lib";
 import { toast } from "sonner";
 import { newVeterinarian } from "@/actions";
 
 const NewVeterinaryForm = () => {
-    const [isLoading, setIsLoading] = useState(false);
     const newVetFields: TextFormField[] = [
         {
             label: "First Name",
@@ -87,47 +85,41 @@ const NewVeterinaryForm = () => {
             type: "text",
         },
     ];
-    const specializationOptions = Object.values(veterinary_specialization).map((specialization) => ({
-        label: toTitleCase(specialization),
-        value: specialization,
-    }));
-    const newVeterinaryForm = useForm({
-        resolver: zodResolver(VeterinarianSchema),
-        mode: "onBlur",
-        reValidateMode: "onChange",
-        progressive: true,
-        shouldFocusError: true,
-        defaultValues: {
-            first_name: "",
-            last_name: "",
-            email: "",
-            phone_number: "",
-            password: "",
-            confirm_password: "",
-            license_number: "",
-            specialization: "",
-        },
-    });
+
+    const newVeterinaryForm = useForm<VeterinarianType>(
+        createFormConfig({
+            resolver: zodResolver(VeterinarianSchema),
+            defaultValues: {
+                first_name: "",
+                last_name: "",
+                email: "",
+                phone_number: "",
+                password: "",
+                confirm_password: "",
+                license_number: "",
+                specialization: veterinary_specialization.general_practitioner,
+            },
+        }),
+    );
+    const {
+        handleSubmit,
+        control,
+        formState: { isSubmitting },
+    } = newVeterinaryForm;
 
     const onSubmit = async (values: VeterinarianType) => {
         toast.promise(newVeterinarian(values), {
             loading: "Creating a new veterinarian...",
-            success: () => {
-                setIsLoading(false);
-                return "Successfully created a new veterinarian";
-            },
-            error: () => {
-                setIsLoading(false);
-                return "Failed to create a new veterinarian";
-            },
+            success: "Successfully created a new veterinarian",
+            error: "Failed to create a new veterinarian",
         });
     };
     return (
         <Form {...newVeterinaryForm}>
-            <form onSubmit={newVeterinaryForm.handleSubmit(onSubmit)} className="space-y-8">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
                 {newVetFields.map((newVetField) => (
                     <FormField
-                        control={newVeterinaryForm.control}
+                        control={control}
                         key={newVetField.name}
                         name={
                             newVetField.name as
@@ -146,7 +138,7 @@ const NewVeterinaryForm = () => {
                                     <FormLabel>{newVetField.label}</FormLabel>
                                     <FormControl>
                                         <Input
-                                            disabled={isLoading}
+                                            disabled={isSubmitting}
                                             {...field}
                                             type={newVetField.type}
                                             required={newVetField.required}
@@ -169,7 +161,7 @@ const NewVeterinaryForm = () => {
                                 <FormLabel>Specialization</FormLabel>
                                 <FormControl>
                                     <Select
-                                        disabled={isLoading}
+                                        disabled={isSubmitting}
                                         defaultValue={field.value}
                                         onValueChange={(value) => {
                                             field.onChange(value);
@@ -181,9 +173,9 @@ const NewVeterinaryForm = () => {
                                         <SelectContent>
                                             <SelectGroup>
                                                 <SelectLabel>Specialization</SelectLabel>
-                                                {specializationOptions.map((option) => (
-                                                    <SelectItem key={option.value} value={option.value}>
-                                                        {option.label}
+                                                {Object.values(veterinary_specialization).map((option) => (
+                                                    <SelectItem key={option} value={option}>
+                                                        {toTitleCase(option)}
                                                     </SelectItem>
                                                 ))}
                                             </SelectGroup>
@@ -195,7 +187,7 @@ const NewVeterinaryForm = () => {
                         );
                     }}
                 />
-                <Button disabled={isLoading} type="submit">
+                <Button disabled={isSubmitting} type="submit">
                     Submit
                 </Button>
             </form>

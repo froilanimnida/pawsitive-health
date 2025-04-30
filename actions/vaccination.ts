@@ -1,7 +1,7 @@
 "use server";
 import { prisma } from "@/lib";
 import { type PetVaccinationType, PetVaccinationSchema } from "@/schemas";
-import { ActionResponse } from "@/types/server-action-response";
+import type { ActionResponse } from "@/types";
 import type { vaccinations } from "@prisma/client";
 import { getPet } from "./pets";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";

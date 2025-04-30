@@ -1,14 +1,14 @@
 "use server";
 import { VeterinarianSchema, VeterinarianType } from "@/schemas";
-import { generateVerificationToken, hashPassword } from "@/lib";
-import { prisma } from "@/lib";
+import { generateVerificationToken, hashPassword, prisma } from "@/lib";
 import { createNewPreferenceDefault } from "@/actions";
 import { role_type, type users, type veterinarians } from "@prisma/client";
 import { type veterinary_specialization } from "@prisma/client";
-import type { ActionResponse } from "@/types/server-action-response";
+import type { ActionResponse } from "@/types";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 
 const newVeterinarian = async (
     values: VeterinarianType,
@@ -88,6 +88,7 @@ const newVeterinarian = async (
         await Promise.all(availabilityPromises);
         await createNewPreferenceDefault(result.user_id);
 
+        revalidatePath("/clinic/veterinarians");
         return {
             success: true,
             data: {

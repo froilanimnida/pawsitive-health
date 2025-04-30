@@ -123,15 +123,15 @@ export function Navbar({ isAuthenticated = false, userRole, userName }: NavbarPr
                         ))}
 
                         {isAuthenticated ? (
-                            <Button variant="outline" onClick={handleSignOut} size="sm">
+                            <Button variant="outline" onClick={handleSignOut}>
                                 Sign Out
                             </Button>
                         ) : (
                             <>
-                                <Button variant="outline" size="sm" asChild>
+                                <Button variant="outline" asChild>
                                     <Link href="/signin">Login</Link>
                                 </Button>
-                                <Button size="sm" asChild>
+                                <Button asChild>
                                     <Link href="/signup">Sign Up</Link>
                                 </Button>
                             </>

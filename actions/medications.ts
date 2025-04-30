@@ -1,7 +1,7 @@
 "use server";
 import { prisma } from "@/lib";
 import { type MedicineType } from "@/schemas";
-import type { ActionResponse } from "@/types/server-action-response";
+import type { ActionResponse } from "@/types";
 import type { medications } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 

@@ -1,5 +1,5 @@
 import { prisma } from "@/lib";
-import { type ActionResponse } from "@/types/server-action-response";
+import { type ActionResponse } from "@/types";
 import { type clinic_hours } from "@prisma/client";
 
 const getClinicSchedule = async (clinic_id: string): Promise<ActionResponse<{ clinic_hours: clinic_hours[] }>> => {
