@@ -57,7 +57,7 @@ export default function PetCard({ pet }: PetCardProps) {
         setIsUploading(true);
         try {
             // Use the new comprehensive function that handles both upload and DB update
-            const result = await updatePetProfileImage(pet.pet_id, profileImage);
+            const result = await updatePetProfileImage(pet.pet_id, pet.pet_uuid, profileImage);
 
             if (result.success) {
                 toast.success("Pet profile picture updated successfully");
@@ -86,7 +86,7 @@ export default function PetCard({ pet }: PetCardProps) {
         setIsUploading(true);
         try {
             // Use null to indicate image removal
-            const result = await updatePetProfileImage(pet.pet_id, null);
+            const result = await updatePetProfileImage(pet.pet_id, pet.pet_uuid, null);
 
             if (result.success) {
                 toast.success("Profile picture removed");

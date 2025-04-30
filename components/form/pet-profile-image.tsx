@@ -20,10 +20,12 @@ import { updatePetProfileImage } from "@/lib/functions/upload/update-pet-profile
 function PetProfileImage({
     name,
     pet_id,
+    petUuid,
     profile_picture_url,
 }: {
     name: string;
     pet_id: number;
+    petUuid: string;
     profile_picture_url: string | null;
 }) {
     const [isHovering, setIsHovering] = useState(false);
@@ -52,7 +54,8 @@ function PetProfileImage({
         setIsUploading(true);
         try {
             // Use the new comprehensive function that handles both upload and DB update
-            const result = await updatePetProfileImage(pet_id, profileImage);
+            const result = await updatePetProfileImage(pet_id, petUuid, profileImage);
+            console.log(result);
 
             if (result.success) {
                 toast.success("Pet profile picture updated successfully");
@@ -77,7 +80,7 @@ function PetProfileImage({
         setIsUploading(true);
         try {
             // Use null to indicate image removal
-            const result = await updatePetProfileImage(pet_id, null);
+            const result = await updatePetProfileImage(pet_id, petUuid, null);
 
             if (result.success) {
                 toast.success("Profile picture removed");

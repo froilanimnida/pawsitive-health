@@ -14,19 +14,27 @@ import type { ActionResponse } from "@/types";
  */
 export async function updatePetProfileImage(
     petId: number,
+    petUuid: string,
     imageFile: File | null,
 ): Promise<ActionResponse<{ imageUrl?: string }>> {
     try {
         // Scenario 1: Remove existing image
         if (imageFile === null) {
             // Call the server action to update the pet with null values
-            const result = await updatePetProfileImageAction(petId, null, null);
-            return result;
+            const result = await updatePetProfileImageAction(petId, petUuid, null, null);
+            if (result === undefined) {
+                return {
+                    success: true,
+                    data: {
+                        imageUrl: undefined,
+                    },
+                };
+            }
         }
 
         // Scenario 2: Upload new image
         // First upload the file to R2 storage
-        const uploadResult = await uploadPetImage(imageFile);
+        const uploadResult = await uploadPetImage(imageFile as File);
 
         if (!uploadResult || !uploadResult.url || !uploadResult.key) {
             return {
@@ -36,14 +44,13 @@ export async function updatePetProfileImage(
         }
 
         // Then update the pet record in the database with the new image URL and key
-        const updateResult = await updatePetProfileImageAction(petId, uploadResult.key, uploadResult.url);
+        await updatePetProfileImageAction(petId, petUuid, uploadResult.key, uploadResult.url);
 
         // Return combined result with the image URL for client-side updates
         return {
-            success: updateResult.success,
-            error: updateResult.error,
+            success: true,
+            //error: updateResult != undefined ? updateResult.success === false ? updateResult.error : undefined : undefined,
             data: {
-                ...updateResult.data,
                 imageUrl: uploadResult.url,
             },
         };

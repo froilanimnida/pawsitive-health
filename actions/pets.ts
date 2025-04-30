@@ -313,12 +313,13 @@ const getPetId = async (pet_uuid: string): Promise<ActionResponse<{ pet_id: numb
  */
 const updatePetProfileImage = async (
     petId: number,
+    petUuid: string,
     imageKey: string | null,
     imageUrl: string | null,
-): Promise<ActionResponse> => {
+): Promise<ActionResponse | void> => {
     try {
         const session = await getServerSession(authOptions);
-        if (!session?.user?.id) return { success: false, error: "Unauthorized" };
+        if (!session?.user?.id) redirect("/signin");
 
         // First, check if this pet belongs to the authenticated user
         const pet = await prisma.pets.findFirst({
@@ -339,10 +340,11 @@ const updatePetProfileImage = async (
             data: {
                 profile_picture_url: imageUrl,
                 profile_picture_key: imageKey,
-                updated_at: new Date(),
+                updated_at: getCurrentUtcDate(),
             },
         });
-
+        revalidatePath(`/user/pets/${petUuid}`);
+        revalidatePath("/user/pets");
         return;
     } catch (error) {
         console.error("Error updating pet profile image:", error);

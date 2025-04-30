@@ -192,7 +192,7 @@ model pets {
     private               Boolean                 @default(false)
     deleted               Boolean?                @default(false)
     deleted_at            DateTime?               @db.Timestamptz(6)
-    profile_picture_url   String?                 @db.VarChar(255)
+    profile_picture_url   String?                 @db.VarChar(2048)
     profile_picture_key   String?                 @db.VarChar(255)
     appointments          appointments[]
     documents             documents[]

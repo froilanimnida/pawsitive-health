@@ -30,6 +30,7 @@ export const PetSchema = z.object({
         message: "Weight must be a positive number",
     }),
     profile_picture_url: z.string().optional(),
+    profile_picture_key: z.string().optional(),
 });
 
 export const UpdatePetSchema = z.object({

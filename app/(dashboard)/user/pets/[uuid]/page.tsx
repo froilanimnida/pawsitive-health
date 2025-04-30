@@ -119,7 +119,7 @@ const PetDetails = async ({ params }: UUIDPageParams) => {
                             <PetProfileImage
                                 pet_id={pet.pet_id}
                                 profile_picture_url={pet.profile_picture_url}
-                                weight_kg={pet.weight_kg}
+                                petUuid={pet_uuid}
                                 name={pet.name}
                             />
                         </div>
