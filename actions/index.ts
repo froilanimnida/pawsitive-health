@@ -72,3 +72,4 @@ export {
     markAllNotificationsAsRead,
     markNotificationAsRead,
 } from "./notification";
+export { getAllUsers, getUserDetails, adminResetPassword, toggleUserStatus, deleteUser } from "./admin";
