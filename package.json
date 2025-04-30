@@ -7,7 +7,15 @@
 		"build": "next build",
 		"start": "next start",
 		"lint": "next lint",
-		"postinstall": "prisma generate"
+		"postinstall": "prisma generate",
+        "format": "prettier --write .",
+        "format:check": "prettier --check .",
+        "test": "jest --passWithNoTests --detectOpenHandles --forceExit",
+        "test:watch": "jest --passWithNoTests --detectOpenHandles --watch",
+        "test:coverage": "jest --passWithNoTests --detectOpenHandles --coverage",
+        "test:coverage:watch": "jest --passWithNoTests --detectOpenHandles --coverage --watch",
+        "test:parallel": "jest --passWithNoTests --detectOpenHandles --maxWorkers=50%",
+        "test:ci": "jest --passWithNoTests --detectOpenHandles --runInBand"
 	},
 	"dependencies": {
 		"@aws-sdk/client-s3": "^3.782.0",
@@ -37,6 +45,7 @@
 		"cmdk": "^1.1.1",
 		"date-fns": "^3.6.0",
 		"input-otp": "^1.4.2",
+		"jest-mock-extended": "^4.0.0-beta1",
 		"jsonwebtoken": "^9.0.2",
 		"lodash": "^4.17.21",
 		"lucide-react": "^0.479.0",

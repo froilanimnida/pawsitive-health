@@ -70,7 +70,7 @@ const VALID_DATA = testUsers.validUser;
 describe("Authentication Actions", () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        process.env.EMAIL_VERIFICATION_SECRET = "test-secret";
+        process.env.EMAIL_SECRET = "test-secret";
         process.env.FRONTEND_URL = "http://localhost:3000";
         (jwt.verify as jest.Mock).mockClear();
     });
