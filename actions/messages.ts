@@ -4,14 +4,73 @@ import { ActionResponse } from "@/types";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { getUserId } from "@/actions";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import type { appointments, messages } from "@prisma/client";
+
+// Utility function to mark messages as read
+const markMessagesAsRead = async (appointmentId: number, receiverId: number): Promise<void> => {
+    await prisma.messages.updateMany({
+        where: {
+            appointment_id: appointmentId,
+            receiver_id: receiverId,
+            is_read: false,
+        },
+        data: {
+            is_read: true,
+            updated_at: new Date(),
+        },
+    });
+};
+
+const verifyAppointmentAccess = async (
+    appointmentId: number,
+    userId: number,
+): Promise<{
+    success: boolean;
+    appointment?: appointments;
+    error?: string;
+    isPetOwner?: boolean;
+    isVet?: boolean;
+}> => {
+    if (!appointmentId) {
+        return { success: false, error: "Appointment ID is required" };
+    }
+
+    const appointment = await prisma.appointments.findUnique({
+        where: { appointment_id: appointmentId },
+        include: {
+            pets: {
+                include: { users: true },
+            },
+            veterinarians: {
+                include: { users: true },
+            },
+        },
+    });
+
+    if (!appointment) {
+        return { success: false, error: "Appointment not found" };
+    }
+
+    // Check if the user is either the pet owner or the vet for this appointment
+    const isPetOwner = appointment.pets?.users?.user_id === userId;
+    const isVet = appointment.veterinarians?.users?.user_id === userId;
+
+    if (!isPetOwner && !isVet) {
+        return { success: false, error: "You don't have permission to access this appointment" };
+    }
+
+    return { success: true, appointment, isPetOwner, isVet };
+};
 
 /**
  * Sends a message in the context of an appointment
  */
-const sendMessage = async (text: string, appointment_id: number): Promise<ActionResponse> => {
+const sendMessage = async (text: string, appointment_id: number): Promise<ActionResponse<messages>> => {
+    const user = await auth();
+    if (!user || !user.user?.email) redirect("/signin");
     try {
-        const user = await auth();
-        if (!user || !user.user?.email) redirect("/auth/login");
         const user_data = await getUserId(user.user.email);
 
         if (!appointment_id) {
@@ -95,48 +154,24 @@ const sendMessage = async (text: string, appointment_id: number): Promise<Action
 /**
  * Gets all messages for a specific appointment
  */
-const getMessages = async (appointment_id: number): Promise<ActionResponse> => {
+
+/**
+ * Gets all messages for a specific appointment
+ */
+const getMessages = async (appointment_id: number): Promise<ActionResponse<{ messages: messages[] }>> => {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user?.email || !session.user.role) redirect("/signin");
+
     try {
-        const user = await auth();
-        if (!user || !user.user?.email) redirect("/auth/login");
+        const currentUserId = Number(session.user.id);
 
-        if (!appointment_id) {
+        // Verify user has access to this appointment
+        const accessCheck = await verifyAppointmentAccess(appointment_id, currentUserId);
+
+        if (!accessCheck.success) {
             return {
                 success: false,
-                error: "Appointment not found",
-            };
-        }
-
-        // Verify the user has access to this appointment
-        const userId = await getUserId(user.user.email);
-        const appointment = await prisma.appointments.findUnique({
-            where: { appointment_id },
-            include: {
-                pets: {
-                    include: { users: true },
-                },
-                veterinarians: {
-                    include: { users: true },
-                },
-            },
-        });
-
-        if (!appointment) {
-            return {
-                success: false,
-                error: "Appointment not found",
-            };
-        }
-
-        // Check if the user is either the pet owner or the vet for this appointment
-        const currentUserId = Number(userId);
-        const isPetOwner = appointment.pets?.users?.user_id === currentUserId;
-        const isVet = appointment.veterinarians?.users?.user_id === currentUserId;
-
-        if (!isPetOwner && !isVet) {
-            return {
-                success: false,
-                error: "You don't have permission to view these messages",
+                error: accessCheck.error || "You don't have permission to access this appointment",
             };
         }
 
@@ -167,18 +202,8 @@ const getMessages = async (appointment_id: number): Promise<ActionResponse> => {
             },
         });
 
-        // Mark unread messages as read if they were sent to the current user
-        await prisma.messages.updateMany({
-            where: {
-                appointment_id,
-                receiver_id: currentUserId,
-                is_read: false,
-            },
-            data: {
-                is_read: true,
-                updated_at: new Date(),
-            },
-        });
+        // Mark unread messages as read
+        await markMessagesAsRead(appointment_id, currentUserId);
 
         return {
             success: true,

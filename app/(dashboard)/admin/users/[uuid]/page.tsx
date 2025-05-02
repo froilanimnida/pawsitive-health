@@ -1,4 +1,3 @@
-import { getUserDetails } from "@/actions";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import UserDetailView from "@/components/admin/user-detail";

@@ -1,27 +1,23 @@
+import { getVeterinarians } from "@/actions";
 import { getClinic } from "@/actions/clinic";
-import {
-    Button,
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui";
+import { Button, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui";
 import type { UUIDPageParams } from "@/types";
-import { Building2, MapPin, Phone, Globe, Clock, Calendar, Users, ArrowLeft, Edit } from "lucide-react";
+import { Building2, MapPin, Phone, Globe, Clock, Users, ArrowLeft, Edit } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+
+export const metadata = {
+    title: "Pawsitive | Clinic Details",
+    description: "View detailed information about a specific clinic.",
+};
 
 const ClinicDetails = async ({ params }: UUIDPageParams) => {
     const { uuid } = await params;
     const clinicResult = await getClinic(uuid);
-
-    if (!clinicResult.success || !clinicResult.data) {
-        notFound();
-    }
-
-    const {clinic} = clinicResult.data;
+    if (!clinicResult.success || !clinicResult.data) notFound();
+    const veterinarianResult = await getVeterinarians(clinicResult.data.clinic.clinic_id);
+    const { clinic } = clinicResult.data;
+    const { veterinarians } = veterinarianResult.success ? veterinarianResult.data : { veterinarians: [] };
 
     return (
         <div className="p-6 space-y-6">
@@ -112,16 +108,16 @@ const ClinicDetails = async ({ params }: UUIDPageParams) => {
                                 <Users className="h-5 w-5 text-muted-foreground" />
                                 <span>Veterinarians</span>
                             </div>
-                            <span className="font-medium text-lg">{clinic.veterinarian_count || 0}</span>
+                            <span className="font-medium text-lg">{veterinarians.length || 0}</span>
                         </div>
 
-                        <div className="flex items-center justify-between">
+                        {/*<div className="flex items-center justify-between">
                             <div className="flex items-center space-x-2">
                                 <Calendar className="h-5 w-5 text-muted-foreground" />
                                 <span>Appointments</span>
                             </div>
                             <span className="font-medium text-lg">{clinic.appointment_count || 0}</span>
-                        </div>
+                        </div>*/}
 
                         <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-2">
@@ -150,16 +146,18 @@ const ClinicDetails = async ({ params }: UUIDPageParams) => {
                         <CardDescription>Veterinarians working at this clinic</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        {clinic.veterinarians && clinic.veterinarians.length > 0 ? (
+                        {veterinarians && veterinarians.length > 0 ? (
                             <ul className="space-y-2">
-                                {clinic.veterinarians.map((vet) => (
+                                {veterinarians.map((vet) => (
                                     <li
-                                        key={vet.id}
+                                        key={vet.uuid}
                                         className="flex items-center justify-between p-2 rounded-md hover:bg-muted"
                                     >
                                         <span>{vet.name}</span>
                                         <Button variant="ghost" size="sm" asChild>
-                                            <Link href={`/admin/veterinarians/${vet.id}`}>View Profile</Link>
+                                            <Link href={`/admin/clinics/${uuid}/veterinarian/${vet.uuid}`}>
+                                                View Profile
+                                            </Link>
                                         </Button>
                                     </li>
                                 ))}
@@ -171,36 +169,6 @@ const ClinicDetails = async ({ params }: UUIDPageParams) => {
                     <CardFooter>
                         <Button className="w-full" variant="outline" asChild>
                             <Link href={`/admin/clinics/${uuid}/veterinarians`}>Manage Veterinarians</Link>
-                        </Button>
-                    </CardFooter>
-                </Card>
-
-                {/* Services Section */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Services</CardTitle>
-                        <CardDescription>Services offered by this clinic</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        {clinic.services && clinic.services.length > 0 ? (
-                            <ul className="space-y-2">
-                                {clinic.services.map((service) => (
-                                    <li
-                                        key={service.id}
-                                        className="flex items-center justify-between p-2 rounded-md hover:bg-muted"
-                                    >
-                                        <span>{service.name}</span>
-                                        <span className="text-muted-foreground">{`$${service.price?.toFixed(2) || "Price varies"}`}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        ) : (
-                            <p className="text-muted-foreground">No services listed for this clinic yet.</p>
-                        )}
-                    </CardContent>
-                    <CardFooter>
-                        <Button className="w-full" variant="outline" asChild>
-                            <Link href={`/admin/clinics/${uuid}/services`}>Manage Services</Link>
                         </Button>
                     </CardFooter>
                 </Card>

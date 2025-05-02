@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button, Textarea } from "@/components/ui";
-import { PaperPlaneIcon } from "@radix-ui/react-icons";
+import { Send } from "lucide-react";
 import { cn } from "@/lib";
 
 interface MessageInputProps {
@@ -59,7 +59,7 @@ export function MessageInput({
                     !message.trim() || isDisabled ? "opacity-50" : "opacity-100",
                 )}
             >
-                <PaperPlaneIcon className="h-4 w-4" />
+                <Send className="h-4 w-4" />
                 <span className="sr-only">Send message</span>
             </Button>
         </div>

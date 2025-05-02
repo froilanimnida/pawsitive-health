@@ -17,9 +17,9 @@ import { revalidatePath } from "next/cache";
  * @returns {Promise<ActionResponse | void>} - An object indicating success or failure.
  */
 const createVaccination = async (values: PetVaccinationType): Promise<ActionResponse | void> => {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id || !session.user.role) redirect("/signin");
     try {
-        const session = await getServerSession(authOptions);
-        if (!session || !session.user || !session.user.id || !session.user.role) redirect("/signin");
         const data = PetVaccinationSchema.safeParse(values);
         if (!data.success) return { success: false, error: "Please check the form inputs" };
         const pet = await prisma.pets.findFirst({
@@ -80,6 +80,8 @@ async function getVaccination(param: { pet_id: number }): Promise<ActionResponse
 async function getVaccination(
     param: string | number | { appointment_id: number } | { pet_id: number },
 ): Promise<ActionResponse<{ vaccination: vaccinations } | { vaccinations: vaccinations[] }>> {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) redirect("/signin");
     try {
         // Case 1: Param is a string (vaccination_uuid)
         if (typeof param === "string") {
@@ -178,6 +180,8 @@ async function getVaccination(
  * @returns {Promise<ActionResponse<{ vaccinations: vaccinations[] }>>} - An object containing the vaccinations or an error message.
  */
 const getPetVaccinations = async (pet_uuid: string): Promise<ActionResponse<{ vaccinations: vaccinations[] }>> => {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) redirect("/signin");
     try {
         const pet = await getPet(pet_uuid);
         if (!pet || !pet.success || !pet.data?.pet) return { success: false, error: "Pet not found" };
@@ -205,9 +209,9 @@ const deleteVaccination = async (
     appointment_uuid: string,
     petUuid: string,
 ): Promise<ActionResponse | void> => {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) redirect("/signin");
     try {
-        const session = await getServerSession(authOptions);
-        if (!session || !session.user || !session.user.id) redirect("/signin");
         const vaccination = await prisma.vaccinations.findFirst({
             where: { vaccination_id: vaccination_id, appointment_id: appointment_id },
         });

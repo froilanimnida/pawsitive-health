@@ -15,11 +15,11 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 const getUserNotifications = async ({ page = 1, pageSize = 10, type, isRead }: NotificationFilters = {}): Promise<
     ActionResponse<NotificationsResult>
 > => {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) redirect("/signin");
     try {
-        const user = await getServerSession(authOptions);
-        if (!user || !user.user?.id) redirect("/signin");
         const whereCondition = {
-            user_id: Number(user.user.id),
+            user_id: Number(session.user.id),
             ...(type !== undefined ? { type } : {}),
             ...(isRead !== undefined ? { is_read: isRead } : {}),
         };
@@ -75,9 +75,9 @@ const getUserNotifications = async ({ page = 1, pageSize = 10, type, isRead }: N
 };
 
 const markNotificationAsRead = async (notificationUuid: string): Promise<ActionResponse<boolean>> => {
+    const user = await getServerSession(authOptions);
+    if (!user || user.user?.id === undefined) redirect("/signin");
     try {
-        const user = await getServerSession(authOptions);
-        if (!user || user.user?.id === undefined) redirect("/signin");
         const notification = await prisma.notifications.findFirst({
             where: { notification_uuid: notificationUuid, user_id: Number(user.user?.id) },
         });
@@ -94,20 +94,19 @@ const markNotificationAsRead = async (notificationUuid: string): Promise<ActionR
         });
 
         return { success: true, data: true };
-        return { success: true, data: true };
     } catch (error) {
         return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
     }
 };
 
 const getUserNotification = async (notificationUuid: string): Promise<ActionResponse<NotificationWithRelations>> => {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) redirect("/signin");
     try {
-        const user = await getServerSession(authOptions);
-        if (!user || user.user?.id === undefined) redirect("/signin");
         const notification = await prisma.notifications.findFirst({
             where: {
                 notification_uuid: notificationUuid,
-                user_id: Number(user.user?.id),
+                user_id: Number(session.user?.id),
             },
             include: {
                 pets: true,
@@ -174,10 +173,9 @@ const createNotification = async ({
  * Mark all notifications as read for a user
  */
 const markAllNotificationsAsRead = async (): Promise<ActionResponse<boolean>> => {
+    const user = await getServerSession(authOptions);
+    if (!user || user.user?.id === undefined) redirect("/signin");
     try {
-        const user = await getServerSession(authOptions);
-        if (!user || user.user?.id === undefined) redirect("/signin");
-
         await prisma.notifications.updateMany({
             where: {
                 user_id: Number(user.user?.id),
@@ -199,9 +197,9 @@ const markAllNotificationsAsRead = async (): Promise<ActionResponse<boolean>> =>
  * Delete notification(s)
  */
 const deleteNotification = async (notificationUuid: string): Promise<ActionResponse<boolean>> => {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user?.id) redirect("/signin");
     try {
-        const session = await getServerSession(authOptions);
-        if (!session || !session.user?.id) redirect("/signin");
         const notification = await prisma.notifications.findFirst({
             where: {
                 notification_uuid: notificationUuid,

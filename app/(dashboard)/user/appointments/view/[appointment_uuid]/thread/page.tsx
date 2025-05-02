@@ -46,14 +46,14 @@ export default function UserAppointmentThread() {
                 // First get the appointment ID from the UUID
                 const response = await fetch(`/api/appointments/${uuid}`);
                 const appointmentData = await response.json();
-                
+
                 if (appointmentData?.appointment_id) {
                     setAppointmentId(appointmentData.appointment_id);
-                    
+
                     // Then fetch messages for this appointment
                     const messagesResponse = await getMessages(appointmentData.appointment_id);
                     if (messagesResponse.success && messagesResponse.data) {
-                        const formattedMessages = messagesResponse.data.map((msg: any) => ({
+                        const formattedMessages = messagesResponse.data.map((msg) => ({
                             ...msg,
                             role: msg.sender_id === appointmentData.user_id ? "user" : "vet"
                         }));
@@ -80,10 +80,10 @@ export default function UserAppointmentThread() {
             role: "user" as const,
             created_at: new Date()
         };
-        
+
         setMessages([...messages, newMessage]);
         setInput("");
-        
+
         // Actually send the message
         try {
             await sendMessage(input, appointmentId);

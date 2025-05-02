@@ -15,7 +15,6 @@ import { role_type, type users } from "@prisma/client";
 import { signOut } from "next-auth/react";
 import type { ActionResponse } from "@/types";
 import jwt from "jsonwebtoken";
-import { redirect } from "next/navigation";
 
 const isEmailTaken = async (email: string): Promise<boolean> => {
     const user = await prisma.users.findFirst({
@@ -68,7 +67,7 @@ const createAccount = async (values: SignUpType): Promise<ActionResponse | void>
             },
         );
         await createNewPreferenceDefault(result.user_id);
-        redirect("/signin");
+        return;
     } catch (error) {
         return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
     }

@@ -9,12 +9,11 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 
 const addPet = async (values: PetOnboardingSchema): Promise<ActionResponse | void> => {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) redirect("/signin");
     try {
-        const session = await getServerSession(authOptions);
         const newPetData = OnboardingPetSchema.safeParse(values);
         if (!newPetData.success) return { success: false, error: "Please check the form inputs" };
-
-        if (!session || !session.user || !session.user.id) redirect("/signin");
 
         const pet = await prisma.pets.create({
             data: {
@@ -76,6 +75,8 @@ function getPet(pet_id: number): Promise<ActionResponse<{ pet: Pets }>>;
  * Implementation that handles both overloads
  */
 async function getPet(identifier: string | number): Promise<ActionResponse<{ pet: Pets }>> {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) redirect("/signin");
     try {
         const where = typeof identifier === "string" ? { pet_uuid: identifier } : { pet_id: identifier };
 
@@ -231,9 +232,9 @@ const updatePet = async (values: UpdatePetType): Promise<ActionResponse | void> 
 };
 
 const getPets = async (): Promise<ActionResponse<{ pets: Pets[] }>> => {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) redirect("/signin");
     try {
-        const session = await getServerSession(authOptions);
-        if (!session || !session.user || !session.user.id) redirect("/signin");
         const petsData = await prisma.pets.findMany({
             where: {
                 user_id: Number(session.user.id),
@@ -317,11 +318,9 @@ const updatePetProfileImage = async (
     imageKey: string | null,
     imageUrl: string | null,
 ): Promise<ActionResponse | void> => {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) redirect("/signin");
     try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.id) redirect("/signin");
-
-        // First, check if this pet belongs to the authenticated user
         const pet = await prisma.pets.findFirst({
             where: {
                 pet_id: petId,

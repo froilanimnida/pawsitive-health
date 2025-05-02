@@ -13,7 +13,7 @@ export {
     changePassword,
     confirmPasswordChange,
 } from "./auth";
-export { newVeterinarian, getClinicVeterinarians, getVeterinariansByClinic } from "./veterinary";
+export { newVeterinarian, getVeterinarian, getVeterinarians } from "./veterinary";
 export {
     getExistingAppointments,
     getUserAppointments,
@@ -28,7 +28,7 @@ export {
     getAppointmentHistoricalData,
     getAppointmentRecordedServices,
 } from "./appointment";
-export { getUserId, updateCalendarIntegration, updateUserProfile } from "./user";
+export { getUserId, updateCalendarIntegration, updateUserProfile, getUser } from "./user";
 export { getVeterinaryAvailability } from "./veterinarian-availability";
 export { createVaccination, getPetVaccinations, deleteVaccination, getVaccination } from "./vaccination";
 export { addHealthMonitoringRecord, getPetHealthMonitoring, deleteHealthMonitoringRecord } from "./health-monitoring";
@@ -72,3 +72,4 @@ export {
     markNotificationAsRead,
 } from "./notification";
 export { getAllUsers, getUserDetails, adminResetPassword, toggleUserStatus, deleteUser } from "./admin";
+export { getMessages, sendMessage } from "./messages";

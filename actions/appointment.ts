@@ -84,10 +84,9 @@ async function getExistingAppointments(
 }
 
 const getUserAppointments = async (): Promise<ActionResponse<{ appointments: GetUserAppointmentsResponse[] }>> => {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) redirect("/signin");
     try {
-        const session = await getServerSession(authOptions);
-        if (!session || !session.user || !session.user.id) redirect("/signin");
-
         const appointments = await prisma.appointments.findMany({
             where: {
                 pets: {
@@ -135,10 +134,9 @@ const getUserAppointments = async (): Promise<ActionResponse<{ appointments: Get
 };
 
 const createUserAppointment = async (values: AppointmentType): Promise<ActionResponse | void> => {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id || !session.user.email) redirect("/signin");
     try {
-        const session = await getServerSession(authOptions);
-        if (!session || !session.user || !session.user.id || !session.user.email) redirect("/signin");
-
         const petResponse = await getPet(values.pet_uuid);
         if (!petResponse.success || !petResponse.data || !petResponse.data.pet)
             return { success: false, error: "Pet not found" };
@@ -228,10 +226,9 @@ const createUserAppointment = async (values: AppointmentType): Promise<ActionRes
 };
 
 const getClinicAppointments = async (): Promise<ActionResponse<{ appointments: AppointmentWithRelations[] }>> => {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) redirect("/signin");
     try {
-        const session = await getServerSession(authOptions);
-        if (!session || !session.user || !session.user.id) redirect("/signin");
-
         const clinic = await prisma.clinics.findFirst({
             where: { user_id: Number(session.user.id) },
         });
@@ -265,9 +262,9 @@ const getVeterinarianAppointments = async (): Promise<
         appointments: GetVeterinarianAppointmentsType[];
     }>
 > => {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) redirect("/signin");
     try {
-        const session = await getServerSession(authOptions);
-        if (!session || !session.user || !session.user.id) redirect("/signin");
         const veterinarian = await prisma.veterinarians.findFirst({
             where: { user_id: Number(session.user.id) },
         });
@@ -296,9 +293,9 @@ const getAppointment = async (
     appointment_uuid: string,
     is_user: boolean = false,
 ): Promise<ActionResponse<{ appointment: AppointmentDetailsResponse }>> => {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) redirect("/signin");
     try {
-        const session = await getServerSession(authOptions);
-        if (!session || !session.user || !session.user.id) redirect("/signin");
         const appointment = await prisma.appointments.findFirst({
             where: {
                 appointment_uuid: appointment_uuid,
@@ -361,9 +358,9 @@ const getAppointment = async (
 };
 
 const cancelAppointment = async (appointment_uuid: string): Promise<ActionResponse | void> => {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) redirect("/signin");
     try {
-        const session = await getServerSession(authOptions);
-        if (!session || !session.user || !session.user.id) redirect("/signin");
         const appointment = await prisma.appointments.update({
             where: { appointment_uuid: appointment_uuid },
             data: { status: "cancelled" },
@@ -407,10 +404,9 @@ const cancelAppointment = async (appointment_uuid: string): Promise<ActionRespon
 };
 
 const confirmAppointment = async (appointment_uuid: string): Promise<ActionResponse | void> => {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) redirect("/signin");
     try {
-        const session = await getServerSession(authOptions);
-        if (!session || !session.user || !session.user.id) redirect("/signin");
-
         const appointment = await prisma.appointments.update({
             where: {
                 appointment_uuid: appointment_uuid,
@@ -519,10 +515,9 @@ const rescheduleAppointment = async (
     new_date: Date,
     notes?: string,
 ): Promise<ActionResponse | void> => {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) redirect("/signin");
     try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.id) redirect("/signin");
-
         // Get the current appointment to check who's allowed to reschedule it
         const currentAppointment = await prisma.appointments.findUnique({
             where: { appointment_uuid },
@@ -642,10 +637,9 @@ const getAppointmentHistoricalData = async (
         medicalRecords: medical_records[];
     }>
 > => {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) redirect("/signin");
     try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.id) redirect("/signin");
-
         // First get the appointment to verify access and get pet_id
         const appointment = await prisma.appointments.findUnique({
             where: { appointment_uuid },
@@ -726,10 +720,9 @@ const getAppointmentRecordedServices = async (
         petUuid: string;
     }>
 > => {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) redirect("/signin");
     try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.id) redirect("/signin");
-
         // Find the appointment first
         const appointment = await prisma.appointments.findUnique({
             where: { appointment_uuid },

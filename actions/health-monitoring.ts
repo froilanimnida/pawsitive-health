@@ -15,10 +15,9 @@ import { formatDecimal } from "@/lib";
 export async function addHealthMonitoringRecord(
     values: HealthMonitoringType,
 ): Promise<ActionResponse<{ monitoring_id: number }> | void> {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) redirect("/signin");
     try {
-        const session = await getServerSession(authOptions);
-        if (!session || !session.user || !session.user.id) redirect("/signin");
-
         const data = HealthMonitoringSchema.safeParse(values);
         if (!data.success) return { success: false, error: "Please check the form inputs" };
 
@@ -59,10 +58,9 @@ export async function addHealthMonitoringRecord(
 export async function getPetHealthMonitoring(
     petId: number,
 ): Promise<ActionResponse<{ healthMonitoring: HealthMonitoring[] }>> {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) redirect("/signin");
     try {
-        const session = await getServerSession(authOptions);
-        if (!session || !session.user || !session.user.id) redirect("/signin");
-
         const healthMonitoring = await prisma.health_monitoring.findMany({
             where: {
                 pet_id: petId,
@@ -97,10 +95,9 @@ export async function deleteHealthMonitoringRecord(
     monitoringId: number,
     petUuid: string,
 ): Promise<ActionResponse<boolean> | void> {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) redirect("/signin");
     try {
-        const session = await getServerSession(authOptions);
-        if (!session || !session.user || !session.user.id) redirect("/signin");
-
         const healthMonitoring = await prisma.health_monitoring.findFirst({
             where: {
                 monitoring_id: monitoringId,

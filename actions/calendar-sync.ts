@@ -11,10 +11,9 @@ import { redirect } from "next/navigation";
  * Add an appointment to Google Calendar if the user has calendar sync enabled
  */
 export async function addToGoogleCalendar(appointment_uuid: string): Promise<void> {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) redirect("/signin");
     try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.id) redirect("/signin");
-
         // Get the appointment details
         const appointment = await prisma.appointments.findUnique({
             where: { appointment_uuid },
@@ -217,10 +216,9 @@ export async function synchronizeAllAppointments(): Promise<{
     skipped: number;
     error?: string;
 }> {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) redirect("/signin");
     try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.id) redirect("/signin");
-
         // Get the user ID
         const userResult = await prisma.users.findUnique({
             where: { user_id: Number(session.user.id) },

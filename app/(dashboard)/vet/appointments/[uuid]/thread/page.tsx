@@ -3,8 +3,7 @@
 import * as React from "react";
 import { Send } from "lucide-react";
 import { useParams } from "next/navigation";
-
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib";
 import {
     Card,
     CardContent,
@@ -16,7 +15,7 @@ import {
     Button,
     Input,
 } from "@/components/ui";
-import { getMessages, sendMessage } from "@/actions/messages";
+import { getMessages, sendMessage } from "@/actions";
 
 interface Message {
     message_id?: number;
@@ -53,7 +52,7 @@ export default function VeterinaryAppointmentThread() {
                     // Then fetch messages for this appointment
                     const messagesResponse = await getMessages(appointmentData.appointment_id);
                     if (messagesResponse.success && messagesResponse.data) {
-                        const formattedMessages = messagesResponse.data.map((msg: any) => ({
+                        const formattedMessages = messagesResponse.data.messages.map((msg) => ({
                             ...msg,
                             role: msg.sender_id === appointmentData.veterinarian_id ? "vet" : "user",
                         }));

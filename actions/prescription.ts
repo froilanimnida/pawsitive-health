@@ -12,10 +12,9 @@ import { createMedicationEvents } from "@/lib/calendar-utils";
 import { createCalendarEvent } from "@/lib/google/calendar";
 
 const addPrescription = async (values: PrescriptionType): Promise<ActionResponse | void> => {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) redirect("/signin");
     try {
-        const session = await getServerSession(authOptions);
-        if (!session || !session.user || !session.user.id) redirect("/signin");
-
         // Validate the prescription data first
         const formData = PrescriptionDefinition.safeParse(values);
         if (!formData.success) {
@@ -212,10 +211,9 @@ const addPrescription = async (values: PrescriptionType): Promise<ActionResponse
 const viewPrescription = async (
     prescription_uuid: string,
 ): Promise<ActionResponse<{ prescription: prescriptions }>> => {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) redirect("/signin");
     try {
-        const session = await getServerSession(authOptions);
-        if (!session || !session.user || !session.user.id) redirect("/signin");
-
         // Get prescription with time slots
         const prescription = await prisma.prescriptions.findUnique({
             where: {
@@ -250,10 +248,9 @@ const viewPrescription = async (
  * Delete a prescription by ID
  */
 const deletePrescription = async (prescription_id: number, apppointment_uuid: string) => {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) redirect("/signin");
     try {
-        const session = await getServerSession(authOptions);
-        if (!session || !session.user || !session.user.id) redirect("/signin");
-
         // Delete prescription (time slots will be automatically deleted due to CASCADE relationship)
         const result = await prisma.prescriptions.delete({
             where: {

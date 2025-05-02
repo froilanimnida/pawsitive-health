@@ -10,9 +10,9 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 const addHealthcareProcedure = async (values: ProcedureType | ProcedureType[]): Promise<ActionResponse | void> => {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id || !session.user.role) redirect("/signin");
     try {
-        const session = await getServerSession(authOptions);
-        if (!session || !session.user || !session.user.id || !session.user.role) redirect("/signin");
         const proceduresArray = Array.isArray(values) ? values : [values];
         let veterinarian_id = undefined;
 
@@ -110,9 +110,9 @@ const deleteHealthcareProcedure = async (
     appointment_uuid: string,
     petUuid: string,
 ): Promise<ActionResponse | void> => {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) redirect("/signin");
     try {
-        const session = await getServerSession(authOptions);
-        if (!session || !session.user || !session.user.id) redirect("/signin");
         const procedure = await prisma.healthcare_procedures.delete({
             where: {
                 procedure_id: procedure_id,
