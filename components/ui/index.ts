@@ -128,3 +128,4 @@ export {
     PaginationNext,
     PaginationPrevious,
 } from "./pagination";
+export { ScrollArea, ScrollBar } from "./scroll-area";

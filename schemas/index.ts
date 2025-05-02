@@ -33,3 +33,6 @@ export {
     BaseUserProfileSchema,
     type BaseUserProfileType,
 } from "./base-schema";
+
+// Message schemas
+export * from "./message-definition";

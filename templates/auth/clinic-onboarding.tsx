@@ -1,20 +1,18 @@
 import { Html, Head, Body, Container, Section, Heading, Text, Button, Hr } from "@react-email/components";
 
-export interface ClinicOnboardingEmailProps {
-    firstName: string;
-    lastName: string;
-    clinicName: string;
-    verificationUrl: string;
-    expiresIn: string;
-}
-
 export default function ClinicOnboardingEmail({
     firstName,
     lastName,
     clinicName,
     verificationUrl,
     expiresIn,
-}: ClinicOnboardingEmailProps) {
+}: {
+    firstName: string;
+    lastName: string;
+    clinicName: string;
+    verificationUrl: string;
+    expiresIn: string;
+}) {
     return (
         <Html>
             <Head />

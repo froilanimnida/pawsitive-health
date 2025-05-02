@@ -28,9 +28,9 @@ interface Message {
     sender_name?: string;
 }
 
-export default function VeterinaryAppointmentThread() {
+export default function UserAppointmentThread() {
     const params = useParams();
-    const uuid = params.uuid as string;
+    const uuid = params.appointment_uuid as string;
 
     const [messages, setMessages] = React.useState<Message[]>([]);
     const [loading, setLoading] = React.useState(true);
@@ -46,16 +46,16 @@ export default function VeterinaryAppointmentThread() {
                 // First get the appointment ID from the UUID
                 const response = await fetch(`/api/appointments/${uuid}`);
                 const appointmentData = await response.json();
-
+                
                 if (appointmentData?.appointment_id) {
                     setAppointmentId(appointmentData.appointment_id);
-
+                    
                     // Then fetch messages for this appointment
                     const messagesResponse = await getMessages(appointmentData.appointment_id);
                     if (messagesResponse.success && messagesResponse.data) {
                         const formattedMessages = messagesResponse.data.map((msg: any) => ({
                             ...msg,
-                            role: msg.sender_id === appointmentData.veterinarian_id ? "vet" : "user",
+                            role: msg.sender_id === appointmentData.user_id ? "user" : "vet"
                         }));
                         setMessages(formattedMessages);
                     }
@@ -77,13 +77,13 @@ export default function VeterinaryAppointmentThread() {
         // Optimistically update UI
         const newMessage = {
             content: input,
-            role: "vet" as const,
-            created_at: new Date(),
+            role: "user" as const,
+            created_at: new Date()
         };
-
+        
         setMessages([...messages, newMessage]);
         setInput("");
-
+        
         // Actually send the message
         try {
             await sendMessage(input, appointmentId);
@@ -107,30 +107,26 @@ export default function VeterinaryAppointmentThread() {
                 <CardHeader className="flex flex-row items-center">
                     <div className="flex items-center space-x-4">
                         <Avatar>
-                            <AvatarImage src="/avatars/01.png" alt="Pet owner" />
-                            <AvatarFallback>PO</AvatarFallback>
+                            <AvatarImage src="/avatars/vet.png" alt="Veterinarian" />
+                            <AvatarFallback>VET</AvatarFallback>
                         </Avatar>
                         <div>
                             <p className="text-sm font-medium leading-none">Appointment Chat</p>
-                            <p className="text-sm text-muted-foreground">Messaging with pet owner</p>
+                            <p className="text-sm text-muted-foreground">Messaging with veterinarian</p>
                         </div>
                     </div>
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-4">
                         {messages.length === 0 ? (
-                            <p className="text-center text-muted-foreground py-8">
-                                No messages yet. Start the conversation!
-                            </p>
+                            <p className="text-center text-muted-foreground py-8">No messages yet. Start the conversation!</p>
                         ) : (
                             messages.map((message, index) => (
                                 <div
                                     key={index}
                                     className={cn(
                                         "flex w-max max-w-[75%] flex-col gap-2 rounded-lg px-3 py-2 text-sm",
-                                        message.role === "vet"
-                                            ? "ml-auto bg-primary text-primary-foreground"
-                                            : "bg-muted",
+                                        message.role === "user" ? "ml-auto bg-primary text-primary-foreground" : "bg-muted",
                                     )}
                                 >
                                     {message.content}
@@ -140,7 +136,10 @@ export default function VeterinaryAppointmentThread() {
                     </div>
                 </CardContent>
                 <CardFooter>
-                    <form onSubmit={handleSendMessage} className="flex w-full items-center space-x-2">
+                    <form
+                        onSubmit={handleSendMessage}
+                        className="flex w-full items-center space-x-2"
+                    >
                         <Input
                             id="message"
                             placeholder="Type your message..."

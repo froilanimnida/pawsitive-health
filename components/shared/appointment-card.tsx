@@ -169,7 +169,7 @@ export function AppointmentCard({
                 </div>
             </CardContent>
             <CardFooter className="flex items-center justify-between pt-0">
-                {showAdditionalAction && (
+                {showAdditionalAction && appointment.status !== "completed" && (
                     <aside className="flex items-center justify-between">
                         <div className="flex gap-2">
                             {appointment.status !== "cancelled" && (
@@ -235,21 +235,19 @@ export function AppointmentCard({
                                     size="md"
                                 />
                             )}
-                            {appointment.status !== "cancelled" &&
-                                appointment.status !== "completed" &&
-                                appointment.status !== "checked_in" && (
-                                    <RescheduleAppointmentDialog
-                                        appointmentUuid={appointment.appointment_uuid}
-                                        vetId={appointment.veterinarians?.vet_id || 0}
-                                        currentDate={appointmentDate}
-                                        currentNotes={appointment.notes || ""}
-                                    >
-                                        <Button variant="outline">
-                                            <Calendar className="mr-2 h-4 w-4" />
-                                            Reschedule
-                                        </Button>
-                                    </RescheduleAppointmentDialog>
-                                )}
+                            {appointment.status !== "cancelled" && appointment.status !== "checked_in" && (
+                                <RescheduleAppointmentDialog
+                                    appointmentUuid={appointment.appointment_uuid}
+                                    vetId={appointment.veterinarians?.vet_id || 0}
+                                    currentDate={appointmentDate}
+                                    currentNotes={appointment.notes || ""}
+                                >
+                                    <Button variant="outline">
+                                        <Calendar className="mr-2 h-4 w-4" />
+                                        Reschedule
+                                    </Button>
+                                </RescheduleAppointmentDialog>
+                            )}
                         </div>
 
                         {additionalActions && <div className="flex gap-2">{additionalActions}</div>}

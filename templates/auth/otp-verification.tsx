@@ -1,13 +1,16 @@
 import { Html, Head, Body, Container, Section, Heading, Text, Hr } from "@react-email/components";
 
-export interface OtpEmailProps {
+export default function OtpVerificationEmail({
+    firstName,
+    lastName,
+    otpCode,
+    expiresIn,
+}: {
     firstName: string;
     lastName: string;
     otpCode: string;
     expiresIn: string;
-}
-
-export default function OtpVerificationEmail({ firstName, lastName, otpCode, expiresIn }: OtpEmailProps) {
+}) {
     return (
         <Html>
             <Head />
@@ -16,13 +19,13 @@ export default function OtpVerificationEmail({ firstName, lastName, otpCode, exp
                     <Heading style={styles.header}>PawsitiveHealth</Heading>
 
                     <Section style={styles.section}>
-                        <Heading as="h2">Verify Your Login</Heading>
+                        <Heading as="h2">One Time PIN</Heading>
                         <Text>
                             Hello {firstName} {lastName},
                         </Text>
                         <Text>
-                            We&apos;ve received a request to log in to your PawsitiveHealth account. To complete the
-                            login process, please enter the following verification code:
+                            We&apos;ve received a request for a one-time PIN (OTP) to verify your identity. Please use
+                            the code below to complete your process.
                         </Text>
 
                         <Section style={styles.codeSection}>
@@ -35,8 +38,8 @@ export default function OtpVerificationEmail({ firstName, lastName, otpCode, exp
                         <Section style={styles.securitySection}>
                             <Text style={styles.securityHeading}>Security Notice</Text>
                             <Text>
-                                If you did not attempt to log in to your PawsitiveHealth account, please ignore this
-                                email and consider changing your password immediately.
+                                If you did not request this OTP from PawsitiveHealth, please ignore this email and
+                                consider changing your password immediately to secure your account.
                             </Text>
                         </Section>
                     </Section>

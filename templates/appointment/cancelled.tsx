@@ -1,18 +1,5 @@
 import { Html, Head, Body, Container, Section, Heading, Text, Button, Hr } from "@react-email/components";
 
-export interface AppointmentCancelledEmailProps {
-    petName: string;
-    ownerName: string;
-    vetName: string;
-    date: string;
-    time: string;
-    clinicName: string;
-    clinicPhone: string;
-    appointmentType: string;
-    appointmentId: string;
-    cancellationReason?: string;
-}
-
 export default function AppointmentCancelled({
     petName,
     ownerName,
@@ -24,7 +11,18 @@ export default function AppointmentCancelled({
     appointmentType,
     appointmentId,
     cancellationReason,
-}: AppointmentCancelledEmailProps) {
+}: {
+    petName: string;
+    ownerName: string;
+    vetName: string;
+    date: string;
+    time: string;
+    clinicName: string;
+    clinicPhone: string;
+    appointmentType: string;
+    appointmentId: string;
+    cancellationReason?: string;
+}) {
     return (
         <Html>
             <Head />

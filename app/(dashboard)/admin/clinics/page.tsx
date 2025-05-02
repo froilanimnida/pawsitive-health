@@ -2,59 +2,102 @@ import { Suspense } from "react";
 import { getClinics } from "@/actions";
 import {
     SkeletonCard,
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-    CardFooter,
     Button,
+    Table,
+    TableBody,
+    TableCaption,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
 } from "@/components/ui";
 import Link from "next/link";
+import { MapPin, Phone, Building2, Eye, Plus } from "lucide-react";
 
-const ClinicCardList = async () => {
+const ClinicTable = async () => {
     const clinics = await getClinics();
     const clinicsData = clinics.success ? (clinics.data?.clinics ?? []) : [];
+
     if (!clinicsData || clinicsData.length === 0) {
         return (
             <div className="text-center py-10">
                 <h3 className="text-lg font-medium">No clinics found</h3>
                 <p className="text-muted-foreground">Add your first clinic to get started</p>
+                <Button className="mt-4" asChild>
+                    <Link href="/admin/clinics/add">
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Clinic
+                    </Link>
+                </Button>
             </div>
         );
     }
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-3 w-full lg:grid-cols-4 gap-4">
-            {clinicsData.map((clinic) => (
-                <Card key={clinic.clinic_uuid}>
-                    <CardHeader>
-                        <CardTitle>{clinic.name}</CardTitle>
-                        <CardDescription>{clinic.city}</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <p>Address: {clinic.address}</p>
-                        <p>Contact: {clinic.phone_number}</p>
-                    </CardContent>
-                    <CardFooter>
-                        <Button asChild>
-                            <Link href={`/admin/clinics/${clinic.clinic_uuid}`}>View</Link>
-                        </Button>
-                    </CardFooter>
-                </Card>
-            ))}
+        <div className="rounded-md border">
+            <Table>
+                <TableCaption>A list of all registered veterinary clinics</TableCaption>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead className="w-[250px]">Name</TableHead>
+                        <TableHead>City</TableHead>
+                        <TableHead>Address</TableHead>
+                        <TableHead>Phone Number</TableHead>
+                        <TableHead>Actions</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {clinicsData.map((clinic) => (
+                        <TableRow key={clinic.clinic_uuid}>
+                            <TableCell className="font-medium">
+                                <div className="flex items-center">
+                                    <Building2 className="h-4 w-4 mr-2 text-muted-foreground" />
+                                    {clinic.name}
+                                </div>
+                            </TableCell>
+                            <TableCell>{clinic.city}</TableCell>
+                            <TableCell>
+                                <div className="flex items-center">
+                                    <MapPin className="h-4 w-4 mr-1 text-muted-foreground" />
+                                    {clinic.address}
+                                </div>
+                            </TableCell>
+                            <TableCell>
+                                <div className="flex items-center">
+                                    <Phone className="h-4 w-4 mr-1 text-muted-foreground" />
+                                    {clinic.phone_number}
+                                </div>
+                            </TableCell>
+                            <TableCell>
+                                <Button variant="outline" asChild>
+                                    <Link href={`/admin/clinics/${clinic.clinic_uuid}`}>
+                                        <Eye className="h-4 w-4 mr-1" />
+                                        View Details
+                                    </Link>
+                                </Button>
+                            </TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
         </div>
     );
 };
 
 const Clinics = () => {
     return (
-        <section className="p-4 w-full">
+        <section className="p-6 w-full">
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold">Medicines</h1>
+                <h1 className="text-2xl font-bold">Veterinary Clinics</h1>
+                <Button asChild>
+                    <Link href="/admin/clinics/add">
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add New Clinic
+                    </Link>
+                </Button>
             </div>
             <Suspense fallback={<SkeletonCard />}>
-                <ClinicCardList />
+                <ClinicTable />
             </Suspense>
         </section>
     );

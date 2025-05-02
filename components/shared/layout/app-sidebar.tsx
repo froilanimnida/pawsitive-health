@@ -61,11 +61,6 @@ const adminNavLinks = [
         icon: BookmarkCheckIcon,
     },
     {
-        name: "Veterinaries",
-        url: "/admin/vets",
-        icon: Stethoscope,
-    },
-    {
         name: "Clinics",
         url: "/admin/clinics",
         icon: Building,
