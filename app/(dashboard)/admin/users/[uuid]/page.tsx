@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import UserDetailView from "@/components/admin/user-detail";
 import { Skeleton, Card, CardContent, CardHeader } from "@/components/ui";
+import type { UUIDPageParams } from "@/types";
+import { getPets, getUser, petsCount } from "@/actions";
 
 export const metadata = {
     title: "PawsitiveHealth | User Details",
@@ -50,17 +52,20 @@ function UserDetailSkeleton() {
     );
 }
 
-export default async function AdminUserPage({ params }: { params: { id: string } }) {
-    const userId = parseInt(params.id, 10);
+export default async function AdminUserPage({ params }: UUIDPageParams) {
+    const { uuid } = await params;
+    const user = await getUser(uuid);
+    if (!user.success) notFound();
+    const petCount = await petsCount(user.data.user.user_id);
+    const getPetsResponse = await getPets(user.data.user.user_id);
+    const pets = getPetsResponse.success && getPetsResponse.data.pets ? getPetsResponse.data.pets : [];
 
-    if (isNaN(userId)) {
-        notFound();
-    }
+    if (!uuid || !user.success) notFound();
 
     return (
         <section className="w-full px-4 py-6 space-y-8">
             <Suspense fallback={<UserDetailSkeleton />}>
-                <UserDetailView userId={userId} />
+                <UserDetailView petCount={petCount} pets={pets} user={user.data.user} />
             </Suspense>
         </section>
     );

@@ -1,7 +1,7 @@
 "use server";
 import { formatDecimal, getCurrentUtcDate, prisma, toTitleCase } from "@/lib";
 import { PetOnboardingSchema, UpdatePetSchema, type UpdatePetType, OnboardingPetSchema } from "@/schemas";
-import { procedure_type, type breed_type, type pet_sex_type, type species_type } from "@prisma/client";
+import { procedure_type, type breed_type, type pet_sex_type, type pets, type species_type } from "@prisma/client";
 import type { ActionResponse, Pets } from "@/types";
 import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
@@ -231,7 +231,7 @@ const updatePet = async (values: UpdatePetType): Promise<ActionResponse | void> 
     }
 };
 
-const getPets = async (): Promise<ActionResponse<{ pets: Pets[] }>> => {
+const getUserPets = async (): Promise<ActionResponse<{ pets: Pets[] }>> => {
     const session = await getServerSession(authOptions);
     if (!session || !session.user || !session.user.id) redirect("/signin");
     try {
@@ -288,6 +288,50 @@ const getPets = async (): Promise<ActionResponse<{ pets: Pets[] }>> => {
         return { success: true, data: { pets } };
     } catch (error) {
         return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
+    }
+};
+
+async function getPets(user_id: number): Promise<ActionResponse<{ pets: pets[] | [] }>> {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) redirect("/signin");
+    try {
+        const pets = await prisma.pets.findMany({
+            where: {
+                user_id: user_id,
+                deleted: false,
+            },
+            orderBy: { created_at: "desc" },
+        });
+        if (!pets || pets.length === 0) return { success: true, data: { pets: [] } };
+        return { success: true, data: { pets } };
+    } catch (error) {
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "An unexpected error occurred",
+        };
+    }
+}
+
+const getUserPetsList = async (): Promise<ActionResponse<{ pets: pets[] | [] }>> => {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) redirect("/signin");
+    try {
+        const pets = await prisma.pets.findMany({
+            where: {
+                user_id: Number(session.user.id),
+                deleted: false,
+            },
+            orderBy: { created_at: "desc" },
+        });
+        return {
+            success: true,
+            data: { pets },
+        };
+    } catch (error) {
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "An unexpected error occurred",
+        };
     }
 };
 
@@ -354,4 +398,14 @@ const updatePetProfileImage = async (
     }
 };
 
-export { addPet, getPet, updatePet, getPets, getPetId, updatePetProfileImage };
+const petsCount = async (user_id: number): Promise<number> => {
+    const pets = await prisma.pets.count({
+        where: {
+            user_id: user_id,
+            deleted: false,
+        },
+    });
+    return pets;
+};
+
+export { addPet, getPet, updatePet, getUserPets, getUserPetsList, getPetId, updatePetProfileImage, petsCount, getPets };

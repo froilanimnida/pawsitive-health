@@ -5,10 +5,11 @@ import { appointment_type, type vet_availability } from "@prisma/client";
 import { AppointmentSchema, AppointmentType } from "@/schemas";
 import { addMinutes, format } from "date-fns";
 import {
-    getVeterinariansByClinic,
+    getVeterinarians,
     getVeterinaryAvailability,
     createUserAppointment,
     getExistingAppointments,
+    getUser,
 } from "@/actions";
 import { createFormConfig, toTitleCase } from "@/lib";
 import { toast } from "sonner";
@@ -59,20 +60,32 @@ export function useAppointmentForm(uuid: string) {
             }
             setIsLoadingVets(true);
             try {
-                const data = await getVeterinariansByClinic(selectedClinicId);
+                const data = await getVeterinarians(Number(selectedClinicId));
                 const vets = data.success ? data.data.veterinarians : [];
-                setVeterinarians(
-                    vets.map((vet) => ({
-                        label: `${vet.name} (${toTitleCase(vet.specialization)})`,
-                        value: vet.id.toString(),
-                    })),
-                );
-            } catch {
+
+                const vetPromises = vets.map(async (vet) => {
+                    const userData = await getUser(vet.user_id as number);
+                    const user = userData.success ? userData.data.user : null;
+
+                    const vetName = user ? `${user.first_name} ${user.last_name}` : "Unknown";
+
+                    return {
+                        label: `${vetName} (${toTitleCase(vet.specialization)})`,
+                        value: vet.vet_id.toString(),
+                    };
+                });
+
+                // Wait for all promises to resolve before updating state
+                const resolvedVets = await Promise.all(vetPromises);
+                setVeterinarians(resolvedVets);
+            } catch (error) {
+                console.error("Failed to load veterinarians:", error);
                 setVeterinarians([]);
             } finally {
                 setIsLoadingVets(false);
             }
         };
+
         loadVeterinarians();
     }, [selectedClinicId]);
     useEffect(() => {

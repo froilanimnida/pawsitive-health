@@ -6,8 +6,7 @@ import { TextFields } from "./components/text-fields";
 import { DateSelector } from "./components/date-selector";
 import { TimeSelector } from "./components/time-selector";
 import { getAppointmentFields, getAppointmentSelectFields } from "./fields";
-import type { clinics } from "@prisma/client";
-import { Pets } from "@/types/pets";
+import type { clinics, pets } from "@prisma/client";
 import { AppointmentSummary } from "./components/appointment-summary";
 
 export function AppointmentForm({
@@ -15,7 +14,7 @@ export function AppointmentForm({
 }: {
     params: {
         uuid: string;
-        pets: Pets[];
+        pets: pets[];
         clinics: clinics[];
     };
 }) {

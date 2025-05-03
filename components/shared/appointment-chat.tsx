@@ -11,16 +11,7 @@ import { formatDistanceToNow } from "date-fns";
 import { Avatar } from "@/components/ui/avatar";
 import { AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
-
-type Message = {
-    id: string | number;
-    text: string;
-    sender_id: number;
-    receiver_id: number;
-    sender_name: string;
-    created_at: Date;
-    is_read: boolean;
-};
+import type { messages } from "@prisma/client";
 
 interface AppointmentChatProps {
     appointmentId: number;
@@ -35,9 +26,9 @@ export const AppointmentChat = ({
     currentUserId,
     otherPartyName,
     otherPartyAvatarUrl,
-    viewerType,
+    //viewerType,
 }: AppointmentChatProps) => {
-    const [messages, setMessages] = useState<Message[]>([]);
+    const [messages, setMessages] = useState<messages[]>([]);
     const [loading, setLoading] = useState(true);
     const scrollAreaRef = useRef<HTMLDivElement>(null);
 
@@ -57,7 +48,7 @@ export const AppointmentChat = ({
             try {
                 const result = await getMessages(appointmentId);
                 if (result.success && result.data) {
-                    setMessages(result.data);
+                    setMessages(result.data.messages);
                 } else {
                     toast.error("Failed to load messages");
                 }
@@ -89,21 +80,21 @@ export const AppointmentChat = ({
             if (result.success) {
                 reset();
                 // Optimistically add message to UI
-                const newMessage: Message = {
-                    id: Date.now(), // Temporary ID
-                    text,
-                    sender_id: currentUserId,
-                    receiver_id: 0, // This will be updated when we fetch messages again
-                    sender_name: viewerType === "user" ? "You" : "Veterinarian",
-                    created_at: new Date(),
-                    is_read: false,
-                };
-                setMessages([...messages, newMessage]);
+                //const newMessage: Message = {
+                //    id: Date.now(), // Temporary ID
+                //    text,
+                //    sender_id: currentUserId,
+                //    receiver_id: 0, // This will be updated when we fetch messages again
+                //    sender_name: viewerType === "user" ? "You" : "Veterinarian",
+                //    created_at: new Date(),
+                //    is_read: false,
+                //};
+                //setMessages([...messages, newMessage]);
 
                 // Fetch updated messages
                 const updatedMessages = await getMessages(appointmentId);
                 if (updatedMessages.success && updatedMessages.data) {
-                    setMessages(updatedMessages.data);
+                    //setMessages(updatedMessages.data);
                 }
             } else {
                 toast.error(result.error || "Failed to send message");
@@ -135,7 +126,7 @@ export const AppointmentChat = ({
                     <div className="space-y-4">
                         {messages.map((message) => (
                             <div
-                                key={message.id}
+                                key={message.message_id}
                                 className={`flex ${message.sender_id === currentUserId ? "justify-end" : "justify-start"}`}
                             >
                                 <div
@@ -145,7 +136,7 @@ export const AppointmentChat = ({
                                             : "bg-muted"
                                     }`}
                                 >
-                                    <div className="text-sm">{message.text}</div>
+                                    <div className="text-sm">{message.content}</div>
                                     <div
                                         className={`text-[10px] mt-1 ${
                                             message.sender_id === currentUserId

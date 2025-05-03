@@ -14,18 +14,14 @@ import {
     DialogTitle,
     DialogTrigger,
     SkeletonCard,
-    Tabs,
-    TabsContent,
-    TabsList,
-    TabsTrigger,
     Badge,
 } from "@/components/ui";
 import NewVeterinaryForm from "@/components/form/new-vet-form";
 import type { Metadata } from "next";
-import { getClinicVeterinarians } from "@/actions";
+import { getUser, getVeterinarians } from "@/actions";
 import Link from "next/link";
 import { cn, toTitleCase } from "@/lib";
-import type { users, veterinarians } from "@prisma/client";
+import type { veterinarians } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
@@ -48,39 +44,51 @@ const specializationColors: Record<string, string> = {
     emergency: "bg-rose-100 text-rose-800",
 };
 
-const VeterinaryCard = ({ veterinary }: { veterinary: veterinarians & { users: users | null } }) => (
-    <Card key={veterinary.license_number}>
-        <CardHeader>
-            <CardTitle>
-                {veterinary.users?.first_name} {veterinary.users?.last_name}
-            </CardTitle>
-            <CardDescription className="flex items-center gap-2">
-                <Badge
-                    className={cn(
-                        "px-2 py-1 text-xs",
-                        specializationColors[veterinary.specialization] || "bg-gray-100",
-                    )}
-                >
-                    {toTitleCase(veterinary.specialization)}
-                </Badge>
-            </CardDescription>
-        </CardHeader>
-        <CardContent>
-            <p className="text-sm">License: {veterinary.license_number}</p>
-            <p className="text-sm mt-1">
-                <span className="font-medium">Contact:</span> {veterinary.users?.email}
-            </p>
-        </CardContent>
-        <CardFooter>
-            <Button asChild className="w-full">
-                <Link href={`/clinic/vets/${veterinary.vet_uuid}`}>Manage</Link>
-            </Button>
-        </CardFooter>
-    </Card>
-);
+const VeterinaryCard = async ({ veterinary }: { veterinary: veterinarians }) => {
+    const user = await getUser(veterinary.user_id as number);
+    if (!user.success) {
+        return (
+            <Card key={veterinary.license_number}>
+                <CardHeader>
+                    <CardTitle>Veterinarian not found</CardTitle>
+                </CardHeader>
+            </Card>
+        );
+    }
+    return (
+        <Card key={veterinary.license_number}>
+            <CardHeader>
+                <CardTitle>
+                    {user.data.user.first_name} {user.data.user.last_name}
+                </CardTitle>
+                <CardDescription className="flex items-center gap-2">
+                    <Badge
+                        className={cn(
+                            "px-2 py-1 text-xs",
+                            specializationColors[veterinary.specialization] || "bg-gray-100",
+                        )}
+                    >
+                        {toTitleCase(veterinary.specialization)}
+                    </Badge>
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <p className="text-sm">License: {veterinary.license_number}</p>
+                <p className="text-sm mt-1">
+                    <span className="font-medium">Contact:</span> {user.data.user.email}
+                </p>
+            </CardContent>
+            <CardFooter>
+                <Button asChild className="w-full">
+                    <Link href={`/clinic/vets/${veterinary.vet_uuid}`}>Manage</Link>
+                </Button>
+            </CardFooter>
+        </Card>
+    );
+};
 
 const Veterinaries = async () => {
-    const data = await getClinicVeterinarians();
+    const data = await getVeterinarians(1);
     const veterinaries = data.success ? (data.data?.veterinarians ?? []) : [];
 
     if (!veterinaries || veterinaries.length === 0) {
@@ -92,72 +100,13 @@ const Veterinaries = async () => {
         );
     }
 
-    const groupedVeterinarians = veterinaries.reduce(
-        (acc, vet) => {
-            const specialization = vet.specialization;
-            if (!acc[specialization]) {
-                acc[specialization] = [];
-            }
-            acc[specialization].push(vet);
-            return acc;
-        },
-        {} as Record<string, typeof veterinaries>,
-    );
-
-    const specializations = Object.keys(groupedVeterinarians);
-
-    const countBySpecialization = specializations.reduce(
-        (acc, specialization) => {
-            acc[specialization] = groupedVeterinarians[specialization].length;
-            return acc;
-        },
-        {} as Record<string, number>,
-    );
-
-    const totalVeterinarians = veterinaries.length;
-
     return (
         <div className="w-full">
-            <Tabs defaultValue="all" className="w-full">
-                <TabsList className="mb-4 flex flex-wrap">
-                    <TabsTrigger value="all" className="relative">
-                        All Veterinarians
-                        <Badge variant="secondary" className="ml-2">
-                            {totalVeterinarians}
-                        </Badge>
-                    </TabsTrigger>
-
-                    {specializations.map((specialization) => (
-                        <TabsTrigger key={specialization} value={specialization} className="relative">
-                            {toTitleCase(specialization)}
-                            <Badge
-                                variant="secondary"
-                                className={cn("ml-2", specializationColors[specialization] || "bg-gray-100")}
-                            >
-                                {countBySpecialization[specialization]}
-                            </Badge>
-                        </TabsTrigger>
-                    ))}
-                </TabsList>
-
-                <TabsContent value="all">
-                    <div className="grid grid-cols-1 md:grid-cols-3 w-full lg:grid-cols-4 gap-4">
-                        {veterinaries.map((veterinary) => (
-                            <VeterinaryCard key={veterinary.license_number} veterinary={veterinary} />
-                        ))}
-                    </div>
-                </TabsContent>
-
-                {specializations.map((specialization) => (
-                    <TabsContent key={specialization} value={specialization}>
-                        <div className="grid grid-cols-1 md:grid-cols-3 w-full lg:grid-cols-4 gap-4">
-                            {groupedVeterinarians[specialization].map((veterinary) => (
-                                <VeterinaryCard key={veterinary.license_number} veterinary={veterinary} />
-                            ))}
-                        </div>
-                    </TabsContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {veterinaries.map((veterinary) => (
+                    <VeterinaryCard key={veterinary.license_number} veterinary={veterinary} />
                 ))}
-            </Tabs>
+            </div>
         </div>
     );
 };

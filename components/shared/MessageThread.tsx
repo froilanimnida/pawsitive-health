@@ -2,26 +2,10 @@
 
 import { useEffect, useRef } from "react";
 import { MessageItem } from "./MessageItem";
-
-interface User {
-    first_name: string;
-    last_name: string;
-    email: string;
-    avatar_url: string | null;
-}
-
-interface Message {
-    message_id: number;
-    content: string;
-    created_at: Date;
-    sender_id: number;
-    receiver_id: number;
-    sender: User;
-    receiver: User;
-}
+import type { messages } from "@prisma/client";
 
 interface MessageThreadProps {
-    messages: Message[];
+    messages: messages[];
     currentUserId: number;
     isLoading?: boolean;
 }
@@ -56,16 +40,13 @@ export function MessageThread({ messages, currentUserId, isLoading = false }: Me
         <div className="flex-1 p-4 overflow-y-auto">
             {messages.map((message) => {
                 const isSentByCurrentUser = message.sender_id === currentUserId;
-                const sender = message.sender;
 
                 return (
                     <MessageItem
+                        isCurrentUser={isSentByCurrentUser}
+                        timestamp={new Date(message.created_at)}
                         key={message.message_id}
                         content={message.content}
-                        senderName={`${sender.first_name} ${sender.last_name}`}
-                        senderAvatar={sender.avatar_url}
-                        sentAt={new Date(message.created_at)}
-                        isSentByCurrentUser={isSentByCurrentUser}
                     />
                 );
             })}

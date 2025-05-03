@@ -104,61 +104,18 @@ const newVeterinarian = async (
     }
 };
 
-function getVeterinarians(clinicId: number): Promise<
-    ActionResponse<{
-        veterinarians: { id: number; uuid: string; name: string; specialization: veterinary_specialization }[];
-    }>
->;
-function getVeterinarians(
-    clinicId: number,
-    specialization?: veterinary_specialization,
-): Promise<
-    ActionResponse<{
-        veterinarians: { id: number; uuid: string; name: string; specialization: veterinary_specialization }[];
-    }>
->;
-function getVeterinarians(
-    clinicId: number,
-    options?: { specialization?: veterinary_specialization; nameSearch?: string },
-): Promise<
-    ActionResponse<{
-        veterinarians: { id: number; uuid: string; name: string; specialization: veterinary_specialization }[];
-    }>
->;
-
-async function getVeterinarians(
-    clinicId: number,
-    optionsOrSpecialization?:
-        | veterinary_specialization
-        | { specialization?: veterinary_specialization; nameSearch?: string },
-): Promise<
-    ActionResponse<{ veterinarians: { id: number; name: string; specialization: veterinary_specialization }[] }>
-> {
+async function getVeterinarians(clinicId: number): Promise<ActionResponse<{ veterinarians: veterinarians[] | [] }>> {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) redirect("/signin");
     try {
         if (!clinicId) return { success: false, error: "Clinic ID is required" };
-        const whereClause = {
-            clinic_id: Number(clinicId),
-        };
 
-        // Process the optional parameters
-        let specializationFilter: veterinary_specialization | undefined;
-        let nameSearchFilter: string | undefined;
+        const clinicVeterinarians = await prisma.veterinarians.findMany({
+            where: {
 
-        if (optionsOrSpecialization) {
-            if (typeof optionsOrSpecialization === "object") {
-                specializationFilter = optionsOrSpecialization.specialization;
-                nameSearchFilter = optionsOrSpecialization.nameSearch;
-            } else {
-                specializationFilter = optionsOrSpecialization;
-            }
-        }
-
-        const clinicVeterinarians = await prisma.clinic_veterinarians.findMany({
-            where: whereClause,
-            include: {
-                veterinarians: {
-                    include: {
-                        users: true,
+                clinic_veterinarians: {
+                    some: {
+                        clinic_id: clinicId,
                     },
                 },
             },
@@ -168,29 +125,10 @@ async function getVeterinarians(
             return { success: true, data: { veterinarians: [] } };
         }
 
-        let filteredVeterinarians = clinicVeterinarians.map((cv) => ({
-            id: cv.veterinarians.vet_id,
-            uuid: cv.veterinarians.vet_uuid,
-            name: cv.veterinarians.users
-                ? `${cv.veterinarians.users.first_name} ${cv.veterinarians.users.last_name}`
-                : "Unknown",
-            specialization: cv.veterinarians.specialization,
-        }));
-
-        // Apply filters if provided
-        if (specializationFilter) {
-            filteredVeterinarians = filteredVeterinarians.filter((vet) => vet.specialization === specializationFilter);
-        }
-
-        if (nameSearchFilter) {
-            const searchTerm = nameSearchFilter.toLowerCase();
-            filteredVeterinarians = filteredVeterinarians.filter((vet) => vet.name.toLowerCase().includes(searchTerm));
-        }
-
         return {
             success: true,
             data: {
-                veterinarians: filteredVeterinarians,
+                veterinarians: clinicVeterinarians,
             },
         };
     } catch (error) {

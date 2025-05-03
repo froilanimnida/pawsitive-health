@@ -3,7 +3,6 @@
 import * as React from "react";
 import { Send } from "lucide-react";
 import { useParams } from "next/navigation";
-import { cn } from "@/lib";
 import {
     Card,
     CardContent,
@@ -16,22 +15,13 @@ import {
     Input,
 } from "@/components/ui";
 import { getMessages, sendMessage } from "@/actions";
-
-interface Message {
-    message_id?: number;
-    sender_id?: number;
-    receiver_id?: number;
-    content: string;
-    role: "vet" | "user";
-    created_at?: Date;
-    sender_name?: string;
-}
+import type { messages } from "@prisma/client";
 
 export default function VeterinaryAppointmentThread() {
     const params = useParams();
     const uuid = params.uuid as string;
 
-    const [messages, setMessages] = React.useState<Message[]>([]);
+    const [messages, setMessages] = React.useState<messages[]>([]);
     const [loading, setLoading] = React.useState(true);
     const [input, setInput] = React.useState("");
     const inputLength = input.trim().length;
@@ -73,14 +63,14 @@ export default function VeterinaryAppointmentThread() {
         e.preventDefault();
         if (inputLength === 0 || !appointmentId) return;
 
-        // Optimistically update UI
-        const newMessage = {
-            content: input,
-            role: "vet" as const,
-            created_at: new Date(),
-        };
+        //// Optimistically update UI
+        //const newMessage = {
+        //    content: input,
+        //    role: "vet" as const,
+        //    created_at: new Date(),
+        //};
 
-        setMessages([...messages, newMessage]);
+        //setMessages([...messages, newMessage]);
         setInput("");
 
         // Actually send the message
@@ -125,12 +115,7 @@ export default function VeterinaryAppointmentThread() {
                             messages.map((message, index) => (
                                 <div
                                     key={index}
-                                    className={cn(
-                                        "flex w-max max-w-[75%] flex-col gap-2 rounded-lg px-3 py-2 text-sm",
-                                        message.role === "vet"
-                                            ? "ml-auto bg-primary text-primary-foreground"
-                                            : "bg-muted",
-                                    )}
+                                    className="flex w-max max-w-[75%] flex-col gap-2 rounded-lg px-3 py-2 text-sm"
                                 >
                                     {message.content}
                                 </div>

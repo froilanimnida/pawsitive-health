@@ -10,7 +10,7 @@ import {
     SkeletonCard,
 } from "@/components/ui";
 import type { Metadata } from "next";
-import { getPets } from "@/actions";
+import { getUserPets } from "@/actions";
 import AddPetForm from "@/components/form/pet-form";
 import PetCard from "@/components/pet/pet-card";
 
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 };
 
 async function PetList() {
-    const pets = await getPets();
+    const pets = await getUserPets();
 
     const petsData = pets.success ? (pets.data?.pets ?? []) : [];
     if (!petsData || petsData.length === 0) {

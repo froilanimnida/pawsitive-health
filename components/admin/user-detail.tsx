@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
-import { getUserDetails, adminResetPassword, toggleUserStatus, deleteUser } from "@/actions";
+import { useTransition } from "react";
+import { adminResetPassword, toggleUserStatus, deleteUser } from "@/actions";
 import {
     Card,
     CardContent,
@@ -23,82 +23,39 @@ import {
     DialogHeader,
     DialogTitle,
     Input,
-    Separator,
 } from "@/components/ui";
-import { notFound, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ArrowLeft, CalendarClock, KeyRound, UserCog, UserX, Shield, PawPrint } from "lucide-react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
-import type { pets, user_settings } from "@prisma/client";
+import type { pets, users } from "@prisma/client";
+import { useState } from "react";
 
-type UserSettings = {
-    theme_mode: string;
-    notification_preferences: user_settings;
-    google_calendar_sync: boolean;
-};
-
-type User = {
-    user_id: number;
-    email: string;
-    first_name: string | null;
-    last_name: string | null;
-    phone_number: string | null;
-    role: string;
-    created_at: Date;
-    updated_at: Date | null;
-    last_login: Date | null;
-    disabled: boolean | null;
-    deleted: boolean | null;
-    pets: pets[];
-    user_settings: UserSettings | null;
-    _count: {
-        pets: number;
-        notifications: number;
-    };
-};
-
-export default function UserDetailView({ uuid }: { uuid: string }) {
+export default function UserDetailView({ user, petCount, pets }: { user: users; petCount: number; pets: pets[] | [] }) {
     const router = useRouter();
-    const [user, setUser] = useState<User | null>(null);
     const [isPending, startTransition] = useTransition();
-    const [isLoading, setIsLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState("overview");
     const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
     const [newPassword, setNewPassword] = useState("");
 
-    useEffect(() => {
-        const fetchUserDetails = async () => {
-            setIsLoading(true);
-            try {
-                const result = await getUserDetails(uuid);
+    // User status indicator badge
+    const userStatusBadge = user.deleted ? (
+        <Badge variant="outline" className="bg-red-100 text-red-800">
+            Deleted
+        </Badge>
+    ) : user.disabled ? (
+        <Badge variant="outline" className="bg-orange-100 text-orange-800">
+            Disabled
+        </Badge>
+    ) : (
+        <Badge variant="outline" className="bg-green-100 text-green-800">
+            Active
+        </Badge>
+    );
 
-                if (result.success && result.data) {
-                    setUser(result.data.user);
-                } else {
-                    toast.error(
-                        result
-                            ? !result.success
-                                ? result.error
-                                : "Failed to load user details"
-                            : "Failed to load user details",
-                    );
-                    notFound();
-                }
-            } catch (error) {
-                console.error("Error loading user details:", error);
-                notFound();
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        fetchUserDetails();
-    }, [uuid]);
-
-    // Handle password reset
-    const handleResetPassword = async () => {
-        if (!newPassword || !user) return;
+    // Action handlers
+    const handleResetPassword = () => {
+        if (newPassword.length < 8) return;
 
         startTransition(async () => {
             try {
@@ -117,19 +74,14 @@ export default function UserDetailView({ uuid }: { uuid: string }) {
         });
     };
 
-    // Handle toggling user status (enable/disable)
-    const handleToggleStatus = async () => {
-        if (!user) return;
-
+    const handleToggleStatus = () => {
         startTransition(async () => {
             try {
                 const result = await toggleUserStatus(user.user_id);
 
                 if (result.success) {
                     toast.success(`User has been ${result.data?.disabled ? "disabled" : "enabled"} successfully`);
-
-                    // Update local state to reflect the change
-                    setUser((prev) => (prev ? { ...prev, disabled: result.data?.disabled || false } : null));
+                    router.refresh();
                 } else {
                     toast.error(result.error || "Failed to update user status");
                 }
@@ -139,10 +91,7 @@ export default function UserDetailView({ uuid }: { uuid: string }) {
         });
     };
 
-    // Handle soft deleting a user
-    const handleDeleteUser = async () => {
-        if (!user) return;
-
+    const handleDeleteUser = () => {
         if (!confirm("Are you sure you want to delete this user? This will mark the account as deleted.")) {
             return;
         }
@@ -152,68 +101,22 @@ export default function UserDetailView({ uuid }: { uuid: string }) {
                 const result = await deleteUser(user.user_id);
 
                 if (result.success) {
-                    //toast({
-                    //    title: "Success",
-                    //    description: "User has been deleted successfully",
-                    //});
                     toast.success("User has been deleted successfully");
-                    // Navigate back to the users list
                     router.push("/admin/users");
                 } else {
-                    //toast({
-                    //    title: "Error",
-                    //    description: result.error || "Failed to delete user",
-                    //    variant: "destructive",
-                    //});
                     toast.error(result.error || "Failed to delete user");
                 }
             } catch {
-                //toast({
-                //    title: "Error",
-                //    description: "An unexpected error occurred",
-                //    variant: "destructive",
-                //});
                 toast.error("An unexpected error occurred");
             }
         });
     };
 
-    // Function to render user status badge
-    const getUserStatusBadge = () => {
-        if (!user) return null;
-
-        if (user.deleted) {
-            return (
-                <Badge variant="outline" className="bg-red-100 text-red-800">
-                    Deleted
-                </Badge>
-            );
-        } else if (user.disabled) {
-            return (
-                <Badge variant="outline" className="bg-orange-100 text-orange-800">
-                    Disabled
-                </Badge>
-            );
-        } else {
-            return (
-                <Badge variant="outline" className="bg-green-100 text-green-800">
-                    Active
-                </Badge>
-            );
-        }
-    };
-
-    if (isLoading) {
-        return <p>Loading user details...</p>;
-    }
-
-    if (!user) {
-        return <p>User not found</p>;
-    }
+    const initials = `${user.first_name?.[0] || ""}${user.last_name?.[0] || ""}`.toUpperCase();
 
     return (
         <>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-2">
                     <Button variant="outline" size="icon" asChild>
                         <Link href="/admin/users">
@@ -224,12 +127,9 @@ export default function UserDetailView({ uuid }: { uuid: string }) {
                 </div>
             </div>
 
-            <div className="flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-8">
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-8 mb-6">
                 <Avatar className="h-20 w-20">
-                    <AvatarFallback className="text-lg">
-                        {user.first_name && user.first_name.charAt(0).toUpperCase()}
-                        {user.last_name && user.last_name.charAt(0).toUpperCase()}
-                    </AvatarFallback>
+                    <AvatarFallback className="text-lg">{initials}</AvatarFallback>
                 </Avatar>
 
                 <div className="space-y-1">
@@ -237,7 +137,7 @@ export default function UserDetailView({ uuid }: { uuid: string }) {
                         <h2 className="text-2xl font-semibold">
                             {user.first_name} {user.last_name}
                         </h2>
-                        {getUserStatusBadge()}
+                        {userStatusBadge}
                         <Badge variant="secondary" className="capitalize">
                             {user.role}
                         </Badge>
@@ -247,7 +147,7 @@ export default function UserDetailView({ uuid }: { uuid: string }) {
                 </div>
             </div>
 
-            <div className="flex flex-col gap-2 sm:flex-row sm:gap-4">
+            <div className="flex flex-col gap-2 sm:flex-row sm:gap-4 mb-6">
                 <Button
                     variant="outline"
                     className="flex items-center gap-2"
@@ -260,23 +160,28 @@ export default function UserDetailView({ uuid }: { uuid: string }) {
                     variant={user.disabled ? "default" : "outline"}
                     className="flex items-center gap-2"
                     onClick={handleToggleStatus}
+                    disabled={isPending}
                 >
                     <UserCog className="h-4 w-4" />
                     {user.disabled ? "Enable Account" : "Disable Account"}
                 </Button>
                 {!user.deleted && (
-                    <Button variant="destructive" className="flex items-center gap-2" onClick={handleDeleteUser}>
+                    <Button
+                        variant="destructive"
+                        className="flex items-center gap-2"
+                        onClick={handleDeleteUser}
+                        disabled={isPending}
+                    >
                         <UserX className="h-4 w-4" />
                         Delete User
                     </Button>
                 )}
             </div>
 
-            <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <Tabs defaultValue="overview" className="w-full">
                 <TabsList className="mb-4">
                     <TabsTrigger value="overview">Overview</TabsTrigger>
-                    <TabsTrigger value="pets">Pets ({user._count.pets})</TabsTrigger>
-                    <TabsTrigger value="settings">Settings</TabsTrigger>
+                    <TabsTrigger value="pets">Pets ({petCount})</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="overview">
@@ -289,24 +194,24 @@ export default function UserDetailView({ uuid }: { uuid: string }) {
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <div className="space-y-4">
+                                <dl className="space-y-4">
                                     <div>
-                                        <p className="text-sm font-medium">User ID</p>
-                                        <p className="text-muted-foreground">{user.user_id}</p>
+                                        <dt className="text-sm font-medium">User ID</dt>
+                                        <dd className="text-muted-foreground">{user.user_id}</dd>
                                     </div>
                                     <div>
-                                        <p className="text-sm font-medium">Email</p>
-                                        <p className="break-all">{user.email}</p>
+                                        <dt className="text-sm font-medium">Email</dt>
+                                        <dd className="break-all">{user.email}</dd>
                                     </div>
                                     <div>
-                                        <p className="text-sm font-medium">Role</p>
-                                        <p className="capitalize">{user.role}</p>
+                                        <dt className="text-sm font-medium">Role</dt>
+                                        <dd className="capitalize">{user.role}</dd>
                                     </div>
                                     <div>
-                                        <p className="text-sm font-medium">Status</p>
-                                        <p>{user.deleted ? "Deleted" : user.disabled ? "Disabled" : "Active"}</p>
+                                        <dt className="text-sm font-medium">Status</dt>
+                                        <dd>{user.deleted ? "Deleted" : user.disabled ? "Disabled" : "Active"}</dd>
                                     </div>
-                                </div>
+                                </dl>
                             </CardContent>
                         </Card>
 
@@ -318,44 +223,37 @@ export default function UserDetailView({ uuid }: { uuid: string }) {
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <div className="space-y-4">
+                                <dl className="space-y-4">
                                     <div>
-                                        <p className="text-sm font-medium">Account Created</p>
-                                        <p>
+                                        <dt className="text-sm font-medium">Account Created</dt>
+                                        <dd>
                                             {new Date(user.created_at).toLocaleDateString()} (
-                                            {formatDistanceToNow(new Date(user.created_at), {
-                                                addSuffix: true,
-                                            })}
-                                            )
-                                        </p>
+                                            {formatDistanceToNow(new Date(user.created_at), { addSuffix: true })})
+                                        </dd>
                                     </div>
                                     <div>
-                                        <p className="text-sm font-medium">Last Updated</p>
-                                        <p>
+                                        <dt className="text-sm font-medium">Last Updated</dt>
+                                        <dd>
                                             {user.updated_at
                                                 ? `${new Date(user.updated_at).toLocaleDateString()} (${formatDistanceToNow(
                                                       new Date(user.updated_at),
                                                       { addSuffix: true },
                                                   )})`
                                                 : "Never"}
-                                        </p>
+                                        </dd>
                                     </div>
                                     <div>
-                                        <p className="text-sm font-medium">Last Login</p>
-                                        <p>
+                                        <dt className="text-sm font-medium">Last Login</dt>
+                                        <dd>
                                             {user.last_login
                                                 ? `${new Date(user.last_login).toLocaleDateString()} (${formatDistanceToNow(
                                                       new Date(user.last_login),
                                                       { addSuffix: true },
                                                   )})`
                                                 : "Never"}
-                                        </p>
+                                        </dd>
                                     </div>
-                                    <div>
-                                        <p className="text-sm font-medium">Unread Notifications</p>
-                                        <p>{user._count.notifications}</p>
-                                    </div>
-                                </div>
+                                </dl>
                             </CardContent>
                         </Card>
                     </div>
@@ -369,19 +267,17 @@ export default function UserDetailView({ uuid }: { uuid: string }) {
                                 Pet Information
                             </CardTitle>
                             <CardDescription>
-                                {user._count.pets > 0
-                                    ? `${user.first_name || "User"} has ${user._count.pets} pet${
-                                          user._count.pets !== 1 ? "s" : ""
-                                      } registered`
+                                {petCount > 0
+                                    ? `${user.first_name || "User"} has ${petCount} pet${petCount !== 1 ? "s" : ""} registered`
                                     : "This user has no pets registered"}
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            {user.pets.length === 0 ? (
+                            {pets.length === 0 ? (
                                 <div className="text-center py-8 text-muted-foreground">No pets found</div>
                             ) : (
                                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                                    {user.pets.map((pet) => (
+                                    {pets.map((pet) => (
                                         <Card key={pet.pet_id}>
                                             <CardHeader>
                                                 <CardTitle>{pet.name}</CardTitle>
@@ -397,41 +293,6 @@ export default function UserDetailView({ uuid }: { uuid: string }) {
                                             </CardContent>
                                         </Card>
                                     ))}
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                <TabsContent value="settings">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>User Preferences</CardTitle>
-                            <CardDescription>Settings and preferences for this user account</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            {!user.user_settings ? (
-                                <div className="text-center py-8 text-muted-foreground">No settings configured</div>
-                            ) : (
-                                <div className="space-y-4">
-                                    <div>
-                                        <p className="text-sm font-medium">Theme Preference</p>
-                                        <p className="capitalize">
-                                            {user.user_settings.theme_mode || "System default"}
-                                        </p>
-                                    </div>
-                                    <Separator />
-                                    <div>
-                                        <p className="text-sm font-medium">Google Calendar Integration</p>
-                                        <p>{user.user_settings.google_calendar_sync ? "Enabled" : "Disabled"}</p>
-                                    </div>
-                                    <Separator />
-                                    <div>
-                                        <p className="text-sm font-medium">Notification Preferences</p>
-                                        <pre className="mt-2 rounded-md bg-muted p-4 text-sm">
-                                            {JSON.stringify(user.user_settings.notification_preferences, null, 2)}
-                                        </pre>
-                                    </div>
                                 </div>
                             )}
                         </CardContent>

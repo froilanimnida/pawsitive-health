@@ -36,7 +36,7 @@ export const metadata = {
     description: "Veterinarian Details",
 };
 
-const VeterinarianDetails = async ({ params }: { params: { user_uuid: string } }) => {
+const VeterinarianDetails = async ({ params }: { params: Promise<{ user_uuid: string }> }) => {
     const { user_uuid } = await params;
     const data = await getVeterinarianDetails(user_uuid);
 

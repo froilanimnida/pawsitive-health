@@ -146,9 +146,11 @@ const ClinicDetails = async ({ params }: UUIDPageParams) => {
                         <CardDescription>Veterinarians working at this clinic</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        {veterinarians && veterinarians.length > 0 ? (
+                        {/*{veterinarians && veterinarians.length > 0 ? (
                             <ul className="space-y-2">
-                                {veterinarians.map((vet) => (
+                                { veterinarians.map( ( vet ) => (
+
+
                                     <li
                                         key={vet.uuid}
                                         className="flex items-center justify-between p-2 rounded-md hover:bg-muted"
@@ -164,7 +166,7 @@ const ClinicDetails = async ({ params }: UUIDPageParams) => {
                             </ul>
                         ) : (
                             <p className="text-muted-foreground">No veterinarians assigned to this clinic yet.</p>
-                        )}
+                        )}*/}
                     </CardContent>
                     <CardFooter>
                         <Button className="w-full" variant="outline" asChild>

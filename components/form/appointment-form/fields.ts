@@ -1,8 +1,7 @@
-import { appointment_type, type clinics } from "@prisma/client";
+import { appointment_type, type clinics, type pets } from "@prisma/client";
 import { toTitleCase } from "@/lib/functions/text/title-case";
 import { TextFormField } from "@/types/forms/text-form-field";
 import { SelectFormField } from "@/types/forms/select-form-field";
-import type { Pets } from "@/types/pets";
 import type { UseFormReturn } from "react-hook-form";
 import type { AppointmentControlSchema } from "./form-control-type";
 
@@ -21,7 +20,7 @@ export function getAppointmentFields(): TextFormField[] {
 export function getAppointmentSelectFields(
     params: {
         uuid: string;
-        pets: Pets[];
+        pets: pets[];
         clinics: clinics[];
     },
     {

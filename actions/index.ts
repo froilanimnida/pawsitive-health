@@ -1,4 +1,14 @@
-export { addPet, getPet, updatePet, getPets, getPetId } from "./pets";
+export {
+    addPet,
+    getPet,
+    updatePet,
+    getPets,
+    getPetId,
+    petsCount,
+    getUserPets,
+    getUserPetsList,
+    updatePetProfileImage,
+} from "./pets";
 export { getClinics, getNearbyClinics, getClinic } from "./clinic";
 export {
     createAccount,
@@ -71,5 +81,5 @@ export {
     markAllNotificationsAsRead,
     markNotificationAsRead,
 } from "./notification";
-export { getAllUsers, getUserDetails, adminResetPassword, toggleUserStatus, deleteUser } from "./admin";
+export { getAllUsers, adminResetPassword, toggleUserStatus, deleteUser } from "./admin";
 export { getMessages, sendMessage } from "./messages";

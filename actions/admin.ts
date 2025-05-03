@@ -119,37 +119,12 @@ export const getAllUsers = async ({
         };
     }
 };
-
 /**
  * Get detailed information about a specific user
  */
-export const getUserDetails = async (
-    uuid: string,
-): Promise<
-    ActionResponse<{
-        user: users & {
-            pets: {
-                pet_id: number;
-                name: string;
-                species: string;
-                breed: string;
-                profile_picture_url: string | null;
-                created_at: Date;
-            }[];
-            user_settings: {
-                user_settings_id: number;
-                user_id: number;
-                theme: string;
-            };
-            _count: {
-                pets: number;
-                notifications: {
-                    is_read: boolean;
-                }[];
-            };
-        };
-    }>
-> => {
+export async function getUser(user_id: number): Promise<ActionResponse<{ user: users }>>;
+export async function getUser(user_uuid: string): Promise<ActionResponse<{ user: users }>>;
+export async function getUser(idOrUuid: string | number): Promise<ActionResponse<{ user: users }>> {
     try {
         const session = await getServerSession(authOptions);
         // Only admins can access this function
@@ -157,31 +132,9 @@ export const getUserDetails = async (
             return { success: false, error: "Unauthorized" };
         }
 
-        const user = await prisma.users.findUnique({
-            where: { user_uuid: uuid },
-            include: {
-                pets: {
-                    where: { deleted: false },
-                    select: {
-                        pet_id: true,
-                        name: true,
-                        species: true,
-                        breed: true,
-                        profile_picture_url: true,
-                        created_at: true,
-                    },
-                },
-                user_settings: true,
-                _count: {
-                    select: {
-                        pets: true,
-                        notifications: {
-                            where: { is_read: false },
-                        },
-                    },
-                },
-            },
-        });
+        const where = typeof idOrUuid === "number" ? { user_id: idOrUuid } : { user_uuid: idOrUuid };
+
+        const user = await prisma.users.findUnique({ where });
 
         if (!user) {
             return { success: false, error: "User not found" };
@@ -195,7 +148,7 @@ export const getUserDetails = async (
             error: error instanceof Error ? error.message : "An unexpected error occurred",
         };
     }
-};
+}
 
 /**
  * Reset a user's password (admin function - no OTP required)
