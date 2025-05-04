@@ -112,7 +112,6 @@ async function getVeterinarians(clinicId: number): Promise<ActionResponse<{ vete
 
         const clinicVeterinarians = await prisma.veterinarians.findMany({
             where: {
-
                 clinic_veterinarians: {
                     some: {
                         clinic_id: clinicId,
@@ -140,22 +139,16 @@ async function getVeterinarians(clinicId: number): Promise<ActionResponse<{ vete
 }
 async function getVeterinarian(veterinarianId: number): Promise<ActionResponse<{ veterinarian: veterinarians }>>;
 async function getVeterinarian(veterinarianUuid: string): Promise<ActionResponse<{ veterinarian: veterinarians }>>;
-
 // Implementation
-async function getVeterinarian(
-    veterinarianIdOrUuid: number | string,
-): Promise<ActionResponse<{ veterinarian: veterinarians }>> {
+async function getVeterinarian(identifier: number | string): Promise<ActionResponse<{ veterinarian: veterinarians }>> {
     const session = await getServerSession(authOptions);
     if (!session || !session.user || !session.user.id) redirect("/signin");
 
     try {
-        if (!veterinarianIdOrUuid) return { success: false, error: "Veterinarian ID or UUID is required" };
+        if (!identifier) return { success: false, error: "Veterinarian ID or UUID is required" };
 
         // Define the where clause based on the type of input
-        const whereClause =
-            typeof veterinarianIdOrUuid === "number"
-                ? { vet_id: veterinarianIdOrUuid }
-                : { vet_uuid: veterinarianIdOrUuid };
+        const whereClause = typeof identifier === "number" ? { vet_id: identifier } : { vet_uuid: identifier };
 
         const veterinarian = await prisma.veterinarians.findFirst({
             where: whereClause,

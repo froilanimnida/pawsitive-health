@@ -26,12 +26,13 @@ import CurrentAppointmentRecordedService from "@/components/shared/veterinary/se
 import AppointmentChat from "@/components/shared/appointment-chat";
 import type { UUIDPageParams } from "@/types";
 import { cache } from "react";
-import { appointment_status } from "@prisma/client";
+import { appointment_status, species_type } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { ActivityLevelChart } from "@/components/pet/activity-level-chart";
 import { WeightTrendChart } from "@/components/pet/weight-trend-chart";
 import { PetHealthMetricsChart } from "@/components/pet/pet-health-metrics-chart";
+import { Weight, Activity, History } from "lucide-react";
 
 const getAppointmentCached = cache(async (uuid: string) => {
     const response = await getAppointment(uuid);
@@ -92,7 +93,7 @@ const ViewAppointment = async ({ params }: UUIDPageParams) => {
         appointmentData;
 
     return (
-        <section className="space-y-6">
+        <section className="space-y-6 grid grid-cols-1 gap-4 xl:grid-cols-2">
             <AppointmentCard
                 pet={pet}
                 appointment={appointment}
@@ -139,30 +140,46 @@ const ViewAppointment = async ({ params }: UUIDPageParams) => {
                 isVetView={true}
             />
 
-            <Tabs defaultValue="overview">
-                <TabsList>
-                    <TabsTrigger value="overview">Overview</TabsTrigger>
-                    <TabsTrigger value="activity">Activity</TabsTrigger>
-                    <TabsTrigger value="weight">Weight</TabsTrigger>
-                </TabsList>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Health Monitoring</CardTitle>
+                    <CardDescription>View the health metrics and activity levels of {pet.name}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Tabs defaultValue="overview">
+                        <TabsList className="w-full">
+                            <TabsTrigger value="overview">
+                                <History />
+                                Overview
+                            </TabsTrigger>
+                            <TabsTrigger value="activity">
+                                {" "}
+                                <Activity /> Activity
+                            </TabsTrigger>
+                            <TabsTrigger value="weight">
+                                <Weight /> Weight
+                            </TabsTrigger>
+                        </TabsList>
 
-                <TabsContent value="overview">
-                    <PetHealthMetricsChart healthRecords={healthMonitoring} petName={pet.name} />
-                </TabsContent>
+                        <TabsContent value="overview">
+                            <PetHealthMetricsChart healthRecords={healthMonitoring} petName={pet.name} />
+                        </TabsContent>
 
-                <TabsContent value="activity">
-                    <ActivityLevelChart healthRecords={healthMonitoring} petName={pet.name} />
-                </TabsContent>
+                        <TabsContent value="activity">
+                            <ActivityLevelChart healthRecords={healthMonitoring} petName={pet.name} />
+                        </TabsContent>
 
-                <TabsContent value="weight">
-                    <WeightTrendChart
-                        healthRecords={healthMonitoring}
-                        petName={pet.name}
-                        idealWeightMin={pet.species === "dog" ? 10 : 3} // Example values
-                        idealWeightMax={pet.species === "dog" ? 25 : 6} // Example values
-                    />
-                </TabsContent>
-            </Tabs>
+                        <TabsContent value="weight">
+                            <WeightTrendChart
+                                healthRecords={healthMonitoring}
+                                petName={pet.name}
+                                idealWeightMin={pet.species === species_type.dog ? 10 : 3} // Example values
+                                idealWeightMax={pet.species === species_type.dog ? 25 : 6} // Example values
+                            />
+                        </TabsContent>
+                    </Tabs>
+                </CardContent>
+            </Card>
         </section>
     );
 };

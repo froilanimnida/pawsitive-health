@@ -34,6 +34,9 @@ import { HealthMonitoringDialog } from "@/components/pet/health-monitoring-dialo
 import { HealthMonitoringHistory } from "@/components/pet/health-monitoring-history";
 import type { UUIDPageParams } from "@/types";
 import PetProfileImage from "@/components/form/pet-profile-image";
+import { ActivityLevelChart } from "@/components/pet/activity-level-chart";
+import { PetHealthMetricsChart } from "@/components/pet/pet-health-metrics-chart";
+import { WeightTrendChart } from "@/components/pet/weight-trend-chart";
 
 // Create a cached version of getPet
 const getPetCached = cache(async (uuid: string) => {
@@ -210,6 +213,31 @@ const PetDetails = async ({ params }: UUIDPageParams) => {
                         </CardHeader>
                         <CardContent>
                             <HealthMonitoringHistory healthRecords={healthMonitoring} petUuid={pet_uuid} />
+
+                            <Tabs defaultValue="overview">
+                                <TabsList>
+                                    <TabsTrigger value="overview">Overview</TabsTrigger>
+                                    <TabsTrigger value="activity">Activity</TabsTrigger>
+                                    <TabsTrigger value="weight">Weight</TabsTrigger>
+                                </TabsList>
+
+                                <TabsContent value="overview">
+                                    <PetHealthMetricsChart healthRecords={healthMonitoring} petName={pet.name} />
+                                </TabsContent>
+
+                                <TabsContent value="activity">
+                                    <ActivityLevelChart healthRecords={healthMonitoring} petName={pet.name} />
+                                </TabsContent>
+
+                                <TabsContent value="weight">
+                                    <WeightTrendChart
+                                        healthRecords={healthMonitoring}
+                                        petName={pet.name}
+                                        idealWeightMin={pet.species === "dog" ? 10 : 3} // Example values
+                                        idealWeightMax={pet.species === "dog" ? 25 : 6} // Example values
+                                    />
+                                </TabsContent>
+                            </Tabs>
                         </CardContent>
                     </Card>
                 </TabsContent>
