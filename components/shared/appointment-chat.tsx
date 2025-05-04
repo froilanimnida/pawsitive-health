@@ -14,20 +14,33 @@ import {
     Input,
 } from "@/components/ui";
 import { getMessages, sendMessage } from "@/actions";
-import type { messages } from "@prisma/client";
+import { appointment_status, messages } from "@prisma/client";
+import type { Modify } from "@/types";
 
-interface AppointmentChatProps {
+// Define the chat participants interface
+interface ChatParticipants {
+    currentUserId: number;
+    otherUserId: number;
     appointmentId: number;
-    petOwnerId: number;
-    vetId: number;
-    isVetView?: boolean;
 }
 
-export default function AppointmentChat({ appointmentId, petOwnerId, vetId, isVetView = true }: AppointmentChatProps) {
-    const [messages, setMessages] = React.useState<messages[]>([]);
+export default function AppointmentChat({
+    chatParticipants,
+    isVetView = true,
+    appointmentStatus,
+    initialMessages,
+}: {
+    chatParticipants: ChatParticipants;
+    isVetView?: boolean;
+    appointmentStatus: appointment_status;
+    initialMessages: Modify<messages, { message_id: string }>[] | [];
+}) {
+    const [messages, setMessages] = React.useState<Modify<messages, { message_id: string }>[] | []>(initialMessages);
     const [loading, setLoading] = React.useState(true);
     const [input, setInput] = React.useState("");
     const inputLength = input.trim().length;
+
+    const { currentUserId, otherUserId, appointmentId } = chatParticipants;
 
     React.useEffect(() => {
         const fetchMessages = async () => {
@@ -37,11 +50,7 @@ export default function AppointmentChat({ appointmentId, petOwnerId, vetId, isVe
                 // Fetch messages for this appointment
                 const messagesResponse = await getMessages(appointmentId);
                 if (messagesResponse.success && messagesResponse.data) {
-                    const formattedMessages = messagesResponse.data.messages.map((msg) => ({
-                        ...msg,
-                        role: msg.sender_id === vetId ? "vet" : "user",
-                    }));
-                    setMessages(formattedMessages);
+                    setMessages(messagesResponse.data.messages);
                 }
             } catch (error) {
                 console.error("Error fetching messages:", error);
@@ -49,52 +58,51 @@ export default function AppointmentChat({ appointmentId, petOwnerId, vetId, isVe
                 setLoading(false);
             }
         };
-
         fetchMessages();
 
         // Set up polling for new messages
         const intervalId = setInterval(fetchMessages, 10000); // Poll every 10 seconds
 
         return () => clearInterval(intervalId);
-    }, [appointmentId, vetId]);
+    }, [appointmentId]);
 
     const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
         if (inputLength === 0 || !appointmentId) return;
 
-        // Optimistically update UI
+        // Optimistically update UI with temporary message
         const tempId = `temp-${Date.now()}`;
-        const newMessage = {
+        const newMessage: Modify<messages, { message_id: string }> = {
             message_id: tempId,
             appointment_id: appointmentId,
-            sender_id: isVetView ? vetId : petOwnerId,
-            receiver_id: isVetView ? petOwnerId : vetId,
+            sender_id: currentUserId,
+            receiver_id: otherUserId,
             content: input,
             created_at: new Date(),
             updated_at: new Date(),
             is_read: false,
-            role: isVetView ? "vet" : "user",
-        } as messages & { role: string };
+        };
 
         setMessages((prev) => [...prev, newMessage]);
         setInput("");
 
         // Actually send the message
         try {
-            await sendMessage(input, appointmentId);
+            // Pass the receiver ID directly to the server action
+            const r = await sendMessage(input, appointmentId, otherUserId);
+            console.log("Message sent:", r);
+
             // Refetch messages to get the server-generated ID and ensure consistency
             const messagesResponse = await getMessages(appointmentId);
             if (messagesResponse.success && messagesResponse.data) {
-                const formattedMessages = messagesResponse.data.messages.map((msg) => ({
-                    ...msg,
-                    role: msg.sender_id === vetId ? "vet" : "user",
-                }));
-                setMessages(formattedMessages);
+                setMessages(messagesResponse.data.messages);
             }
         } catch (error) {
             console.error("Error sending message:", error);
             // Remove the optimistic update if failed
-            setMessages((prev) => prev.filter((msg) => msg.message_id !== tempId));
+            setMessages((prev) =>
+                prev.filter((msg) => !(typeof msg.message_id === "string" && msg.message_id === tempId)),
+            );
         }
     };
 
@@ -134,8 +142,8 @@ export default function AppointmentChat({ appointmentId, petOwnerId, vetId, isVe
                         </p>
                     ) : (
                         messages.map((message, index) => {
-                            const isCurrentUser =
-                                (isVetView && message.role === "vet") || (!isVetView && message.role === "user");
+                            // Simply check if the sender is the current user
+                            const isCurrentUser = message.sender_id === currentUserId;
 
                             return (
                                 <div
@@ -164,6 +172,11 @@ export default function AppointmentChat({ appointmentId, petOwnerId, vetId, isVe
                         placeholder="Type your message..."
                         className="flex-1"
                         autoComplete="off"
+                        autoFocus
+                        disabled={
+                            appointmentStatus === appointment_status.completed ||
+                            appointmentStatus === appointment_status.cancelled
+                        }
                         value={input}
                         onChange={(event) => setInput(event.target.value)}
                     />

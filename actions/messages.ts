@@ -1,6 +1,6 @@
 "use server";
 import { getCurrentUtcDate, prisma } from "@/lib";
-import { ActionResponse } from "@/types";
+import { ActionResponse, type Modify } from "@/types";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
@@ -66,71 +66,112 @@ const verifyAppointmentAccess = async (
 /**
  * Sends a message in the context of an appointment
  */
-const sendMessage = async (text: string, appointment_id: number): Promise<ActionResponse<messages>> => {
-    const user = await auth();
+const sendMessage = async (
+    text: string,
+    appointment_id: number,
+    receiverId: number,
+): Promise<ActionResponse<messages>> => {
+    const user = await getServerSession(authOptions);
     if (!user || !user.user?.email) redirect("/signin");
     try {
-        if (!appointment_id) {
+        if (!appointment_id) return { success: false, error: "Appointment not found" };
+
+        const currentUserId = Number(user.user.id);
+
+        // If receiverId is provided directly, use it
+        if (receiverId) {
+            // Create the message with the provided receiver ID
+            console.log("Receiver ID provided:", receiverId);
+            console.log("Current User ID:", user.user.id);
+            const message = await prisma.messages.create({
+                data: {
+                    appointment_id,
+                    receiver_id: receiverId,
+                    content: text,
+                    sender_id: currentUserId,
+                },
+            });
+
             return {
-                success: false,
-                error: "Appointment not found",
+                success: true,
+                data: message,
             };
         }
 
-        // Get the appointment to determine the receiver
-        const appointment = await prisma.appointments.findUnique({
+        // Fall back to inferring from previous messages if no receiverId provided
+        let inferredReceiverId: number | undefined;
+
+        // Try to infer the receiver from previous messages in this appointment
+        const previousMessages = await prisma.messages.findMany({
             where: { appointment_id },
-            include: {
-                pets: {
-                    include: { users: true },
-                },
-                veterinarians: {
-                    include: { users: true },
-                },
-            },
+            orderBy: { created_at: "desc" },
+            take: 5, // Looking at the most recent messages should be sufficient
         });
 
-        if (!appointment) {
-            return {
-                success: false,
-                error: "Appointment not found",
-            };
+        if (previousMessages.length > 0) {
+            // Find a message where the current user was either sender or receiver
+            const relevantMessage = previousMessages.find(
+                (msg) => msg.sender_id === currentUserId || msg.receiver_id === currentUserId,
+            );
+
+            if (relevantMessage) {
+                // If user was the sender before, the receiver is the same as the previous message's receiver
+                // If user was the receiver before, the receiver is the previous message's sender
+                inferredReceiverId =
+                    relevantMessage.sender_id === currentUserId
+                        ? relevantMessage.receiver_id
+                        : relevantMessage.sender_id;
+            }
         }
 
-        // Determine the sender and receiver IDs based on the current user's role
-        const currentUserId = Number(user.user.id);
-        let receiverId: number;
+        // If we couldn't determine the receiver from message history, fall back to the appointment lookup
+        if (!inferredReceiverId) {
+            // Verify user has access and get user roles
+            const accessCheck = await verifyAppointmentAccess(appointment_id, currentUserId);
 
-        // If the current user is the pet owner, send to the vet
-        if (appointment.pets?.users?.user_id === currentUserId) {
-            if (!appointment.veterinarians?.users?.user_id) {
+            if (!accessCheck.success || !accessCheck.appointment) {
                 return {
                     success: false,
-                    error: "Veterinarian not found for this appointment",
+                    error: accessCheck.error || "You don't have permission to access this appointment",
                 };
             }
-            receiverId = appointment.veterinarians.users.user_id;
+
+            const appointment = accessCheck.appointment;
+
+            // If current user is pet owner, receiver is vet
+            if (accessCheck.isPetOwner) {
+                if (!appointment.veterinarians?.users?.user_id) {
+                    return {
+                        success: false,
+                        error: "Veterinarian not found for this appointment",
+                    };
+                }
+                inferredReceiverId = appointment.veterinarians.users.user_id;
+            }
+            // If current user is vet, receiver is pet owner
+            else if (accessCheck.isVet) {
+                if (!appointment.pets?.users?.user_id) {
+                    return {
+                        success: false,
+                        error: "Pet owner not found for this appointment",
+                    };
+                }
+                inferredReceiverId = appointment.pets.users.user_id;
+            }
         }
-        // If the current user is the vet, send to the pet owner
-        else if (appointment.veterinarians?.users?.user_id === currentUserId) {
-            if (!appointment.pets?.users?.user_id) {
-                return {
-                    success: false,
-                    error: "Pet owner not found for this appointment",
-                };
-            }
-            receiverId = appointment.pets.users.user_id;
-        } else {
+
+        if (!inferredReceiverId) {
             return {
                 success: false,
-                error: "You are not associated with this appointment",
+                error: "Could not determine message recipient",
             };
         }
+        console.log(currentUserId);
 
         const message = await prisma.messages.create({
             data: {
                 appointment_id,
-                receiver_id: receiverId,
+                receiver_id: inferredReceiverId,
                 content: text,
                 sender_id: currentUserId,
             },
@@ -151,11 +192,9 @@ const sendMessage = async (text: string, appointment_id: number): Promise<Action
 /**
  * Gets all messages for a specific appointment
  */
-
-/**
- * Gets all messages for a specific appointment
- */
-const getMessages = async (appointment_id: number): Promise<ActionResponse<{ messages: messages[] }>> => {
+const getMessages = async (
+    appointment_id: number,
+): Promise<ActionResponse<{ messages: Modify<messages, { message_id: string }>[] }>> => {
     const session = await getServerSession(authOptions);
     if (!session || !session.user?.email || !session.user.role) redirect("/signin");
 
@@ -178,33 +217,20 @@ const getMessages = async (appointment_id: number): Promise<ActionResponse<{ mes
                 appointment_id,
                 OR: [{ sender_id: currentUserId }, { receiver_id: currentUserId }],
             },
-            include: {
-                sender: {
-                    select: {
-                        first_name: true,
-                        last_name: true,
-                        email: true,
-                    },
-                },
-                receiver: {
-                    select: {
-                        first_name: true,
-                        last_name: true,
-                        email: true,
-                    },
-                },
-            },
             orderBy: {
                 created_at: "asc",
             },
         });
-
         // Mark unread messages as read
         await markMessagesAsRead(appointment_id, currentUserId);
+        const formattedMessages = messages.map((m) => ({
+            ...m,
+            message_id: m.message_id.toString(), // Convert message_id to string
+        }));
 
         return {
             success: true,
-            data: { messages },
+            data: { messages: formattedMessages },
         };
     } catch (error) {
         return {

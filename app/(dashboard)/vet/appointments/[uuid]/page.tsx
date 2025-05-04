@@ -5,6 +5,7 @@ import {
     getHealthcareProcedures,
     getMedicalRecords,
     getMedicationsList,
+    getMessages,
     getPet,
     getPetHealthMonitoring,
     getPetVaccinations,
@@ -50,6 +51,7 @@ const getAppointmentCached = cache(async (uuid: string) => {
     const medicationResponse = await getMedicationsList();
     const petResponse = await getPet(response.data.appointment.pet_id);
     const petHealthCareProceduresResponse = await getHealthcareProcedures(response.data.appointment.pet_id);
+    const messagesResponse = await getMessages(response.data.appointment.appointment_id);
     if (
         !petResponse.success ||
         !petResponse.data.pet ||
@@ -58,7 +60,8 @@ const getAppointmentCached = cache(async (uuid: string) => {
         !getVaccinationsResponse.success ||
         !medicationResponse.success ||
         !petMedicalHistoryResponse.success ||
-        !petHealthCareProceduresResponse.success
+        !petHealthCareProceduresResponse.success ||
+        !messagesResponse.success
     ) {
         return null;
     }
@@ -70,6 +73,7 @@ const getAppointmentCached = cache(async (uuid: string) => {
         healthMonitoring: pastHealthMonitoringResponse.data.healthMonitoring,
         medications: medicationResponse.data.medication,
         procedures: petHealthCareProceduresResponse.data.procedures,
+        messages: messagesResponse.data.messages,
     };
 });
 
@@ -89,8 +93,15 @@ const ViewAppointment = async ({ params }: UUIDPageParams) => {
     const appointmentData = await getAppointmentCached(uuid);
     if (!appointmentData) notFound();
 
-    const { appointment, healthMonitoring, medicalHistory, vaccinations, medications, pet, procedures } =
+    const { appointment, healthMonitoring, medicalHistory, vaccinations, medications, pet, procedures, messages } =
         appointmentData;
+
+    // Infer participants at the top level
+    const chatParticipants = {
+        currentUserId: Number(session.user.id),
+        otherUserId: pet.user_id as number,
+        appointmentId: appointment.appointment_id,
+    };
 
     return (
         <section className="space-y-6 grid grid-cols-1 gap-4 xl:grid-cols-2">
@@ -134,9 +145,9 @@ const ViewAppointment = async ({ params }: UUIDPageParams) => {
             )}
             <CurrentAppointmentRecordedService appointmentUuid={appointment.appointment_uuid} />
             <AppointmentChat
-                appointmentId={appointment.appointment_id}
-                petOwnerId={pet.user_id as number}
-                vetId={Number(session.user.id)}
+                initialMessages={messages}
+                appointmentStatus={appointment.status}
+                chatParticipants={chatParticipants}
                 isVetView={true}
             />
 

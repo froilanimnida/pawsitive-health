@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getAppointment, getClinic, getPet, getUser, getVeterinarian } from "@/actions";
+import { getAppointment, getClinic, getMessages, getPet, getUser, getVeterinarian } from "@/actions";
 import { Metadata } from "next";
 import { AppointmentCard } from "@/components/shared/appointment-card";
 import AppointmentChat from "@/components/shared/appointment-chat";
@@ -26,12 +26,14 @@ const getAppointmentCached = cache(async (uuid: string) => {
     const clinicResponse = await getClinic(response.data.appointment.clinic_id);
     const veterinarianResponse = await getVeterinarian(response.data.appointment.vet_id);
     const petResponse = await getPet(response.data.appointment.pet_id);
+    const messagesResponse = await getMessages(response.data.appointment.appointment_id);
     if (
         !clinicResponse.success ||
         !petResponse.success ||
         !clinicResponse.data.clinic ||
         !veterinarianResponse.success ||
-        !veterinarianResponse.data.veterinarian.user_id
+        !veterinarianResponse.data.veterinarian.user_id ||
+        !messagesResponse.success
     ) {
         return null;
     }
@@ -45,8 +47,10 @@ const getAppointmentCached = cache(async (uuid: string) => {
         pets: petResponse.data.pet,
         veterinarians: veterinarianResponse.data.veterinarian,
         vetInfo: vetInfoResponse.data.user,
+        messages: messagesResponse.data.messages,
     };
 });
+
 async function ViewAppointment({ params }: { params: Promise<{ appointment_uuid: string }> }) {
     const session = await getServerSession(authOptions);
     if (!session || !session.user || !session.user.id || !session.user.role) {
@@ -55,6 +59,13 @@ async function ViewAppointment({ params }: { params: Promise<{ appointment_uuid:
     const { appointment_uuid } = await params;
     const response = await getAppointmentCached(appointment_uuid);
     if (!response) notFound();
+
+    // Infer participants at the top level
+    const chatParticipants = {
+        currentUserId: Number(session.user.id),
+        otherUserId: response.vetInfo.user_id,
+        appointmentId: response.appointment.appointment_id,
+    };
 
     return (
         <div className="container max-w-4xl py-6">
@@ -68,9 +79,9 @@ async function ViewAppointment({ params }: { params: Promise<{ appointment_uuid:
                 vetId={response.veterinarians.vet_id}
             />
             <AppointmentChat
-                appointmentId={response.appointment.appointment_id}
-                petOwnerId={Number(session.user.id)}
-                vetId={response.veterinarians.vet_id}
+                initialMessages={response.messages}
+                appointmentStatus={response.appointment.status}
+                chatParticipants={chatParticipants}
                 isVetView={false}
             />
         </div>
