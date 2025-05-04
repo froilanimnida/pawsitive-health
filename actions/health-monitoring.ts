@@ -5,9 +5,10 @@ import { HealthMonitoringSchema, type HealthMonitoringType } from "@/schemas";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
-import { type ActionResponse, HealthMonitoring } from "@/types";
+import type { ActionResponse, Modify } from "@/types";
 import { revalidatePath } from "next/cache";
-import { formatDecimal } from "@/lib";
+import { formatDecimal, getCurrentUtcDate } from "@/lib";
+import type { health_monitoring } from "@prisma/client";
 
 /**
  * Add a new health monitoring record for a pet
@@ -38,10 +39,17 @@ export async function addHealthMonitoringRecord(
                 temperature_celsius: values.temperature_celsius,
                 symptoms: values.symptoms,
                 notes: values.notes || "",
-                recorded_at: new Date(),
+                recorded_at: getCurrentUtcDate(),
             },
         });
-
+        await prisma.pets.update({
+            where: {
+                pet_id: values.pet_id,
+            },
+            data: {
+                weight_kg: values.weight_kg,
+            },
+        });
         revalidatePath(`/user/pets/${values.pet_uuid}`);
         return { success: true, data: { monitoring_id: healthMonitoring.monitoring_id } };
     } catch (error) {
@@ -54,37 +62,31 @@ export async function addHealthMonitoringRecord(
 
 /**
  * Get health monitoring records for a pet
+ * @param petId - The ID of the pet
+ * @return - An object containing the health monitoring records
  */
-export async function getPetHealthMonitoring(
-    petId: number,
-): Promise<ActionResponse<{ healthMonitoring: HealthMonitoring[] }>> {
+export async function getPetHealthMonitoring(petId: number): Promise<
+    ActionResponse<{
+        healthMonitoring: Modify<health_monitoring, { temperature_celsius: string; weight_kg: string }>[] | [];
+    }>
+> {
     const session = await getServerSession(authOptions);
     if (!session || !session.user || !session.user.id) redirect("/signin");
     try {
         const healthMonitoring = await prisma.health_monitoring.findMany({
-            where: {
-                pet_id: petId,
-                pets: {
-                    user_id: Number(session.user.id),
-                },
-            },
-            orderBy: {
-                recorded_at: "desc",
-            },
+            where: { pet_id: petId },
+            orderBy: { recorded_at: "desc" },
         });
 
-        const formattedHealthMonitoring = healthMonitoring.map((record) => ({
-            ...record,
-            temperature_celsius: formatDecimal(record.temperature_celsius),
-            weight_kg: formatDecimal(record.weight_kg),
+        const formattedHealthMonitoring = healthMonitoring.map((r) => ({
+            ...r,
+            temperature_celsius: formatDecimal(r.temperature_celsius),
+            weight_kg: formatDecimal(r.weight_kg),
         }));
 
         return { success: true, data: { healthMonitoring: formattedHealthMonitoring } };
     } catch (error) {
-        return {
-            success: false,
-            error: error instanceof Error ? error.message : "An unexpected error occurred",
-        };
+        return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
     }
 }
 

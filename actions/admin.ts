@@ -229,10 +229,7 @@ export const toggleUserStatus = async (userId: number): Promise<ActionResponse<{
                 disabled: !user.disabled,
             },
         });
-
-        revalidatePath(`/admin/users`);
-        revalidatePath(`/admin/users/${userId}`);
-
+        revalidatePath(`/admin/users/${updatedUser.user_uuid}`);
         return {
             success: true,
             data: { disabled: updatedUser.disabled ?? false },
@@ -276,7 +273,6 @@ export const deleteUser = async (userId: number): Promise<ActionResponse<boolean
         });
 
         revalidatePath(`/admin/users`);
-
         return { success: true, data: true };
     } catch (error) {
         console.error("Error deleting user:", error);

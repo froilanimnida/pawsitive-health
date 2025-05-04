@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import {ReactNode, Suspense} from "react";
 import {
     Tabs,
     TabsContent,
@@ -21,14 +21,17 @@ import type { PrescriptionWithMedication } from "@/types/common-prisma-join-type
 
 export function AppointmentHistoricalDataCard({
     petName,
-    data: { vaccinations, healthcareProcedures, prescriptions, medicalRecords },
+    data: { prescriptions },
+    vaccinations,
+    medicalRecords,
+    healthcareProcedures,
 }: {
     petName: string;
+    vaccinations: vaccinations[] | [];
+    medicalRecords: medical_records[] | [];
+    healthcareProcedures: healthcare_procedures[] | [];
     data: {
-        vaccinations: vaccinations[];
-        healthcareProcedures: healthcare_procedures[];
         prescriptions: PrescriptionWithMedication[];
-        medicalRecords: medical_records[];
     };
 }) {
     const formatDate = (date: Date | null) => {
@@ -175,18 +178,18 @@ export function AppointmentHistoricalDataCard({
                     <TabsContent value="records">
                         {medicalRecords && medicalRecords.length > 0 ? (
                             <div className="space-y-4">
-                                {medicalRecords.map((record) => (
-                                    <Card key={record.record_id}>
+                                {medicalRecords.map((r) => (
+                                    <Card key={r.record_id}>
                                         <CardHeader className="pb-2">
                                             <CardTitle className="text-base">
-                                                {record.diagnosis || "Medical Visit"}
+                                                {r.diagnosis || "Medical Visit"}
                                             </CardTitle>
-                                            <CardDescription>Visit on {formatDate(record.visit_date)}</CardDescription>
+                                            <CardDescription>Visit on {formatDate(r.visit_date)}</CardDescription>
                                         </CardHeader>
-                                        {record.notes && (
+                                        {r.notes && (
                                             <CardContent className="pt-0">
                                                 <p className="text-sm">
-                                                    <span className="font-medium">Notes:</span> {record.notes}
+                                                    <span className="font-medium">Notes:</span> {r.notes}
                                                 </p>
                                             </CardContent>
                                         )}
@@ -203,7 +206,7 @@ export function AppointmentHistoricalDataCard({
     );
 }
 
-function EmptyState({ icon, message }: { icon: React.ReactNode; message: string }) {
+function EmptyState({ icon, message }: { icon: ReactNode; message: string }) {
     return (
         <div className="py-10 flex flex-col items-center justify-center text-center border rounded-lg bg-muted/20">
             <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-4">
@@ -218,10 +221,16 @@ function EmptyState({ icon, message }: { icon: React.ReactNode; message: string 
 const AppointmentHistoricalData = async ({
     appointmentUuid,
     petName,
+    vaccinations,
+    medicalRecords,
+    healthcareProcedures,
 }: {
     appointmentUuid: string;
     petName: string;
     status: string;
+    vaccinations: vaccinations[] | [];
+    medicalRecords: medical_records[] | [];
+    healthcareProcedures: healthcare_procedures[] | [];
 }) => {
     const data = await getAppointmentHistoricalData(appointmentUuid);
     if (!data.success) {
@@ -233,7 +242,13 @@ const AppointmentHistoricalData = async ({
     }
     return (
         <Suspense fallback={<SkeletonCard />}>
-            <AppointmentHistoricalDataCard data={data.data} petName={petName} />
+            <AppointmentHistoricalDataCard
+                healthcareProcedures={healthcareProcedures}
+                data={data.data}
+                petName={petName}
+                vaccinations={vaccinations}
+                medicalRecords={medicalRecords}
+            />
         </Suspense>
     );
 };

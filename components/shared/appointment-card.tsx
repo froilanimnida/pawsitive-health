@@ -38,7 +38,7 @@ export function AppointmentCard({
     clinic?: clinics;
     pet: Modify<pets, { weight_kg: string }>;
     veterinarian?: Pick<veterinarians, "vet_id" | "specialization">;
-    vetInfo: Pick<users, "first_name" | "last_name">;
+    vetInfo?: Pick<users, "first_name" | "last_name">;
     additionalActions?: ReactNode;
     showAdditionalAction?: boolean;
     vetId: number;
@@ -46,7 +46,7 @@ export function AppointmentCard({
     const appointmentDate = new Date(appointment.appointment_date);
     const dateString = format(appointmentDate, "EEEE, MMMM d, yyyy");
     const timeString = format(appointmentDate, "h:mm a");
-    const vetName = `${vetInfo.first_name} ${vetInfo.last_name}`;
+    const vetName = `${vetInfo?.first_name} ${vetInfo?.last_name}`;
 
     return (
         <Card className="w-full">

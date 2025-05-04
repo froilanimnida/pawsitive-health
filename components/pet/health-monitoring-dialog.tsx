@@ -1,5 +1,4 @@
 "use client";
-
 import {
     Dialog,
     DialogContent,
@@ -18,15 +17,15 @@ export const HealthMonitoringDialog = ({
     petUuid,
     petName,
     triggerButton,
+    petCurrentWeight,
 }: {
     petId: number;
     petUuid: string;
     petName: string;
     triggerButton?: ReactNode;
+    petCurrentWeight: number;
 }) => {
     const [open, setOpen] = useState(false);
-
-    const handleSuccess = () => setOpen(false);
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -49,7 +48,7 @@ export const HealthMonitoringDialog = ({
                     <HealthMonitoringForm
                         petId={petId}
                         petUuid={petUuid}
-                        onSuccess={handleSuccess}
+                        currentWeight={petCurrentWeight}
                         onCancel={() => setOpen(false)}
                     />
                 </div>

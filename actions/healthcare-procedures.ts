@@ -4,7 +4,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib";
 import { type ProcedureType, ProcedureSchema } from "@/schemas";
 import type { ActionResponse } from "@/types/server-action-response";
-import type { healthcare_procedures, procedure_type } from "@prisma/client";
+import {healthcare_procedures, procedure_type, role_type} from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -69,20 +69,13 @@ const addHealthcareProcedure = async (values: ProcedureType | ProcedureType[]): 
 };
 
 const getHealthcareProcedures = async (
-    pet_uuid: string,
-): Promise<ActionResponse<{ procedures: healthcare_procedures[] }>> => {
+    pet_id: number,
+): Promise<ActionResponse<{ procedures: healthcare_procedures[] | [] }>> => {
     try {
-        const pet = await prisma.pets.findFirst({
-            where: {
-                pet_uuid: pet_uuid,
-            },
-        });
-        if (!pet) return { success: false, error: "Pet not found" };
         const procedures = await prisma.healthcare_procedures.findMany({
-            where: { pet_id: pet.pet_id },
+            where: { pet_id },
             orderBy: { procedure_date: "desc" },
         });
-        if (!procedures) return { success: false, error: "Failed to get healthcare procedures" };
         return { success: true, data: { procedures: procedures } };
     } catch (error) {
         return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
@@ -111,7 +104,7 @@ const deleteHealthcareProcedure = async (
     petUuid: string,
 ): Promise<ActionResponse | void> => {
     const session = await getServerSession(authOptions);
-    if (!session || !session.user || !session.user.id) redirect("/signin");
+    if (!session || !session.user || !session.user.id || session.user.role != role_type.veterinarian) redirect("/signin");
     try {
         const procedure = await prisma.healthcare_procedures.delete({
             where: {

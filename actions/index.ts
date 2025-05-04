@@ -89,3 +89,4 @@ export {
 } from "./notification";
 export { getAllUsers, adminResetPassword, toggleUserStatus, deleteUser } from "./admin";
 export { getMessages, sendMessage } from "./messages";
+export { getMedicalRecords } from "./medical-records"

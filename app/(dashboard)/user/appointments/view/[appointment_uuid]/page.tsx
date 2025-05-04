@@ -42,8 +42,9 @@ const getAppointmentCached = cache(async (uuid: string) => {
         vetInfo: vetInfoResponse.data.user,
     };
 });
-async function ViewAppointment({ params }: { params: { appointment_uuid: string } }) {
-    const response = await getAppointmentCached(params.appointment_uuid);
+async function ViewAppointment({ params }: { params: Promise<{ appointment_uuid: string }> }) {
+    const { appointment_uuid } = await params;
+    const response = await getAppointmentCached(appointment_uuid);
 
     if (!response) notFound();
 

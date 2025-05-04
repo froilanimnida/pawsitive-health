@@ -164,7 +164,12 @@ const PetDetails = async ({ params }: UUIDPageParams) => {
                         </DialogContent>
                     </Dialog>
 
-                    <HealthMonitoringDialog petId={pet_id} petUuid={pet_uuid} petName={name} />
+                    <HealthMonitoringDialog
+                        petId={pet_id}
+                        petUuid={pet_uuid}
+                        petName={name}
+                        petCurrentWeight={Number(pet.weight_kg)}
+                    />
 
                     <Button asChild variant="default">
                         <Link href={`/user/appointments/${pet_uuid}`}>Schedule Appointment</Link>

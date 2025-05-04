@@ -31,8 +31,17 @@ import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import type { pets, users } from "@prisma/client";
 import { useState } from "react";
+import type { Modify } from "@/types";
 
-export default function UserDetailView({ user, petCount, pets }: { user: users; petCount: number; pets: pets[] | [] }) {
+export default function UserDetailView({
+    user,
+    petCount,
+    pets,
+}: {
+    user: users;
+    petCount: number;
+    pets: Modify<pets, { weight_kg: string }>[] | [];
+}) {
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
     const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
@@ -81,7 +90,6 @@ export default function UserDetailView({ user, petCount, pets }: { user: users; 
 
                 if (result.success) {
                     toast.success(`User has been ${result.data?.disabled ? "disabled" : "enabled"} successfully`);
-                    router.refresh();
                 } else {
                     toast.error(result.error || "Failed to update user status");
                 }

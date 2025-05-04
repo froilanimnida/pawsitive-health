@@ -4,6 +4,7 @@ import { TextFormField } from "@/types/forms/text-form-field";
 import { SelectFormField } from "@/types/forms/select-form-field";
 import type { UseFormReturn } from "react-hook-form";
 import type { AppointmentControlSchema } from "./form-control-type";
+import type { Modify } from "@/types";
 
 export function getAppointmentFields(): TextFormField[] {
     return [
@@ -20,7 +21,7 @@ export function getAppointmentFields(): TextFormField[] {
 export function getAppointmentSelectFields(
     params: {
         uuid: string;
-        pets: pets[];
+        pets: Modify<pets, { weight_kg: string }>[];
         clinics: clinics[];
     },
     {

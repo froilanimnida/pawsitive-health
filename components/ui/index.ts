@@ -129,3 +129,12 @@ export {
     PaginationPrevious,
 } from "./pagination";
 export { ScrollArea, ScrollBar } from "./scroll-area";
+export {
+    type ChartConfig,
+    ChartContainer,
+    ChartLegend,
+    ChartLegendContent,
+    ChartStyle,
+    ChartTooltip,
+    ChartTooltipContent,
+} from "./chart";

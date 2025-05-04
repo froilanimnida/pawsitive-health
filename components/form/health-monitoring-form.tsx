@@ -24,19 +24,22 @@ import { addHealthMonitoringRecord } from "@/actions";
 import { createFormConfig, toTitleCase } from "@/lib";
 import { activity_level } from "@prisma/client";
 
-interface HealthMonitoringFormProps {
+export const HealthMonitoringForm = ({
+    petId,
+    petUuid,
+    currentWeight,
+    onCancel,
+}: {
     petId: number;
     petUuid: string;
-    onSuccess?: () => void;
+    currentWeight: number;
     onCancel?: () => void;
-}
-
-export const HealthMonitoringForm = ({ petId, petUuid, onSuccess, onCancel }: HealthMonitoringFormProps) => {
+}) => {
     const healthMonitoringForm = useForm<HealthMonitoringType>(
         createFormConfig({
             defaultValues: {
                 activity_level: activity_level.normal,
-                weight_kg: 0,
+                weight_kg: currentWeight,
                 temperature_celsius: 37.0,
                 symptoms: "",
                 notes: "",
@@ -64,7 +67,6 @@ export const HealthMonitoringForm = ({ petId, petUuid, onSuccess, onCancel }: He
 
             toast.success("Health monitoring data saved successfully");
             reset();
-            if (onSuccess) onSuccess();
         } catch {
             toast.error("Failed to save health monitoring data");
         }
@@ -112,7 +114,6 @@ export const HealthMonitoringForm = ({ petId, petUuid, onSuccess, onCancel }: He
                                         step="0.01"
                                         placeholder="Enter weight in kg"
                                         {...field}
-                                        onChange={(e) => field.onChange(parseFloat(e.target.value))}
                                         disabled={isSubmitting}
                                     />
                                 </FormControl>
@@ -134,7 +135,6 @@ export const HealthMonitoringForm = ({ petId, petUuid, onSuccess, onCancel }: He
                                         step="0.1"
                                         placeholder="Enter temperature in Celsius"
                                         {...field}
-                                        onChange={(e) => field.onChange(parseFloat(e.target.value))}
                                         disabled={isSubmitting}
                                     />
                                 </FormControl>
@@ -187,11 +187,9 @@ export const HealthMonitoringForm = ({ petId, petUuid, onSuccess, onCancel }: He
                 />
 
                 <div className="flex justify-end gap-2 pt-2">
-                    {onCancel && (
-                        <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
-                            Cancel
-                        </Button>
-                    )}
+                    <Button variant="outline" type="button" onClick={onCancel} disabled={isSubmitting}>
+                        Cancel
+                    </Button>
                     <Button type="submit" disabled={isSubmitting}>
                         {isSubmitting ? "Saving..." : "Save Health Record"}
                     </Button>
