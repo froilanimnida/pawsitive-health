@@ -4,11 +4,13 @@ import { cn } from "@/lib/utils";
 import { toTitleCase, formatDecimal } from "@/lib";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, Badge, Button, CardFooter } from "@/components/ui";
 import { CancelAppointmentButton } from "./cancel-appointment-button";
-import { AppointmentDetailsResponse } from "@/types/actions/appointments";
 import { AcceptAppointmentButton } from "./accept-appointment-button";
 import { CheckInButton } from "./checked-in-button";
 import { RescheduleAppointmentDialog } from "./reschedule-appointment-dialog";
 import { ConfirmationDialog } from "./confirmation-dialog";
+import type { appointments, clinics, pets, users, veterinarians } from "@prisma/client";
+import type { Modify } from "@/types";
+import type { ReactNode } from "react";
 
 export const statusColors: Record<string, string> = {
     confirmed: "bg-green-100 text-green-800 border-green-200",
@@ -22,21 +24,29 @@ export const statusColors: Record<string, string> = {
 
 export function AppointmentCard({
     appointment,
+    clinic,
+    pet,
+    veterinarian,
+    vetInfo,
     viewerType,
     additionalActions,
-    showAdditionalAction = true,
+    showAdditionalAction,
+    vetId,
 }: {
-    appointment: AppointmentDetailsResponse;
+    appointment: appointments;
     viewerType: "user" | "vet" | "clinic";
-    additionalActions?: React.ReactNode;
+    clinic?: clinics;
+    pet: Modify<pets, { weight_kg: string }>;
+    veterinarian?: Pick<veterinarians, "vet_id" | "specialization">;
+    vetInfo: Pick<users, "first_name" | "last_name">;
+    additionalActions?: ReactNode;
     showAdditionalAction?: boolean;
+    vetId: number;
 }) {
     const appointmentDate = new Date(appointment.appointment_date);
     const dateString = format(appointmentDate, "EEEE, MMMM d, yyyy");
     const timeString = format(appointmentDate, "h:mm a");
-    const vetName = appointment.veterinarians?.users
-        ? `${appointment.veterinarians.users.first_name} ${appointment.veterinarians.users.last_name}`
-        : "Unknown Veterinarian";
+    const vetName = `${vetInfo.first_name} ${vetInfo.last_name}`;
 
     return (
         <Card className="w-full">
@@ -82,7 +92,7 @@ export function AppointmentCard({
 
                 <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-6">
-                        {(viewerType === "vet" || viewerType === "clinic") && appointment.pets && (
+                        {(viewerType === "vet" || viewerType === "clinic") && (
                             <div className="space-y-2">
                                 <h3 className="text-lg font-medium">Pet Information</h3>
                                 <div className="border rounded-lg overflow-hidden">
@@ -91,11 +101,10 @@ export function AppointmentCard({
                                             <User className="h-6 w-6 text-gray-600" />
                                         </div>
                                         <div>
-                                            <div className="font-medium">{toTitleCase(appointment.pets.name)}</div>
+                                            <div className="font-medium">{toTitleCase(pet.name)}</div>
                                             <div className="text-sm text-gray-500">
-                                                {toTitleCase(appointment.pets.species)},{" "}
-                                                {toTitleCase(appointment.pets.breed) || "Mixed Breed"} •{" "}
-                                                {formatDecimal(appointment.pets.weight_kg)} kg
+                                                {toTitleCase(pet.species)}, {toTitleCase(pet.breed) || "Mixed Breed"} •{" "}
+                                                {formatDecimal(pet.weight_kg)} kg
                                             </div>
                                         </div>
                                     </div>
@@ -103,7 +112,7 @@ export function AppointmentCard({
                             </div>
                         )}
 
-                        {(viewerType === "user" || viewerType === "clinic") && appointment.veterinarians && (
+                        {(viewerType === "user" || viewerType === "clinic") && veterinarian && (
                             <div className="space-y-2">
                                 <h3 className="text-lg font-medium">Veterinarian</h3>
                                 <div className="border rounded-lg overflow-hidden">
@@ -114,7 +123,7 @@ export function AppointmentCard({
                                         <div>
                                             <div className="font-medium">Dr. {vetName}</div>
                                             <div className="text-sm text-gray-500">
-                                                {toTitleCase(appointment.veterinarians.specialization ?? "")}
+                                                {toTitleCase(veterinarian.specialization)}
                                             </div>
                                         </div>
                                     </div>
@@ -124,7 +133,7 @@ export function AppointmentCard({
                     </div>
 
                     <div className="space-y-6">
-                        {viewerType === "user" && appointment.clinics && (
+                        {viewerType === "user" && clinic && (
                             <div className="space-y-2">
                                 <h3 className="text-lg font-medium">Clinic</h3>
                                 <div className="border rounded-lg overflow-hidden">
@@ -133,14 +142,11 @@ export function AppointmentCard({
                                             <MapPin className="h-6 w-6 text-gray-600" />
                                         </div>
                                         <div>
-                                            <div className="font-medium">{appointment.clinics.name}</div>
+                                            <div className="font-medium">{clinic.name}</div>
                                             <div className="text-sm text-gray-500">
-                                                {appointment.clinics.address}, {appointment.clinics.city},{" "}
-                                                {appointment.clinics.state} {appointment.clinics.postal_code}
+                                                {clinic.address}, {clinic.city}, {clinic.state} {clinic.postal_code}
                                             </div>
-                                            <div className="text-sm text-gray-500 mt-1">
-                                                {appointment.clinics.phone_number}
-                                            </div>
+                                            <div className="text-sm text-gray-500 mt-1">{clinic.phone_number}</div>
                                         </div>
                                     </div>
                                 </div>
@@ -238,7 +244,7 @@ export function AppointmentCard({
                             {appointment.status !== "cancelled" && appointment.status !== "checked_in" && (
                                 <RescheduleAppointmentDialog
                                     appointmentUuid={appointment.appointment_uuid}
-                                    vetId={appointment.veterinarians?.vet_id || 0}
+                                    vetId={vetId}
                                     currentDate={appointmentDate}
                                     currentNotes={appointment.notes || ""}
                                 >

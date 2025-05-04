@@ -1,9 +1,8 @@
 "use server";
-import { prisma } from "@/lib";
+import { getCurrentUtcDate, prisma } from "@/lib";
 import { ActionResponse } from "@/types";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import { getUserId } from "@/actions";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import type { appointments, messages } from "@prisma/client";
@@ -18,7 +17,7 @@ const markMessagesAsRead = async (appointmentId: number, receiverId: number): Pr
         },
         data: {
             is_read: true,
-            updated_at: new Date(),
+            updated_at: getCurrentUtcDate(),
         },
     });
 };
@@ -71,8 +70,6 @@ const sendMessage = async (text: string, appointment_id: number): Promise<Action
     const user = await auth();
     if (!user || !user.user?.email) redirect("/signin");
     try {
-        const user_data = await getUserId(user.user.email);
-
         if (!appointment_id) {
             return {
                 success: false,
@@ -101,7 +98,7 @@ const sendMessage = async (text: string, appointment_id: number): Promise<Action
         }
 
         // Determine the sender and receiver IDs based on the current user's role
-        const currentUserId = Number(user_data);
+        const currentUserId = Number(user.user.id);
         let receiverId: number;
 
         // If the current user is the pet owner, send to the vet

@@ -36,11 +36,12 @@ const EditPetForm = ({ petName, weightKg, petId }: { petName: string; weightKg: 
     } = editPetForm;
 
     const onSubmit = async (values: UpdatePetType) => {
+        console.log("Form values:", values);
         const t = toast.loading("Updating pet...");
         const result = await updatePet(values);
         toast.dismiss(t);
 
-        if (result === undefined) {
+        if (!result) {
             toast.success("Pet updated successfully");
             return;
         }
@@ -57,7 +58,7 @@ const EditPetForm = ({ petName, weightKg, petId }: { petName: string; weightKg: 
                         <FormItem>
                             <FormLabel>Pet Name</FormLabel>
                             <FormControl>
-                                <Input placeholder="Enter pet name" {...field} />
+                                <Input disabled={isSubmitting} placeholder="Enter pet name" {...field} />
                             </FormControl>
                             <FormDescription>
                                 The name of your pet. This will be used for identification.
@@ -74,7 +75,12 @@ const EditPetForm = ({ petName, weightKg, petId }: { petName: string; weightKg: 
                         <FormItem>
                             <FormLabel>Weight (kg)</FormLabel>
                             <FormControl>
-                                <Input type="number" placeholder="Enter weight in kg" {...field} />
+                                <Input
+                                    disabled={isSubmitting}
+                                    type="number"
+                                    placeholder="Enter weight in kg"
+                                    {...field}
+                                />
                             </FormControl>
                             <FormDescription>
                                 The weight of your pet in kilograms. Please enter a positive number.

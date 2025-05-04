@@ -14,3 +14,4 @@ export { getNotificationColor, getNotificationIcon } from "./notification-ui-uti
 export { createCalendarEventDetails } from "./create-calendar-event-details";
 export { createCalendarEvent, deleteCalendarEvent, getCalendarEvent, updateCalendarEvent } from "./google/calendar";
 export { sha256Hash } from "./functions/security/generate-hash";
+export { convertToTimezone } from "./functions/timezone";

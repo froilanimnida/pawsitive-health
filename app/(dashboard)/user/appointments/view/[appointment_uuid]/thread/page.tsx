@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Send } from "lucide-react";
-import { useParams } from "next/navigation";
+import { notFound, useParams } from "next/navigation";
 import {
     Card,
     CardContent,
@@ -16,6 +16,7 @@ import {
 } from "@/components/ui";
 import { getMessages, sendMessage } from "@/actions/messages";
 import type { messages } from "@prisma/client";
+import { getAppointment } from "@/actions";
 //import { getCurrentUtcDate } from "@/lib";
 
 export default function UserAppointmentThread() {
@@ -34,21 +35,20 @@ export default function UserAppointmentThread() {
                 if (!uuid) return;
 
                 // First get the appointment ID from the UUID
-                const response = await fetch(`/api/appointments/${uuid}`);
-                const appointmentData = await response.json();
+                const response = await getAppointment(uuid);
+                if (!response.success || !response.data) {
+                    notFound();
+                }
+                setAppointmentId(response.data.appointment.appointment_id);
 
-                if (appointmentData?.appointment_id) {
-                    setAppointmentId(appointmentData.appointment_id);
-
-                    // Then fetch messages for this appointment
-                    const messagesResponse = await getMessages(appointmentData.appointment_id);
-                    if (messagesResponse.success && messagesResponse.data) {
-                        const formattedMessages = messagesResponse.data.messages.map((msg) => ({
-                            ...msg,
-                            role: msg.sender_id === appointmentData.user_id ? "user" : "vet",
-                        }));
-                        setMessages(formattedMessages);
-                    }
+                // Then fetch messages for this appointment
+                const messagesResponse = await getMessages(response.data.appointment.appointment_id);
+                if (messagesResponse.success && messagesResponse.data) {
+                    const formattedMessages = messagesResponse.data.messages.map((msg) => ({
+                        ...msg,
+                        role: msg.sender_id === response.data.appointment.veterinarians?.vet_id ? "user" : "vet",
+                    }));
+                    setMessages(formattedMessages);
                 }
             } catch (error) {
                 console.error("Error fetching appointment data:", error);

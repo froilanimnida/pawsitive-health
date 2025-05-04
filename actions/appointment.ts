@@ -17,10 +17,10 @@ import type {
     vaccinations,
     medical_records,
     healthcare_procedures,
+    appointments,
 } from "@prisma/client";
 import { endOfDay, startOfDay } from "date-fns";
 import type {
-    AppointmentDetailsResponse,
     ActionResponse,
     GetUserAppointmentsResponse,
     GetExistingAppointmentsType,
@@ -289,60 +289,13 @@ const getVeterinarianAppointments = async (): Promise<
         return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
     }
 };
-const getAppointment = async (
-    appointment_uuid: string,
-    is_user: boolean = false,
-): Promise<ActionResponse<{ appointment: AppointmentDetailsResponse }>> => {
+const getAppointment = async (appointment_uuid: string): Promise<ActionResponse<{ appointment: appointments }>> => {
     const session = await getServerSession(authOptions);
     if (!session || !session.user || !session.user.id) redirect("/signin");
     try {
         const appointment = await prisma.appointments.findFirst({
             where: {
                 appointment_uuid: appointment_uuid,
-            },
-            select: {
-                appointment_id: true,
-                appointment_uuid: true,
-                appointment_date: true,
-                appointment_type: true,
-                created_at: true,
-                duration_minutes: true,
-                notes: true,
-                status: true,
-                pets: {
-                    select: {
-                        name: true,
-                        species: true,
-                        breed: true,
-                        pet_id: true,
-                        pet_uuid: true,
-                        weight_kg: true,
-                    },
-                },
-                veterinarians: {
-                    select: {
-                        specialization: true,
-                        vet_id: true,
-                        users: {
-                            select: {
-                                first_name: true,
-                                last_name: true,
-                            },
-                        },
-                    },
-                },
-                clinics: is_user
-                    ? {
-                          select: {
-                              name: true,
-                              address: true,
-                              city: true,
-                              state: true,
-                              postal_code: true,
-                              phone_number: true,
-                          },
-                      }
-                    : undefined,
             },
         });
 

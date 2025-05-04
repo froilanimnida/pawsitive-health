@@ -52,7 +52,13 @@ export { getClinicSchedule } from "./clinic-schedule";
 export { createMedication, getMedicationsList } from "./medications";
 export { sendEmail, sendSimpleEmail } from "./send-email";
 export { getEducationalContent, getEducationalContentByUuid } from "./educational-content";
-export { addPrescription, viewPrescription, deletePrescription } from "./prescription";
+export {
+    addPrescription,
+    viewPrescription,
+    deletePrescription,
+    getPrescription,
+    getPrescriptions,
+} from "./prescription";
 export {
     changeTheme,
     createNewPreferenceDefault,

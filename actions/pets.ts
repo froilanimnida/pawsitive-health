@@ -1,8 +1,8 @@
 "use server";
 import { formatDecimal, getCurrentUtcDate, prisma, toTitleCase } from "@/lib";
 import { PetOnboardingSchema, UpdatePetSchema, type UpdatePetType, OnboardingPetSchema } from "@/schemas";
-import { procedure_type, type breed_type, type pet_sex_type, type pets, type species_type } from "@prisma/client";
-import type { ActionResponse, Pets } from "@/types";
+import { type breed_type, type pet_sex_type, type pets, type species_type } from "@prisma/client";
+import type { ActionResponse, Modify, Pets } from "@/types";
 import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
@@ -47,7 +47,7 @@ const addPet = async (values: PetOnboardingSchema): Promise<ActionResponse | voi
                 await prisma.healthcare_procedures.createMany({
                     data: newPetData.data.healthcare.procedures.map((proc) => ({
                         pet_id: pet.pet_id,
-                        procedure_type: proc.procedure_type as procedure_type,
+                        procedure_type: proc.procedure_type,
                         procedure_date: proc.procedure_date,
                         next_due_date: proc.next_due_date,
                         product_used: proc.product_used,
@@ -66,136 +66,27 @@ const addPet = async (values: PetOnboardingSchema): Promise<ActionResponse | voi
 /**
  * Get a pet by its UUID
  */
-function getPet(pet_uuid: string): Promise<ActionResponse<{ pet: Pets }>>;
+function getPet(pet_uuid: string): Promise<ActionResponse<{ pet: Modify<pets, { weight_kg: string }> }>>;
 /**
  * Get a pet by its ID
  */
-function getPet(pet_id: number): Promise<ActionResponse<{ pet: Pets }>>;
+function getPet(pet_id: number): Promise<ActionResponse<{ pet: Modify<pets, { weight_kg: string }> }>>;
 /**
  * Implementation that handles both overloads
  */
-async function getPet(identifier: string | number): Promise<ActionResponse<{ pet: Pets }>> {
+async function getPet(
+    identifier: string | number,
+): Promise<ActionResponse<{ pet: Modify<pets, { weight_kg: string }> }>> {
     const session = await getServerSession(authOptions);
     if (!session || !session.user || !session.user.id) redirect("/signin");
     try {
         const where = typeof identifier === "string" ? { pet_uuid: identifier } : { pet_id: identifier };
-
-        const pet = await prisma.pets.findUnique({
-            where,
-            include: {
-                vaccinations: {
-                    orderBy: {
-                        administered_date: "desc",
-                    },
-                    include: {
-                        veterinarians: {
-                            include: {
-                                users: {
-                                    select: {
-                                        first_name: true,
-                                        last_name: true,
-                                    },
-                                },
-                            },
-                        },
-                    },
-                },
-                medical_records: {
-                    orderBy: {
-                        visit_date: "desc",
-                    },
-                    include: {
-                        veterinarians: {
-                            include: {
-                                users: {
-                                    select: {
-                                        first_name: true,
-                                        last_name: true,
-                                    },
-                                },
-                            },
-                        },
-                    },
-                },
-                healthcare_procedures: {
-                    orderBy: {
-                        procedure_date: "desc",
-                    },
-                    include: {
-                        veterinarians: {
-                            include: {
-                                users: {
-                                    select: {
-                                        first_name: true,
-                                        last_name: true,
-                                    },
-                                },
-                            },
-                        },
-                    },
-                },
-                appointments: {
-                    orderBy: {
-                        appointment_date: "desc",
-                    },
-                    include: {
-                        veterinarians: {
-                            include: {
-                                users: {
-                                    select: {
-                                        first_name: true,
-                                        last_name: true,
-                                    },
-                                },
-                            },
-                        },
-                        clinics: true,
-                    },
-                },
-                prescriptions: {
-                    orderBy: {
-                        created_at: "desc",
-                    },
-                    include: {
-                        medications: true,
-                        veterinarians: {
-                            include: {
-                                users: {
-                                    select: {
-                                        first_name: true,
-                                        last_name: true,
-                                    },
-                                },
-                            },
-                        },
-                    },
-                },
-                health_monitoring: {
-                    orderBy: {
-                        recorded_at: "desc",
-                    },
-                },
-            },
-        });
-
+        const pet = await prisma.pets.findUnique({ where });
         if (!pet) return { success: false, error: "Pet not found" };
-
-        const petInfo = {
-            ...pet,
-            weight_kg: formatDecimal(pet.weight_kg),
-            health_monitoring: pet.health_monitoring.map((record) => ({
-                ...record,
-                weight_kg: formatDecimal(record.weight_kg),
-                temperature_celsius: formatDecimal(record.temperature_celsius),
-            })),
-        };
-
+        const petInfo = { ...pet, weight_kg: formatDecimal(pet.weight_kg) };
         return { success: true, data: { pet: petInfo } };
     } catch (error) {
-        return {
-            success: false,
-            error: error instanceof Error ? error.message : "An unexpected error occurred",
-        };
+        return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
     }
 }
 
@@ -208,13 +99,7 @@ const updatePet = async (values: UpdatePetType): Promise<ActionResponse | void> 
             name: petData.data.name,
             weight_kg: petData.data.weight_kg,
             updated_at: getCurrentUtcDate(),
-            profile_picture_url: "",
         };
-
-        // Only include profile picture if it's provided
-        if (petData.data.profile_picture_url) {
-            updateData.profile_picture_url = petData.data.profile_picture_url;
-        }
 
         const pet = await prisma.pets.update({
             where: { pet_id: petData.data.pet_id },
@@ -291,19 +176,29 @@ const getUserPets = async (): Promise<ActionResponse<{ pets: Pets[] }>> => {
     }
 };
 
-async function getPets(user_id: number): Promise<ActionResponse<{ pets: pets[] | [] }>> {
+/**
+ * Get a list of pets for a specific user
+ * @param user_id The ID of the user to get pets for (optional, defaults to the current session user)
+ * @returns A promise that resolves to an ActionResponse containing the list of pets
+ */
+async function getPets(
+    user_id?: number,
+): Promise<ActionResponse<{ pets: Modify<pets, { weight_kg: string }>[] | [] }>> {
     const session = await getServerSession(authOptions);
     if (!session || !session.user || !session.user.id) redirect("/signin");
     try {
         const pets = await prisma.pets.findMany({
             where: {
-                user_id: user_id,
+                user_id: user_id ? user_id : Number(session.user.id),
                 deleted: false,
             },
             orderBy: { created_at: "desc" },
         });
-        if (!pets || pets.length === 0) return { success: true, data: { pets: [] } };
-        return { success: true, data: { pets } };
+        const formattedPets = pets.map((p) => ({
+            ...p,
+            weight_kg: formatDecimal(p.weight_kg),
+        }));
+        return { success: true, data: { pets: formattedPets } };
     } catch (error) {
         return {
             success: false,
@@ -312,7 +207,7 @@ async function getPets(user_id: number): Promise<ActionResponse<{ pets: pets[] |
     }
 }
 
-const getUserPetsList = async (): Promise<ActionResponse<{ pets: pets[] | [] }>> => {
+const getUserPetsList = async (): Promise<ActionResponse<{ pets: Modify<pets, { weight_kg: string }>[] | [] }>> => {
     const session = await getServerSession(authOptions);
     if (!session || !session.user || !session.user.id) redirect("/signin");
     try {
@@ -323,9 +218,13 @@ const getUserPetsList = async (): Promise<ActionResponse<{ pets: pets[] | [] }>>
             },
             orderBy: { created_at: "desc" },
         });
+        const formattedPets = pets.map((p) => ({
+            ...p,
+            weight_kg: formatDecimal(p.weight_kg),
+        }));
         return {
             success: true,
-            data: { pets },
+            data: { pets: formattedPets },
         };
     } catch (error) {
         return {

@@ -1,5 +1,4 @@
 "use client";
-
 import { useState } from "react";
 import {
     Card,
@@ -24,19 +23,15 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { calculateAge, toTitleCase } from "@/lib";
 import { updatePetProfileImage } from "@/lib/functions/upload/update-pet-profile-image";
-import type { Pets } from "@/types";
+import type { Modify } from "@/types";
+import type { pets } from "@prisma/client";
 
-interface PetCardProps {
-    pet: Pets;
-}
-
-export default function PetCard({ pet }: PetCardProps) {
+export default function PetCard({ pet }: { pet: Modify<pets, { weight_kg: string }> }) {
     const [isHovering, setIsHovering] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const [showImageDialog, setShowImageDialog] = useState(false);
     const [profileImage, setProfileImage] = useState<File | null>(null);
     const [imageUrl, setImageUrl] = useState<string | null>(pet.profile_picture_url);
-
     const handleMouseEnter = () => setIsHovering(true);
     const handleMouseLeave = () => setIsHovering(false);
 
@@ -94,8 +89,7 @@ export default function PetCard({ pet }: PetCardProps) {
             } else {
                 toast.error(result.error || "Failed to remove profile picture");
             }
-        } catch (error) {
-            console.error("Error removing profile picture:", error);
+        } catch {
             toast.error("Failed to remove image");
         } finally {
             setIsUploading(false);
@@ -123,10 +117,9 @@ export default function PetCard({ pet }: PetCardProps) {
                         )}
                     </Avatar>
 
-                    {/* Camera overlay on hover */}
                     {isHovering && (
                         <div
-                            className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-full h-24 w-24 mx-auto cursor-pointer"
+                            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center bg-black/30 rounded-full h-24 w-24 cursor-pointer"
                             onClick={handleImageClick}
                         >
                             <Camera className="h-8 w-8 text-white" />
@@ -164,7 +157,7 @@ export default function PetCard({ pet }: PetCardProps) {
             </Card>
 
             <Dialog open={showImageDialog} onOpenChange={setShowImageDialog}>
-                <DialogContent>
+                <DialogContent className="max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>Update Pet Profile Picture</DialogTitle>
                         <DialogDescription>Upload a new profile picture for {toTitleCase(pet.name)}</DialogDescription>

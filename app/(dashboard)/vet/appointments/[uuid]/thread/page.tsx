@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Send } from "lucide-react";
-import { useParams } from "next/navigation";
+import { notFound, useParams } from "next/navigation";
 import {
     Card,
     CardContent,
@@ -14,7 +14,7 @@ import {
     Button,
     Input,
 } from "@/components/ui";
-import { getMessages, sendMessage } from "@/actions";
+import { getAppointment, getMessages, sendMessage } from "@/actions";
 import type { messages } from "@prisma/client";
 
 export default function VeterinaryAppointmentThread() {
@@ -33,21 +33,21 @@ export default function VeterinaryAppointmentThread() {
                 if (!uuid) return;
 
                 // First get the appointment ID from the UUID
-                const response = await fetch(`/api/appointments/${uuid}`);
-                const appointmentData = await response.json();
+                const response = await getAppointment(uuid);
+                if (!response.success || !response.data) {
+                    notFound();
+                }
 
-                if (appointmentData?.appointment_id) {
-                    setAppointmentId(appointmentData.appointment_id);
+                setAppointmentId(response.data.appointment.appointment_id);
 
-                    // Then fetch messages for this appointment
-                    const messagesResponse = await getMessages(appointmentData.appointment_id);
-                    if (messagesResponse.success && messagesResponse.data) {
-                        const formattedMessages = messagesResponse.data.messages.map((msg) => ({
-                            ...msg,
-                            role: msg.sender_id === appointmentData.veterinarian_id ? "vet" : "user",
-                        }));
-                        setMessages(formattedMessages);
-                    }
+                // Then fetch messages for this appointment
+                const messagesResponse = await getMessages(response.data.appointment.appointment_id);
+                if (messagesResponse.success && messagesResponse.data) {
+                    const formattedMessages = messagesResponse.data.messages.map((msg) => ({
+                        ...msg,
+                        role: msg.sender_id === response.data.appointment.veterinarians?.vet_id ? "vet" : "user",
+                    }));
+                    setMessages(formattedMessages);
                 }
             } catch (error) {
                 console.error("Error fetching appointment data:", error);
@@ -75,7 +75,8 @@ export default function VeterinaryAppointmentThread() {
 
         // Actually send the message
         try {
-            await sendMessage(input, appointmentId);
+            const result = await sendMessage(input, appointmentId);
+            console.log("Message sent:", result);
         } catch (error) {
             console.error("Error sending message:", error);
             // Could add error handling UI here

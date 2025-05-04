@@ -1,36 +1,76 @@
 import { notFound } from "next/navigation";
-import { getAppointment } from "@/actions";
+import { getAppointment, getClinic, getPet, getUser, getVeterinarian } from "@/actions";
 import { Metadata } from "next";
 import { AppointmentCard } from "@/components/shared/appointment-card";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { MessageSquare } from "lucide-react";
+import AppointmentChat from "@/components/shared/appointment-chat";
+import { cache } from "react";
 
 export const metadata: Metadata = {
     title: "View Appointment | PawsitiveHealth",
     description: "View your pet's appointment details",
 };
 
-const ViewAppointment = async ({ params }: { params: Promise<{ appointment_uuid: string }> }) => {
-    const { appointment_uuid } = await params;
-    const appointmentResponse = await getAppointment(appointment_uuid, true);
-    if (!appointmentResponse.success || !appointmentResponse.data?.appointment) notFound();
-    const { appointment } = appointmentResponse.data;
+const getAppointmentCached = cache(async (uuid: string) => {
+    const response = await getAppointment(uuid);
+    if (
+        !response.success ||
+        !response.data?.appointment ||
+        !response.data.appointment.clinic_id ||
+        !response.data.appointment.pet_id ||
+        !response.data.appointment.vet_id
+    ) {
+        return null;
+    }
+    const clinicResponse = await getClinic(response.data.appointment.clinic_id);
+    const veterinarianResponse = await getVeterinarian(response.data.appointment.vet_id);
+    const petResponse = await getPet(response.data.appointment.pet_id);
+    const vetInfoResponse = await getUser(response.data.appointment.vet_id);
+    if (
+        !clinicResponse.success ||
+        !petResponse.success ||
+        !clinicResponse.data.clinic ||
+        !veterinarianResponse.success ||
+        !vetInfoResponse.success
+    ) {
+        return null;
+    }
+    return {
+        appointment: response.data.appointment,
+        clinics: clinicResponse.data.clinic,
+        pets: petResponse.data.pet,
+        veterinarians: veterinarianResponse.data.veterinarian,
+        vetInfo: vetInfoResponse.data.user,
+    };
+});
+async function ViewAppointment({ params }: { params: { appointment_uuid: string } }) {
+    const response = await getAppointmentCached(params.appointment_uuid);
 
-    const ChatButton = () => (
-        <Link href={`/user/appointments/view/${appointment_uuid}/thread`}>
-            <Button variant="outline" size="sm" className="flex items-center gap-2">
-                <MessageSquare className="h-4 w-4" />
-                <span>Chat with Vet</span>
-            </Button>
-        </Link>
-    );
+    if (!response) notFound();
+
+    const petOwnerId = response.appointment.pet_id;
+    const vetId = response.veterinarians?.user_id || response.veterinarians.vet_id;
 
     return (
         <div className="container max-w-4xl py-6">
-            <AppointmentCard appointment={appointment} viewerType="user" additionalActions={<ChatButton />} />
+            <AppointmentCard
+                clinic={response.clinics}
+                vetInfo={response.vetInfo}
+                appointment={response.appointment}
+                pet={response.pets}
+                viewerType="user"
+                veterinarian={response.veterinarians}
+                vetId={response.veterinarians.vet_id}
+            />
+            {petOwnerId && vetId && (
+                <AppointmentChat
+                    appointmentId={response.appointment.appointment_id}
+                    petOwnerId={petOwnerId}
+                    vetId={vetId}
+                    isVetView={false}
+                />
+            )}
         </div>
     );
-};
+}
 
 export default ViewAppointment;

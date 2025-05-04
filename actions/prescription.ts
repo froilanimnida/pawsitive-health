@@ -274,4 +274,93 @@ const deletePrescription = async (prescription_id: number, apppointment_uuid: st
     }
 };
 
-export { addPrescription, viewPrescription, deletePrescription };
+/**
+ * Get a prescription by ID or UUID
+ * @param prescription_id_or_uuid - The ID or UUID of the prescription
+ * @returns The prescription object if found, or an error message
+ * @throws Will throw an error if the prescription is not found or if there is a database error
+ * @example
+ * const prescription = await getPrescription("some-uuid");
+ * if (prescription.success) {
+ *     console.log(prescription.data.prescription);
+ * } else {
+ *     console.error(prescription.error);
+ * }
+ */
+async function getPrescription(prescription_uuid: string): Promise<ActionResponse<{ prescription: prescriptions }>>;
+async function getPrescription(prescription_id: number): Promise<ActionResponse<{ prescription: prescriptions }>>;
+async function getPrescription(
+    prescription_id_or_uuid: string | number,
+): Promise<ActionResponse<{ prescription: prescriptions }>> {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) redirect("/signin");
+
+    try {
+        const where =
+            typeof prescription_id_or_uuid === "string"
+                ? { prescription_uuid: prescription_id_or_uuid }
+                : { prescription_id: prescription_id_or_uuid };
+
+        const prescription = await prisma.prescriptions.findUnique({
+            where,
+            include: {
+                time_slot_details: true,
+            },
+        });
+
+        if (!prescription) {
+            return {
+                success: false,
+                error: "Prescription not found",
+            };
+        }
+
+        return {
+            success: true,
+            data: { prescription },
+        };
+    } catch (error) {
+        console.error("Failed to get prescription:", error);
+        return {
+            success: false,
+            error: "Failed to fetch prescription",
+        };
+    }
+}
+
+const getPrescriptions = async (
+    pet_id: number,
+    appointment_id?: number,
+): Promise<ActionResponse<{ prescriptions: prescriptions[] }>> => {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) redirect("/signin");
+    try {
+        const prescriptions = await prisma.prescriptions.findMany({
+            where: {
+                pet_id: pet_id,
+                appointment_id: appointment_id,
+            },
+            include: {
+                time_slot_details: true,
+            },
+        });
+        if (!prescriptions) {
+            return {
+                success: false,
+                error: "No prescriptions found",
+            };
+        }
+        return {
+            success: true,
+            data: { prescriptions },
+        };
+    } catch (error) {
+        console.error("Failed to get prescriptions:", error);
+        return {
+            success: false,
+            error: "Failed to fetch prescriptions",
+        };
+    }
+};
+
+export { addPrescription, viewPrescription, deletePrescription, getPrescription, getPrescriptions };

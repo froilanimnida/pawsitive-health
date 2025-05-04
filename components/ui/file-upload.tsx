@@ -5,15 +5,6 @@ import { UploadCloud, X, ImageIcon } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 
-interface FileUploadProps {
-    onFileChange: (file: File | null) => void;
-    currentImageUrl?: string | null;
-    className?: string;
-    label?: string;
-    accept?: string;
-    maxSizeMB?: number;
-}
-
 export function FileUpload({
     onFileChange,
     currentImageUrl = null,
@@ -21,7 +12,14 @@ export function FileUpload({
     label = "Upload file",
     accept = "image/*",
     maxSizeMB = 5,
-}: FileUploadProps) {
+}: {
+    onFileChange: (file: File | null) => void;
+    currentImageUrl?: string | null;
+    className?: string;
+    label?: string;
+    accept?: string;
+    maxSizeMB?: number;
+}) {
     const [previewUrl, setPreviewUrl] = useState<string | null>(currentImageUrl);
     const [error, setError] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -34,9 +32,7 @@ export function FileUpload({
         const file = e.target.files?.[0] || null;
         setError(null);
 
-        if (!file) {
-            return;
-        }
+        if (!file) return;
 
         // Validate file size (MB)
         if (file.size > maxSizeMB * 1024 * 1024) {
@@ -64,18 +60,16 @@ export function FileUpload({
     const handleRemove = () => {
         setPreviewUrl(null);
         onFileChange(null);
-        if (fileInputRef.current) {
-            fileInputRef.current.value = "";
-        }
+        if (fileInputRef.current) fileInputRef.current.value = "";
     };
 
     return (
-        <div className={cn("flex flex-col items-center gap-3", className)}>
+        <div className={cn("flex flex-col items-center gap-3 h-auto", className)}>
             <input type="file" className="hidden" accept={accept} ref={fileInputRef} onChange={handleFileChange} />
 
             {previewUrl ? (
                 <div className="relative w-full h-40 mb-2">
-                    <Image src={previewUrl} alt="File preview" fill className="object-cover rounded-md" />
+                    <Image src={previewUrl} alt="File preview" fill className="w-full object-contain rounded-md" />
                     <Button
                         variant="destructive"
                         size="icon"

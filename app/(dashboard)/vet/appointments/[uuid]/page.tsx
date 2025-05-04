@@ -1,44 +1,55 @@
 import { AppointmentCard } from "@/components/shared/appointment-card";
 import { notFound } from "next/navigation";
-import { getAppointment, getMedicationsList } from "@/actions";
-import { type Metadata } from "next";
+import {
+    getAppointment,
+    getMedicationsList,
+    getPet,
+    getPetHistoricalHealthcareData,
+    getPetVaccinations,
+} from "@/actions";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui";
 import { AppointmentHealthcareForms } from "@/components/form/appointment-healthcare-forms";
 import AppointmentHistoricalData from "@/components/shared/appointment-historical-data";
 import CurrentAppointmentRecordedService from "@/components/shared/veterinary/session-data";
+import AppointmentChat from "@/components/shared/appointment-chat";
 import type { UUIDPageParams } from "@/types";
 import { cache } from "react";
 
 const getAppointmentCached = cache(async (uuid: string) => {
-    const response = await getAppointment(uuid, true);
-    if (!response.success || !response.data?.appointment) {
+    const response = await getAppointment(uuid);
+    if (!response.success || !response.data?.appointment || !response.data.appointment.pet_id) {
         return null;
     }
-    return response.data.appointment;
+    const petHistoricalDataResponse = await getPetHistoricalHealthcareData(response.data.appointment.pet_id);
+    const getVaccinationsResponse = getPetVaccinations(response.data.appointment.pet_id);
+    const petMedicalHistoryResponse = undefined;
+    const petResponse = await getPet(response.data.appointment.pet_id);
+    if (!petResponse.success || !petResponse.data.pet) {
+        return null;
+    }
+    return {
+        appointment: response.data.appointment,
+        pets: petResponse.data.pet,
+        petHistoricalData: petHistoricalDataResponse.success ? petHistoricalDataResponse.data : null,
+    };
 });
 
-export async function generateMetadata({ params }: UUIDPageParams): Promise<Metadata> {
-    const { uuid } = await params;
-    const appointment = await getAppointmentCached(uuid);
-    return {
-        title: appointment
-            ? `${appointment.pets?.name} | ${appointment.clinics?.name} | PawsitiveHealth`
-            : "Appointment Details | PawsitiveHealth",
-        description: appointment ? `Details for ${appointment.pets?.name}` : "Appointment details page",
-    };
-}
+export const metadata = {
+    title: "View Appointment | PawsitiveHealth",
+    description: "View your pet's appointment details",
+};
 
-const ViewAppointment = async ({ params }: UUIDPageParams) => {
-    const { uuid } = await params;
-    const appointmentResponse = await getAppointmentCached(uuid);
-    if (!uuid || !appointmentResponse) notFound();
-    const medicationResponse = await getMedicationsList();
-    if (!appointmentResponse) notFound();
-    const { status, appointment_uuid, pets, appointment_id } = appointmentResponse;
+function AppointmentView({ appointmentData, medicationList }: any) {
+    if (!appointmentData) return null;
+
+    const { status, appointment_uuid, pets, appointment_id, veterinarians } = appointmentData;
+    const petOwnerId = pets?.users?.user_id;
+    const vetId = veterinarians?.user_id || veterinarians?.vet_id;
 
     return (
-        <section className="grid grid-cols-1 gap-4 2xl:grid-cols-2">
-            <AppointmentCard appointment={appointmentResponse} viewerType="vet" />
+        <section className="space-y-6">
+            <AppointmentCard appointment={appointmentData} viewerType="vet" />
+
             {(status === "checked_in" || status === "confirmed") && (
                 <AppointmentHistoricalData
                     appointmentUuid={appointment_uuid}
@@ -47,6 +58,7 @@ const ViewAppointment = async ({ params }: UUIDPageParams) => {
                     key={status}
                 />
             )}
+
             {status === "checked_in" && (
                 <Card>
                     <CardHeader>
@@ -59,7 +71,7 @@ const ViewAppointment = async ({ params }: UUIDPageParams) => {
                         {pets && (
                             <AppointmentHealthcareForms
                                 isVetView
-                                medicationList={medicationResponse.success ? medicationResponse.data.medication : []}
+                                medicationList={medicationList}
                                 petUuid={pets.pet_uuid}
                                 petId={pets.pet_id}
                                 appointmentId={appointment_id}
@@ -70,8 +82,34 @@ const ViewAppointment = async ({ params }: UUIDPageParams) => {
                     </CardContent>
                 </Card>
             )}
+
             <CurrentAppointmentRecordedService appointmentUuid={appointment_uuid} />
+
+            {petOwnerId && vetId && (
+                <AppointmentChat
+                    appointmentId={appointment_id}
+                    petOwnerId={petOwnerId}
+                    vetId={vetId}
+                    isVetView={true}
+                />
+            )}
         </section>
+    );
+}
+
+// Server component for data fetching
+const ViewAppointment = async ({ params }: UUIDPageParams) => {
+    const { uuid } = await params;
+    const appointmentResponse = await getAppointmentCached(uuid);
+    if (!uuid || !appointmentResponse) notFound();
+    const medicationResponse = await getMedicationsList();
+    if (!appointmentResponse) notFound();
+
+    return (
+        <AppointmentView
+            appointmentData={appointmentResponse}
+            medicationList={medicationResponse.success ? medicationResponse.data.medication : []}
+        />
     );
 };
 

@@ -1,9 +1,8 @@
 "use server";
-import { prisma } from "@/lib";
+import { getCurrentUtcDate, prisma } from "@/lib";
 import { type PetVaccinationType, PetVaccinationSchema } from "@/schemas";
 import type { ActionResponse } from "@/types";
 import type { vaccinations } from "@prisma/client";
-import { getPet } from "./pets";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
@@ -45,6 +44,7 @@ const createVaccination = async (values: PetVaccinationType): Promise<ActionResp
                 pet_id: pet.pet_id,
                 administered_by: veterinarian_id,
                 appointment_id: data.data.appointment_id,
+                created_at: getCurrentUtcDate(),
             },
         });
 
@@ -176,17 +176,15 @@ async function getVaccination(
 /**
  * This function retrieves all vaccinations for a specific pet.
  * It first checks if the pet exists, and if it does, it fetches the vaccinations.
- * @param {string} pet_uuid - The UUID of the pet.
+ * @param {number} pet_id - The id of the pet.
  * @returns {Promise<ActionResponse<{ vaccinations: vaccinations[] }>>} - An object containing the vaccinations or an error message.
  */
-const getPetVaccinations = async (pet_uuid: string): Promise<ActionResponse<{ vaccinations: vaccinations[] }>> => {
+const getPetVaccinations = async (pet_id: number): Promise<ActionResponse<{ vaccinations: vaccinations[] | [] }>> => {
     const session = await getServerSession(authOptions);
     if (!session || !session.user || !session.user.id) redirect("/signin");
     try {
-        const pet = await getPet(pet_uuid);
-        if (!pet || !pet.success || !pet.data?.pet) return { success: false, error: "Pet not found" };
         const vaccinations = await prisma.vaccinations.findMany({
-            where: { pet_id: pet.data?.pet.pet_id },
+            where: { pet_id: pet_id },
         });
         return { success: true, data: { vaccinations } };
     } catch (error) {
