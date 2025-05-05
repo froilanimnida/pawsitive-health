@@ -22,6 +22,8 @@ export {
     isEmailTaken,
     changePassword,
     confirmPasswordChange,
+    forgotPassword,
+    resetPassword,
 } from "./auth";
 export { newVeterinarian, getVeterinarian, getVeterinarians } from "./veterinary";
 export {
@@ -89,4 +91,4 @@ export {
 } from "./notification";
 export { getAllUsers, adminResetPassword, toggleUserStatus, deleteUser } from "./admin";
 export { getMessages, sendMessage } from "./messages";
-export { getMedicalRecords } from "./medical-records"
+export { getMedicalRecords } from "./medical-records";

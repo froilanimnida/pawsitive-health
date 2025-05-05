@@ -8,8 +8,12 @@ import {
     type NewClinicAccountType,
     PasswordChangeSchema,
     type PasswordChangeType,
+    ForgotPasswordSchema,
+    type ForgotPasswordType,
+    ResetPasswordSchema,
+    type ResetPasswordType,
 } from "@/schemas";
-import { OtpVerificationEmail, ClinicOnboardingEmail, UserOnboardingEmail } from "@/templates";
+import { OtpVerificationEmail, ClinicOnboardingEmail, UserOnboardingEmail, PasswordResetEmail } from "@/templates";
 import { hashPassword, verifyPassword, prisma, generateOtp, generateVerificationToken, toTitleCase } from "@/lib";
 import { role_type, type users } from "@prisma/client";
 import { signOut } from "next-auth/react";
@@ -400,6 +404,142 @@ const confirmPasswordChange = async (
     }
 };
 
+const forgotPassword = async (values: ForgotPasswordType): Promise<ActionResponse<{ message: string }>> => {
+    try {
+        const formData = ForgotPasswordSchema.safeParse(values);
+        if (!formData.success) return { success: false, error: "Invalid input" };
+
+        const user = await prisma.users.findFirst({
+            where: { email: formData.data.email },
+            select: {
+                user_id: true,
+                email: true,
+                first_name: true,
+                last_name: true,
+                email_verified: true,
+            },
+        });
+
+        if (!user) {
+            // Don't reveal if a user exists for security
+            return {
+                success: true,
+                data: { message: "If an account with this email exists, a reset link has been sent." },
+            };
+        }
+
+        if (user.email_verified === false) {
+            return { success: false, error: "Email not verified. Please verify your email first." };
+        }
+
+        // Generate a password reset token
+        const resetToken = jwt.sign(
+            { userId: user.user_id, email: user.email },
+            // TODO: Use a more secure secret in production
+            //process.env.PASSWORD_RESET_SECRET || "password-reset-fallback-secret",
+            process.env.NEXTAUTH_SECRET as string,
+            { expiresIn: "1h" },
+        );
+
+        // Store the token and expiration in the database
+        const expiryTime = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+        await prisma.users.update({
+            where: { user_id: user.user_id },
+            data: {
+                password_reset_token: resetToken,
+                password_reset_expires_at: expiryTime,
+            },
+        });
+
+        // Create reset URL
+        const resetUrl = `${process.env.FRONTEND_URL || "http://localhost:3000"}/forgot-password/new-password?token=${resetToken}`;
+
+        // Send email with reset link
+        await sendEmail(
+            PasswordResetEmail,
+            {
+                firstName: user.first_name,
+                lastName: user.last_name,
+                resetUrl: resetUrl,
+                expiresIn: "1 hour",
+            },
+            {
+                to: user.email,
+                subject: "PawsitiveHealth - Password Reset Request",
+            },
+        );
+
+        return {
+            success: true,
+            data: { message: "If an account with this email exists, a reset link has been sent." },
+        };
+    } catch (error) {
+        console.error("Password reset request error:", error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "An unexpected error occurred",
+        };
+    }
+};
+
+const resetPassword = async (values: ResetPasswordType): Promise<ActionResponse<{ message: string }>> => {
+    try {
+        const formData = ResetPasswordSchema.safeParse(values);
+        if (!formData.success) return { success: false, error: "Invalid input" };
+
+        // Verify the token
+        let decoded;
+        try {
+            decoded = jwt.verify(
+                formData.data.token,
+                process.env.PASSWORD_RESET_SECRET || "password-reset-fallback-secret",
+            ) as { userId: number; email: string };
+        } catch (error) {
+            return {
+                success: false,
+                error: error instanceof Error ? error.message : "Invalid or expired token",
+            };
+        }
+
+        // Find the user by ID and check if token is valid
+        const user = await prisma.users.findFirst({
+            where: {
+                user_id: decoded.userId,
+                email: decoded.email,
+                password_reset_token: formData.data.token,
+                password_reset_expires_at: {
+                    gt: new Date(),
+                },
+            },
+        });
+
+        if (!user) {
+            return { success: false, error: "Invalid or expired reset link" };
+        }
+
+        // Hash the new password
+        const hashedPassword = await hashPassword(formData.data.password);
+
+        // Update the user's password and clear the reset token
+        await prisma.users.update({
+            where: { user_id: user.user_id },
+            data: {
+                password_hash: hashedPassword,
+                password_reset_token: null,
+                password_reset_expires_at: null,
+            },
+        });
+
+        return { success: true, data: { message: "Password has been reset successfully" } };
+    } catch (error) {
+        console.error("Password reset error:", error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "An unexpected error occurred",
+        };
+    }
+};
+
 export {
     loginAccount,
     createAccount,
@@ -412,4 +552,6 @@ export {
     isEmailTaken,
     changePassword,
     confirmPasswordChange,
+    forgotPassword,
+    resetPassword,
 };

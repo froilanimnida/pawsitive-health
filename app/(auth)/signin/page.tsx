@@ -1,6 +1,5 @@
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle, CardContent } from "@/components/ui";
 import Link from "next/link";
-import ResponsiveContainer from "@/components/shared/layout/responsive-container";
 import UserLoginForm from "@/components/form/user-login-form";
 import Logo from "@/components/shared/logo";
 import { getServerSession } from "next-auth";
@@ -14,7 +13,7 @@ export const metadata = {
 const LoginPage = async () => {
     const session = await getServerSession(authOptions);
     return (
-        <ResponsiveContainer className="flex justify-center flex-col items-center gap-5 w-full h-screen">
+        <div className="flex justify-center flex-col items-center gap-5 w-full h-screen bg-yellow-50">
             <div className="flex items-center justify-center gap-4">
                 <Logo />
             </div>
@@ -43,7 +42,7 @@ const LoginPage = async () => {
                 By clicking continue, you agree to our <a href="#">Terms of Service</a> and{" "}
                 <a href="#">Privacy Policy</a>.
             </div>
-        </ResponsiveContainer>
+        </div>
     );
 };
 

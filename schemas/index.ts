@@ -23,6 +23,10 @@ export {
     type SignUpType,
     PasswordChangeSchema,
     type PasswordChangeType,
+    ForgotPasswordSchema,
+    type ForgotPasswordType,
+    ResetPasswordSchema,
+    type ResetPasswordType,
 } from "./auth-definitions";
 export { AppointmentSchema, type AppointmentType } from "./appointment-definition";
 export { DocumentUploadSchema, type DocumentUploadType } from "./document-schema";
