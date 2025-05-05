@@ -12,7 +12,7 @@ import {
     TableRow,
 } from "@/components/ui";
 import Link from "next/link";
-import { MapPin, Phone, Building2, Eye, Plus } from "lucide-react";
+import { MapPin, Phone, Building2, Eye } from "lucide-react";
 
 const ClinicTable = async () => {
     const clinics = await getClinics();
@@ -22,13 +22,6 @@ const ClinicTable = async () => {
         return (
             <div className="text-center py-10">
                 <h3 className="text-lg font-medium">No clinics found</h3>
-                <p className="text-muted-foreground">Add your first clinic to get started</p>
-                <Button className="mt-4" asChild>
-                    <Link href="/admin/clinics/add">
-                        <Plus className="mr-2 h-4 w-4" />
-                        Add Clinic
-                    </Link>
-                </Button>
             </div>
         );
     }
@@ -89,12 +82,6 @@ const Clinics = () => {
         <section className="p-6 w-full">
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold">Veterinary Clinics</h1>
-                <Button asChild>
-                    <Link href="/admin/clinics/add">
-                        <Plus className="mr-2 h-4 w-4" />
-                        Add New Clinic
-                    </Link>
-                </Button>
             </div>
             <Suspense fallback={<SkeletonCard />}>
                 <ClinicTable />

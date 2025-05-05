@@ -1,15 +1,6 @@
 "use client";
 import { ComponentProps } from "react";
-import {
-    Settings2,
-    Dog,
-    BookmarkCheckIcon,
-    Stethoscope,
-    Building,
-    User2,
-    FlaskConical,
-    CalendarCheck2,
-} from "lucide-react";
+import { Settings2, Dog, Stethoscope, Building, User2, FlaskConical, CalendarCheck2 } from "lucide-react";
 import { NavMenus } from "@/components/shared/layout/nav-menus";
 import { NavUser } from "@/components/shared/layout/nav-user";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarRail } from "@/components/ui/sidebar";
@@ -55,11 +46,6 @@ const clientNavLinks = [
 ];
 
 const adminNavLinks = [
-    {
-        name: "Appointments",
-        url: "/admin/appointments",
-        icon: BookmarkCheckIcon,
-    },
     {
         name: "Clinics",
         url: "/admin/clinics",

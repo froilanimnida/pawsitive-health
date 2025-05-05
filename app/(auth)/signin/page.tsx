@@ -1,35 +1,45 @@
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle, CardContent } from "@/components/ui";
-import { Metadata } from "next";
 import Link from "next/link";
 import ResponsiveContainer from "@/components/shared/layout/responsive-container";
 import UserLoginForm from "@/components/form/user-login-form";
-import { Suspense } from "react";
-import { SkeletonCard } from "@/components/ui";
+import Logo from "@/components/shared/logo";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
-export const metadata: Metadata = {
+export const metadata = {
     title: "Pawsitive | Login",
     description: "Login to your account",
 };
 
 const LoginPage = async () => {
+    const session = await getServerSession(authOptions);
     return (
-        <ResponsiveContainer className="flex justify-center items-center">
-            <Suspense fallback={<SkeletonCard />}>
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Login</CardTitle>
-                        <CardDescription>Login to continue</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <UserLoginForm />
-                    </CardContent>
-                    <CardFooter className="flex justify-center">
-                        <Link href={"/signup"} className="text-sm">
-                            Sign up instead
-                        </Link>
-                    </CardFooter>
-                </Card>
-            </Suspense>
+        <ResponsiveContainer className="flex justify-center flex-col items-center gap-5 w-full h-screen">
+            <div className="flex items-center justify-center gap-4">
+                <Logo />
+            </div>
+            <Card>
+                <CardHeader className="text-center">
+                    <CardTitle className="text-xl">Welcome Back</CardTitle>
+                    <CardDescription>Login to continue</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <UserLoginForm
+                        role={session?.user?.role}
+                        exists={session?.user?.email ? true : false}
+                        sessionEmail={session?.user?.email ?? ""}
+                    />
+                </CardContent>
+                <CardFooter className="flex justify-center">
+                    <Link href={"/signup"} className="text-sm">
+                        Sign up instead
+                    </Link>
+                </CardFooter>
+            </Card>
+            <div className="text-balance text-center text-xs text-muted-foreground [&_a]:underline [&_a]:underline-offset-4 [&_a]:hover:text-primary  ">
+                By clicking continue, you agree to our <a href="#">Terms of Service</a> and{" "}
+                <a href="#">Privacy Policy</a>.
+            </div>
         </ResponsiveContainer>
     );
 };

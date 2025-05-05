@@ -6,14 +6,17 @@ import { Sheet, SheetContent, SheetTrigger, SheetClose, Button } from "@/compone
 import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
+import Logo from "./logo";
 
-interface NavbarProps {
+export function Navbar({
+    isAuthenticated = false,
+    userRole,
+    userName,
+}: {
     isAuthenticated?: boolean;
     userRole?: "user" | "client" | "veterinarian" | "admin" | undefined;
     userName?: string;
-}
-
-export function Navbar({ isAuthenticated = false, userRole, userName }: NavbarProps) {
+}) {
     const pathname = usePathname();
     const [isOpen, setIsOpen] = useState(false);
 
@@ -104,8 +107,7 @@ export function Navbar({ isAuthenticated = false, userRole, userName }: NavbarPr
             <div className="flex h-16 justify-between items-center w-11/12 max-w-7xl">
                 <div className="flex w-full justify-between items-center">
                     <Link href={isAuthenticated ? getHomePath() : "/"} className="flex items-center gap-2">
-                        <PawPrint className="h-6 w-6 text-teal-500" />
-                        <span className="font-bold text-xl hidden sm:inline-block">PawsitiveHealth</span>
+                        <Logo />
                     </Link>
 
                     <nav className="hidden md:flex items-center space-x-4">

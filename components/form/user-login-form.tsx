@@ -11,11 +11,6 @@ import { loginAccount, regenerateOTPToken, verifyOTPToken } from "@/actions";
 import { type TextFormField } from "@/types/forms/text-form-field";
 import {
     Button,
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
     Dialog,
     DialogContent,
     DialogDescription,
@@ -33,33 +28,26 @@ import {
 } from "@/components/ui";
 import { NotificationPermissionDialog } from "@/components/shared/notification-permission-dialog";
 import { createFormConfig } from "@/lib";
+import { role_type } from "@prisma/client";
+import { ArrowRightCircle } from "lucide-react";
 
-const UserLoginForm = () => {
+const UserLoginForm = ({
+    role,
+    sessionEmail,
+    exists = false,
+}: {
+    role?: role_type;
+    sessionEmail?: string;
+    exists: boolean;
+}) => {
     const [isLoading, setIsLoading] = useState(false);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showOtpDialog, setShowOtpDialog] = useState(false);
     const [showNotificationDialog, setShowNotificationDialog] = useState(false);
-    const [existingSession, setExistingSession] = useState<{ exists: boolean; role?: string; name?: string }>({
-        exists: false,
-    });
     const router = useRouter();
     const searchParams = useSearchParams();
     const nextUrl = searchParams.get("next") || "";
-    useEffect(() => {
-        const checkExistingSession = async () => {
-            const session = await getSession();
-            if (session?.user) {
-                setExistingSession({
-                    exists: true,
-                    role: session.user.role as string,
-                    name: session.user.name || "User",
-                });
-            }
-        };
-
-        checkExistingSession();
-    }, []);
 
     const loginFormFields: TextFormField[] = [
         {
@@ -129,21 +117,19 @@ const UserLoginForm = () => {
             }
         }, 1000);
     }, []);
-    // Function to navigate to the appropriate dashboard based on user role
     const navigateToDashboard = () => {
-        if (!existingSession.role) return;
-
-        switch (existingSession.role) {
-            case "user":
+        if (!role) return;
+        switch (role) {
+            case role_type.user:
                 router.push("/user");
                 break;
-            case "client":
+            case role_type.client:
                 router.push("/clinic");
                 break;
-            case "veterinarian":
+            case role_type.veterinarian:
                 router.push("/vet");
                 break;
-            case "admin":
+            case role_type.admin:
                 router.push("/admin");
                 break;
             default:
@@ -244,19 +230,25 @@ const UserLoginForm = () => {
 
     return (
         <>
-            {existingSession.exists && (
-                <Card className="mb-6 shadow-md border-blue-100">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-lg">Welcome back, {existingSession.name}!</CardTitle>
-                        <CardDescription>You are already signed in as a {existingSession.role}.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <Button onClick={navigateToDashboard} className="w-full" variant="default">
-                            Go to your dashboard
-                        </Button>
-                    </CardContent>
-                </Card>
+            {exists && (
+                <div className="mb-6 p-3 border rounded-lg bg-muted/30 ">
+                    <div className="flex flex-row items-center justify-between gap-4">
+                        <p className="text-sm text-muted-foreground">
+                            You are already logged in as <strong>{sessionEmail}</strong>.
+                        </p>
+                        <div className="flex-shrink-0">
+                            <Button onClick={navigateToDashboard} variant="outline" className="flex items-center">
+                                <ArrowRightCircle />
+                            </Button>
+                        </div>
+                    </div>
+                </div>
             )}
+            <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
+                <span className="relative z-10 bg-background px-2 text-muted-foreground">
+                    Or sign in with other account
+                </span>
+            </div>
             <Form {...loginForm}>
                 <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-8">
                     {loginFormFields.map((loginField) => (
