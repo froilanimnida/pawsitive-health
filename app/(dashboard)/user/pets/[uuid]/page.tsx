@@ -37,7 +37,7 @@ import PetProfileImage from "@/components/form/pet-profile-image";
 import { ActivityLevelChart } from "@/components/pet/activity-level-chart";
 import { PetHealthMetricsChart } from "@/components/pet/pet-health-metrics-chart";
 import { WeightTrendChart } from "@/components/pet/weight-trend-chart";
-
+import { Stethoscope, ActivityIcon, History, Weight, Pen, Syringe } from "lucide-react";
 // Create a cached version of getPet
 const getPetCached = cache(async (uuid: string) => {
     const response = await getPet(uuid);
@@ -61,16 +61,11 @@ export async function generateMetadata({ params }: UUIDPageParams): Promise<Meta
 
 const PetDetails = async ({ params }: UUIDPageParams) => {
     const { uuid } = await params;
-
     if (!uuid) notFound();
 
-    // Reuse the cached fetch
     const pet = await getPetCached(uuid);
     if (!pet) notFound();
-
     const { pet_id, breed, species, pet_uuid, name, sex, date_of_birth, weight_kg, updated_at } = pet;
-
-    // Fetch pet history data
     const appointmentsResponse = await getPetAppointments(pet_id);
     const vaccinationsResponse = await getPetVaccinations(pet_id);
     const proceduresResponse = await getPetProcedures(pet_id);
@@ -132,7 +127,10 @@ const PetDetails = async ({ params }: UUIDPageParams) => {
                 <CardFooter className="flex flex-wrap gap-2">
                     <Dialog>
                         <DialogTrigger asChild>
-                            <Button variant="outline">Edit Pet</Button>
+                            <Button variant="outline">
+                                <Pen />
+                                Edit Pet
+                            </Button>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-[425px]">
                             <DialogHeader>
@@ -144,7 +142,10 @@ const PetDetails = async ({ params }: UUIDPageParams) => {
                     </Dialog>
                     <Dialog>
                         <DialogTrigger asChild>
-                            <Button variant="outline">Add Pet Procedure</Button>
+                            <Button variant="outline">
+                                <Stethoscope />
+                                Add Pet Procedure
+                            </Button>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-[425px]">
                             <DialogHeader>
@@ -156,7 +157,10 @@ const PetDetails = async ({ params }: UUIDPageParams) => {
                     </Dialog>
                     <Dialog>
                         <DialogTrigger asChild>
-                            <Button variant="outline">Add Pet Vaccination</Button>
+                            <Button variant="outline">
+                                <Syringe />
+                                Add Pet Vaccination
+                            </Button>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-[425px]">
                             <DialogHeader>
@@ -181,9 +185,15 @@ const PetDetails = async ({ params }: UUIDPageParams) => {
             </Card>
 
             <Tabs defaultValue="history" className="w-full">
-                <TabsList className="mb-4">
-                    <TabsTrigger value="history">Medical History</TabsTrigger>
-                    <TabsTrigger value="monitoring">Health Monitoring</TabsTrigger>
+                <TabsList className="mb-4 w-full">
+                    <TabsTrigger value="history">
+                        <Stethoscope />
+                        Medical History
+                    </TabsTrigger>
+                    <TabsTrigger value="monitoring">
+                        <ActivityIcon />
+                        Health Monitoring
+                    </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="history">
@@ -214,11 +224,20 @@ const PetDetails = async ({ params }: UUIDPageParams) => {
                         <CardContent>
                             <HealthMonitoringHistory healthRecords={healthMonitoring} petUuid={pet_uuid} />
 
-                            <Tabs defaultValue="overview">
-                                <TabsList>
-                                    <TabsTrigger value="overview">Overview</TabsTrigger>
-                                    <TabsTrigger value="activity">Activity</TabsTrigger>
-                                    <TabsTrigger value="weight">Weight</TabsTrigger>
+                            <Tabs defaultValue="overview" className="w-full mt-5">
+                                <TabsList className="mb-4 w-full">
+                                    <TabsTrigger value="overview">
+                                        <History />
+                                        Overview
+                                    </TabsTrigger>
+                                    <TabsTrigger value="activity">
+                                        <ActivityIcon />
+                                        Activity
+                                    </TabsTrigger>
+                                    <TabsTrigger value="weight">
+                                        <Weight />
+                                        Weight
+                                    </TabsTrigger>
                                 </TabsList>
 
                                 <TabsContent value="overview">

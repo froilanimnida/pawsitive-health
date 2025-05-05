@@ -48,7 +48,7 @@ const UserLoginForm = ({
     const [isLoading, setIsLoading] = useState(false);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [showOtpDialog, setShowOtpDialog] = useState(true);
+    const [showOtpDialog, setShowOtpDialog] = useState(false);
     const [showNotificationDialog, setShowNotificationDialog] = useState(false);
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -236,24 +236,26 @@ const UserLoginForm = ({
     return (
         <>
             {exists && (
-                <div className="mb-6 p-3 border rounded-lg bg-muted/30 ">
-                    <div className="flex flex-row items-center justify-between gap-4">
-                        <p className="text-sm text-muted-foreground">
-                            You are already logged in as <strong>{sessionEmail}</strong>.
-                        </p>
-                        <div className="flex-shrink-0">
-                            <Button onClick={navigateToDashboard} variant="outline" className="flex items-center">
-                                <ArrowRightCircle />
-                            </Button>
+                <>
+                    <div className="mb-6 p-3 border rounded-lg bg-muted/30 ">
+                        <div className="flex flex-row items-center justify-between gap-4">
+                            <p className="text-sm text-muted-foreground">
+                                You are already logged in as <strong>{sessionEmail}</strong>.
+                            </p>
+                            <div className="flex-shrink-0">
+                                <Button onClick={navigateToDashboard} variant="outline" className="flex items-center">
+                                    <ArrowRightCircle />
+                                </Button>
+                            </div>
                         </div>
                     </div>
-                </div>
+                    <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
+                        <span className="relative z-10 bg-background px-2 text-muted-foreground">
+                            Or sign in with other account
+                        </span>
+                    </div>
+                </>
             )}
-            <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
-                <span className="relative z-10 bg-background px-2 text-muted-foreground">
-                    Or sign in with other account
-                </span>
-            </div>
             <Form {...loginForm}>
                 <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-8">
                     {loginFormFields.map((lf) => (
