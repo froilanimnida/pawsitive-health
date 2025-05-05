@@ -3,20 +3,17 @@ import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { appointment_status } from "@prisma/client";
 import { authOptions } from "../../auth/[...nextauth]/route";
+import { redirect } from "next/navigation";
+import { getCurrentUtcDate } from "@/lib";
 
 export async function GET() {
     try {
         const session = await getServerSession(authOptions);
-
-        // Check if the user is authenticated
-        if (!session?.user?.id) {
-            return NextResponse.json({ error: "Unauthorized", success: false }, { status: 401 });
-        }
-
+        if (!session || !session.user || !session.user.id) return redirect("/signin");
         const userId = Number(session.user.id);
 
         // Current date
-        const now = new Date();
+        const now = getCurrentUtcDate();
 
         // Fetch upcoming appointments for the user that are in the future and confirmed/pending
         const appointments = await prisma.appointments.findMany({

@@ -38,6 +38,7 @@ class AppointmentNotificationService {
 
                 for (const appointment of appointments) {
                     // Only schedule notifications for appointments in the future
+                    console.log(`Scheduling notification for appointment ID: ${appointment.appointment_id}`);
                     const appointmentTime = new Date(appointment.appointment_date).getTime();
                     const now = Date.now();
 
