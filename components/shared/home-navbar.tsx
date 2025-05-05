@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import Logo from "./logo";
+import { notificationSynchronizer } from "@/lib/notification";
 
 export function Navbar({
     isAuthenticated = false,
@@ -20,8 +21,12 @@ export function Navbar({
     const pathname = usePathname();
     const [isOpen, setIsOpen] = useState(false);
 
-    const handleSignOut = () => {
-        signOut({ callbackUrl: "/signin" });
+    const handleSignOut = async () => {
+        // Clear all pending notifications before logging out
+        notificationSynchronizer.clearAllNotificationsOnLogout();
+
+        // Proceed with logout
+        await signOut({ callbackUrl: "/signin" });
     };
 
     // Get home path based on user role

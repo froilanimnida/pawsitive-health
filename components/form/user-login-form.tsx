@@ -32,6 +32,7 @@ import {
 } from "@/components/ui";
 import { NotificationPermissionDialog } from "@/components/shared/notification-permission-dialog";
 import { createFormConfig } from "@/lib";
+import { notificationSynchronizer } from "@/lib/notification";
 import { role_type } from "@prisma/client";
 import { ArrowRightCircle } from "lucide-react";
 import Link from "next/link";
@@ -168,6 +169,14 @@ const UserLoginForm = ({
 
             toast.success("Successfully signed in!");
             setShowOtpDialog(false);
+
+            // Initialize notification sync if permission is granted
+            // This is non-blocking and won't delay the navigation
+            const notificationPermission = await Notification.permission;
+            if (notificationPermission === "granted") {
+                // Sync notifications in background without blocking the login flow
+                await notificationSynchronizer.syncAllNotificationsOnLogin();
+            }
 
             if (nextUrl) {
                 router.push(nextUrl);
