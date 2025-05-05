@@ -31,9 +31,12 @@ const LoginPage = async () => {
                     />
                 </CardContent>
                 <CardFooter className="flex justify-center">
-                    <Link href={"/signup"} className="text-sm">
-                        Sign up instead
-                    </Link>
+                    <div className="text-center text-sm">
+                        Don&apos;t have an account?{" "}
+                        <Link href="/signup" className="underline underline-offset-4">
+                            Sign up
+                        </Link>
+                    </div>
                 </CardFooter>
             </Card>
             <div className="text-balance text-center text-xs text-muted-foreground [&_a]:underline [&_a]:underline-offset-4 [&_a]:hover:text-primary  ">

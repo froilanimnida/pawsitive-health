@@ -25,11 +25,16 @@ import {
     FormLabel,
     FormMessage,
     Input,
+    InputOTP,
+    InputOTPGroup,
+    InputOTPSlot,
+    InputOTPSeparator,
 } from "@/components/ui";
 import { NotificationPermissionDialog } from "@/components/shared/notification-permission-dialog";
 import { createFormConfig } from "@/lib";
 import { role_type } from "@prisma/client";
 import { ArrowRightCircle } from "lucide-react";
+import Link from "next/link";
 
 const UserLoginForm = ({
     role,
@@ -43,7 +48,7 @@ const UserLoginForm = ({
     const [isLoading, setIsLoading] = useState(false);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [showOtpDialog, setShowOtpDialog] = useState(false);
+    const [showOtpDialog, setShowOtpDialog] = useState(true);
     const [showNotificationDialog, setShowNotificationDialog] = useState(false);
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -251,25 +256,37 @@ const UserLoginForm = ({
             </div>
             <Form {...loginForm}>
                 <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-8">
-                    {loginFormFields.map((loginField) => (
+                    {loginFormFields.map((lf) => (
                         <FormField
-                            key={loginField.name}
+                            key={lf.name}
                             control={loginForm.control}
-                            name={loginField.name as "email" | "password"}
+                            name={lf.name as "email" | "password"}
                             render={({ field, fieldState }) => (
                                 <FormItem>
-                                    <FormLabel>{loginField.label}</FormLabel>
+                                    {lf.name === "password" ? (
+                                        <div className="flex items-center justify-between">
+                                            <FormLabel>{lf.label}</FormLabel>
+                                            <Link
+                                                href={"/forgot-password"}
+                                                className="text-sm text-muted-foreground hover:underline underline-offset-4"
+                                            >
+                                                Forgot your Password?
+                                            </Link>
+                                        </div>
+                                    ) : (
+                                        <FormLabel>{lf.label}</FormLabel>
+                                    )}
                                     <FormControl>
                                         <Input
-                                            type={loginField.type}
-                                            autoComplete={loginField.autoComplete}
-                                            placeholder={loginField.placeholder}
+                                            type={lf.type}
+                                            autoComplete={lf.autoComplete}
+                                            placeholder={lf.placeholder}
                                             {...field}
-                                            required={loginField.required}
+                                            required={lf.required}
                                             disabled={isLoading}
                                         />
                                     </FormControl>
-                                    <FormDescription>{loginField.description}</FormDescription>
+                                    <FormDescription>{lf.description}</FormDescription>
                                     <FormMessage className="text-red-500">{fieldState.error?.message}</FormMessage>
                                 </FormItem>
                             )}
@@ -283,9 +300,9 @@ const UserLoginForm = ({
 
             <Dialog open={showOtpDialog} onOpenChange={setShowOtpDialog}>
                 <DialogContent>
-                    <DialogHeader>
+                    <DialogHeader className="text-center w-full flex flex-col items-center">
                         <DialogTitle>Verify OTP</DialogTitle>
-                        <DialogDescription>Please enter the OTP sent to your email address.</DialogDescription>
+                        <DialogDescription>Please enter the 6-digit OTP sent to your email address.</DialogDescription>
                     </DialogHeader>
                     <Form {...otpForm}>
                         <form onSubmit={otpForm.handleSubmit(handleOtp)} className="space-y-8">
@@ -293,29 +310,39 @@ const UserLoginForm = ({
                                 control={otpForm.control}
                                 name="otp"
                                 render={({ field, fieldState }) => (
-                                    <FormItem>
-                                        <FormLabel>OTP Code</FormLabel>
+                                    <FormItem className="mx-auto">
+                                        <FormLabel className="text-center block mb-2">OTP Code</FormLabel>
                                         <FormControl>
-                                            <Input
-                                                {...field}
-                                                placeholder="Enter 6-digit OTP"
-                                                maxLength={6}
-                                                disabled={isLoading}
-                                            />
+                                            <InputOTP maxLength={6} {...field} containerClassName="w-1/2 mx-auto">
+                                                <InputOTPGroup>
+                                                    <InputOTPSlot index={0} />
+                                                    <InputOTPSlot index={1} />
+                                                    <InputOTPSlot index={2} />
+                                                </InputOTPGroup>
+                                                <InputOTPSeparator />
+                                                <InputOTPGroup>
+                                                    <InputOTPSlot index={3} />
+                                                    <InputOTPSlot index={4} />
+                                                    <InputOTPSlot index={5} />
+                                                </InputOTPGroup>
+                                            </InputOTP>
                                         </FormControl>
-                                        <FormDescription>The code is valid for 5 minutes.</FormDescription>
-                                        <FormMessage>{fieldState.error?.message}</FormMessage>
+                                        <FormDescription className="text-center">
+                                            The code is valid for 5 minutes.
+                                        </FormDescription>
+                                        <FormMessage className="text-center">{fieldState.error?.message}</FormMessage>
                                     </FormItem>
                                 )}
                             />
-                            <DialogFooter>
-                                <Button type="submit" disabled={isLoading}>
+                            <DialogFooter className="flex-row flex justify-center items-center gap-2">
+                                <Button type="submit" className="sm:w-auto w-full" disabled={isLoading}>
                                     {isLoading ? "Verifying..." : "Verify"}
                                 </Button>
                                 <Button
                                     variant="outline"
                                     type="button"
-                                    onClick={() => handleResendOtp()}
+                                    className="sm:w-auto w-full"
+                                    onClick={handleResendOtp}
                                     disabled={isLoading}
                                 >
                                     Resend OTP
