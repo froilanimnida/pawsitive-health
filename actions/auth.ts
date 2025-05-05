@@ -435,9 +435,7 @@ const forgotPassword = async (values: ForgotPasswordType): Promise<ActionRespons
         // Generate a password reset token
         const resetToken = jwt.sign(
             { userId: user.user_id, email: user.email },
-            // TODO: Use a more secure secret in production
-            //process.env.PASSWORD_RESET_SECRET || "password-reset-fallback-secret",
-            process.env.NEXTAUTH_SECRET as string,
+            process.env.PASSWORD_RESET_SECRET as string,
             { expiresIn: "1h" },
         );
 

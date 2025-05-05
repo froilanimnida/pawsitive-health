@@ -79,7 +79,6 @@ export default function AppointmentChat({
             receiver_id: otherUserId,
             content: input,
             created_at: new Date(),
-            updated_at: new Date(),
             is_read: false,
         };
 

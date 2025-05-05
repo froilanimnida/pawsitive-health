@@ -1,11 +1,10 @@
 "use server";
-import { getCurrentUtcDate, prisma } from "@/lib";
+import { prisma } from "@/lib";
 import { ActionResponse, type Modify } from "@/types";
-import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import type { appointments, messages } from "@prisma/client";
+import type { messages } from "@prisma/client";
 
 // Utility function to mark messages as read
 const markMessagesAsRead = async (appointmentId: number, receiverId: number): Promise<void> => {
@@ -17,24 +16,12 @@ const markMessagesAsRead = async (appointmentId: number, receiverId: number): Pr
         },
         data: {
             is_read: true,
-            updated_at: getCurrentUtcDate(),
         },
     });
 };
 
-const verifyAppointmentAccess = async (
-    appointmentId: number,
-    userId: number,
-): Promise<{
-    success: boolean;
-    appointment?: appointments;
-    error?: string;
-    isPetOwner?: boolean;
-    isVet?: boolean;
-}> => {
-    if (!appointmentId) {
-        return { success: false, error: "Appointment ID is required" };
-    }
+const verifyAppointmentAccess = async (appointmentId: number, userId: number) => {
+    if (!appointmentId) return { success: false, error: "Appointment ID is required" };
 
     const appointment = await prisma.appointments.findUnique({
         where: { appointment_id: appointmentId },
