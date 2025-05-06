@@ -488,10 +488,10 @@ const resetPassword = async (values: ResetPasswordType): Promise<ActionResponse<
         // Verify the token
         let decoded;
         try {
-            decoded = jwt.verify(
-                formData.data.token,
-                process.env.PASSWORD_RESET_SECRET || "password-reset-fallback-secret",
-            ) as { userId: number; email: string };
+            decoded = jwt.verify(formData.data.token, process.env.PASSWORD_RESET_SECRET as string) as {
+                userId: number;
+                email: string;
+            };
         } catch (error) {
             return {
                 success: false,
