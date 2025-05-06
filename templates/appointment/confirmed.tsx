@@ -27,22 +27,6 @@ function generateGoogleCalendarUrl({
     return `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodedTitle}&details=${encodedDescription}&location=${encodedLocation}&dates=${startDate}/${endDate}`;
 }
 
-export interface AppointmentConfirmedEmailProps {
-    petName: string;
-    ownerName: string;
-    vetName: string;
-    date: string;
-    time: string;
-    clinicName: string;
-    clinicAddress: string;
-    clinicPhone: string;
-    appointmentType: string;
-    appointmentId: string;
-    instructions?: string;
-    appointmentDateTime: Date;
-    appointmentEndDateTime: Date;
-}
-
 export default function AppointmentConfirmed({
     petName,
     ownerName,
@@ -57,7 +41,21 @@ export default function AppointmentConfirmed({
     instructions,
     appointmentDateTime,
     appointmentEndDateTime,
-}: AppointmentConfirmedEmailProps) {
+}: {
+    petName: string;
+    ownerName: string;
+    vetName: string;
+    date: string;
+    time: string;
+    clinicName: string;
+    clinicAddress: string;
+    clinicPhone: string;
+    appointmentType: string;
+    appointmentId: string;
+    instructions?: string;
+    appointmentDateTime: Date;
+    appointmentEndDateTime: Date;
+}) {
     const googleCalendarUrl = generateGoogleCalendarUrl({
         title: `Vet Appointment for ${petName}`,
         description: `Appointment with Dr. ${vetName} for ${petName}.\n\nType: ${appointmentType}\n\nClinic: ${clinicName}\nPhone: ${clinicPhone}\n${

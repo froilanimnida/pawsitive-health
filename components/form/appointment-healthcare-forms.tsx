@@ -5,19 +5,7 @@ import { useState } from "react";
 import PetProcedureForm from "./pet-healthcare-procedure-form";
 import { VaccinationForm } from "./veccination-form";
 import type { medications } from "@prisma/client";
-
-interface AppointmentHealthcareFormsProps {
-    petId: number;
-    petUuid: string;
-    appointmentUuid?: string;
-    appointmentId?: number;
-    vetId?: number;
-    isVetView?: boolean;
-    isCheckedIn?: boolean;
-    medicationList: medications[] | [];
-    petName: string;
-}
-
+import { Tablets, Stethoscope, Syringe } from "lucide-react";
 export function AppointmentHealthcareForms({
     petId,
     petUuid,
@@ -28,16 +16,32 @@ export function AppointmentHealthcareForms({
     isCheckedIn = true,
     medicationList,
     petName,
-}: AppointmentHealthcareFormsProps) {
+}: {
+    petId: number;
+    petUuid: string;
+    appointmentUuid?: string;
+    appointmentId?: number;
+    vetId?: number;
+    isVetView?: boolean;
+    isCheckedIn?: boolean;
+    medicationList: medications[] | [];
+    petName: string;
+}) {
     const [activeTab, setActiveTab] = useState("vaccination");
 
     return (
         <div className="mt-6 space-y-4">
             <Tabs defaultValue="vaccination" value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="mb-4 w-full justify-start">
-                    <TabsTrigger value="vaccination">Vaccination</TabsTrigger>
-                    <TabsTrigger value="procedure">Healthcare Procedure</TabsTrigger>
-                    <TabsTrigger value="prescription">Prescription</TabsTrigger>
+                    <TabsTrigger value="vaccination">
+                        <Syringe /> Vaccination
+                    </TabsTrigger>
+                    <TabsTrigger value="procedure">
+                        <Stethoscope /> Healthcare Procedure
+                    </TabsTrigger>
+                    <TabsTrigger value="prescription">
+                        <Tablets /> Prescription
+                    </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="vaccination" className="p-4 border rounded-md bg-card">

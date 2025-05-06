@@ -11,11 +11,6 @@ import { loginAccount, regenerateOTPToken, verifyOTPToken } from "@/actions";
 import { type TextFormField } from "@/types/forms/text-form-field";
 import {
     Button,
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
     Dialog,
     DialogContent,
     DialogDescription,
@@ -30,36 +25,36 @@ import {
     FormLabel,
     FormMessage,
     Input,
+    InputOTP,
+    InputOTPGroup,
+    InputOTPSlot,
+    InputOTPSeparator,
 } from "@/components/ui";
 import { NotificationPermissionDialog } from "@/components/shared/notification-permission-dialog";
 import { createFormConfig } from "@/lib";
+import { notificationSynchronizer } from "@/lib/notification";
+import { role_type } from "@prisma/client";
+import Link from "next/link";
 
-const UserLoginForm = () => {
+const UserLoginForm = ({
+    role,
+    sessionEmail,
+    sessionName,
+    exists = false,
+}: {
+    role?: role_type;
+    sessionName?: string;
+    sessionEmail?: string;
+    exists: boolean;
+}) => {
     const [isLoading, setIsLoading] = useState(false);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showOtpDialog, setShowOtpDialog] = useState(false);
     const [showNotificationDialog, setShowNotificationDialog] = useState(false);
-    const [existingSession, setExistingSession] = useState<{ exists: boolean; role?: string; name?: string }>({
-        exists: false,
-    });
     const router = useRouter();
     const searchParams = useSearchParams();
     const nextUrl = searchParams.get("next") || "";
-    useEffect(() => {
-        const checkExistingSession = async () => {
-            const session = await getSession();
-            if (session?.user) {
-                setExistingSession({
-                    exists: true,
-                    role: session.user.role as string,
-                    name: session.user.name || "User",
-                });
-            }
-        };
-
-        checkExistingSession();
-    }, []);
 
     const loginFormFields: TextFormField[] = [
         {
@@ -129,21 +124,19 @@ const UserLoginForm = () => {
             }
         }, 1000);
     }, []);
-    // Function to navigate to the appropriate dashboard based on user role
     const navigateToDashboard = () => {
-        if (!existingSession.role) return;
-
-        switch (existingSession.role) {
-            case "user":
+        if (!role) return;
+        switch (role) {
+            case role_type.user:
                 router.push("/user");
                 break;
-            case "client":
+            case role_type.client:
                 router.push("/clinic");
                 break;
-            case "veterinarian":
+            case role_type.veterinarian:
                 router.push("/vet");
                 break;
-            case "admin":
+            case role_type.admin:
                 router.push("/admin");
                 break;
             default:
@@ -177,6 +170,14 @@ const UserLoginForm = () => {
 
             toast.success("Successfully signed in!");
             setShowOtpDialog(false);
+
+            // Initialize notification sync if permission is granted
+            // This is non-blocking and won't delay the navigation
+            const notificationPermission = await Notification.permission;
+            if (notificationPermission === "granted") {
+                // Sync notifications in background without blocking the login flow
+                await notificationSynchronizer.syncAllNotificationsOnLogin();
+            }
 
             if (nextUrl) {
                 router.push(nextUrl);
@@ -244,40 +245,87 @@ const UserLoginForm = () => {
 
     return (
         <>
-            {existingSession.exists && (
-                <Card className="mb-6 shadow-md border-blue-100">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-lg">Welcome back, {existingSession.name}!</CardTitle>
-                        <CardDescription>You are already signed in as a {existingSession.role}.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <Button onClick={navigateToDashboard} className="w-full" variant="default">
-                            Go to your dashboard
-                        </Button>
-                    </CardContent>
-                </Card>
+            {exists && (
+                <>
+                    <div
+                        className="mb-6 p-4 border rounded-lg bg-background hover:bg-gray-50 cursor-pointer transition-colors duration-200 relative"
+                        onClick={navigateToDashboard}
+                    >
+                        <div className="flex flex-col space-y-3">
+                            <div className="flex items-center gap-3">
+                                <div className="bg-primary/10 text-primary rounded-full h-12 w-12 flex items-center justify-center">
+                                    <span className="text-lg font-medium">
+                                        {sessionEmail?.[0]?.toUpperCase() || "U"}
+                                    </span>
+                                </div>
+                                <div className="flex-1">
+                                    <p className="font-medium text-sm">{sessionEmail}</p>
+                                    <p className="text-xs text-muted-foreground">{sessionName}</p>
+                                    <p className="text-xs text-muted-foreground">Signed in</p>
+                                </div>
+                                <div className="text-primary">
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="20"
+                                        height="20"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                    >
+                                        <path d="m9 18 6-6-6-6" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="relative my-6">
+                        <div className="absolute inset-0 flex items-center">
+                            <span className="w-full border-t border-border"></span>
+                        </div>
+                        <div className="relative flex justify-center">
+                            <span className="bg-background px-4 text-xs uppercase text-muted-foreground">
+                                Or use another account
+                            </span>
+                        </div>
+                    </div>
+                </>
             )}
             <Form {...loginForm}>
                 <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-8">
-                    {loginFormFields.map((loginField) => (
+                    {loginFormFields.map((lf) => (
                         <FormField
-                            key={loginField.name}
+                            key={lf.name}
                             control={loginForm.control}
-                            name={loginField.name as "email" | "password"}
+                            name={lf.name as "email" | "password"}
                             render={({ field, fieldState }) => (
                                 <FormItem>
-                                    <FormLabel>{loginField.label}</FormLabel>
+                                    {lf.name === "password" ? (
+                                        <div className="flex items-center justify-between">
+                                            <FormLabel>{lf.label}</FormLabel>
+                                            <Link
+                                                href={"/forgot-password"}
+                                                className="text-sm text-muted-foreground hover:underline underline-offset-4"
+                                            >
+                                                Forgot your Password?
+                                            </Link>
+                                        </div>
+                                    ) : (
+                                        <FormLabel>{lf.label}</FormLabel>
+                                    )}
                                     <FormControl>
                                         <Input
-                                            type={loginField.type}
-                                            autoComplete={loginField.autoComplete}
-                                            placeholder={loginField.placeholder}
+                                            type={lf.type}
+                                            autoComplete={lf.autoComplete}
+                                            placeholder={lf.placeholder}
                                             {...field}
-                                            required={loginField.required}
+                                            required={lf.required}
                                             disabled={isLoading}
                                         />
                                     </FormControl>
-                                    <FormDescription>{loginField.description}</FormDescription>
+                                    <FormDescription>{lf.description}</FormDescription>
                                     <FormMessage className="text-red-500">{fieldState.error?.message}</FormMessage>
                                 </FormItem>
                             )}
@@ -291,9 +339,9 @@ const UserLoginForm = () => {
 
             <Dialog open={showOtpDialog} onOpenChange={setShowOtpDialog}>
                 <DialogContent>
-                    <DialogHeader>
+                    <DialogHeader className="text-center w-full flex flex-col items-center">
                         <DialogTitle>Verify OTP</DialogTitle>
-                        <DialogDescription>Please enter the OTP sent to your email address.</DialogDescription>
+                        <DialogDescription>Please enter the 6-digit OTP sent to your email address.</DialogDescription>
                     </DialogHeader>
                     <Form {...otpForm}>
                         <form onSubmit={otpForm.handleSubmit(handleOtp)} className="space-y-8">
@@ -301,29 +349,39 @@ const UserLoginForm = () => {
                                 control={otpForm.control}
                                 name="otp"
                                 render={({ field, fieldState }) => (
-                                    <FormItem>
-                                        <FormLabel>OTP Code</FormLabel>
+                                    <FormItem className="mx-auto">
+                                        <FormLabel className="text-center block mb-2">OTP Code</FormLabel>
                                         <FormControl>
-                                            <Input
-                                                {...field}
-                                                placeholder="Enter 6-digit OTP"
-                                                maxLength={6}
-                                                disabled={isLoading}
-                                            />
+                                            <InputOTP maxLength={6} {...field} containerClassName="w-1/2 mx-auto">
+                                                <InputOTPGroup>
+                                                    <InputOTPSlot index={0} />
+                                                    <InputOTPSlot index={1} />
+                                                    <InputOTPSlot index={2} />
+                                                </InputOTPGroup>
+                                                <InputOTPSeparator />
+                                                <InputOTPGroup>
+                                                    <InputOTPSlot index={3} />
+                                                    <InputOTPSlot index={4} />
+                                                    <InputOTPSlot index={5} />
+                                                </InputOTPGroup>
+                                            </InputOTP>
                                         </FormControl>
-                                        <FormDescription>The code is valid for 5 minutes.</FormDescription>
-                                        <FormMessage>{fieldState.error?.message}</FormMessage>
+                                        <FormDescription className="text-center">
+                                            The code is valid for 5 minutes.
+                                        </FormDescription>
+                                        <FormMessage className="text-center">{fieldState.error?.message}</FormMessage>
                                     </FormItem>
                                 )}
                             />
-                            <DialogFooter>
-                                <Button type="submit" disabled={isLoading}>
+                            <DialogFooter className="flex-row flex justify-center items-center gap-2">
+                                <Button type="submit" className="sm:w-auto w-full" disabled={isLoading}>
                                     {isLoading ? "Verifying..." : "Verify"}
                                 </Button>
                                 <Button
                                     variant="outline"
                                     type="button"
-                                    onClick={() => handleResendOtp()}
+                                    className="sm:w-auto w-full"
+                                    onClick={handleResendOtp}
                                     disabled={isLoading}
                                 >
                                     Resend OTP

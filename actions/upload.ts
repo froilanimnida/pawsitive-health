@@ -9,11 +9,9 @@ import { redirect } from "next/navigation";
  * Server action to upload a file to R2 storage
  */
 export async function uploadFile(formData: FormData) {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) redirect("/signin");
     try {
-        // Check authentication
-        const session = await getServerSession(authOptions);
-        if (!session || !session.user) redirect("/signin");
-
         // Get file from form data
         const file = formData.get("file") as File;
         if (!file) {

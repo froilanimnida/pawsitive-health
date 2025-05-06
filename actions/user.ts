@@ -6,6 +6,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { BaseUserProfileSchema, type BaseUserProfileType } from "@/schemas";
 import { redirect } from "next/navigation";
+import type { users } from "@prisma/client";
 
 const getUserId = async (email: string) => {
     const user = await prisma.users.findUnique({
@@ -23,9 +24,9 @@ const getUserId = async (email: string) => {
  * Update a user's profile information
  */
 const updateUserProfile = async (data: BaseUserProfileType): Promise<ActionResponse | void> => {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) redirect("/signin");
     try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.id) redirect("/signin");
         const validated = BaseUserProfileSchema.safeParse(data);
         if (!validated.success) return { success: false, error: "Invalid input data" };
 
@@ -113,4 +114,22 @@ const updateCalendarIntegration = async (settings: {
     }
 };
 
-export { getUserId, updateUserProfile, updateCalendarIntegration };
+function getUser(user_id: number): Promise<ActionResponse<{ user: users }>>;
+function getUser(user_uuid: string): Promise<ActionResponse<{ user: users }>>;
+async function getUser(identifier: string | number): Promise<ActionResponse<{ user: users }>> {
+    try {
+        const where = typeof identifier === "string" ? { user_uuid: identifier } : { user_id: identifier };
+        const user = await prisma.users.findUnique({
+            where,
+        });
+        if (!user) return { success: false, error: "User not found" };
+        return { success: true, data: { user } };
+    } catch (error) {
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "An unexpected error occurred",
+        };
+    }
+}
+
+export { getUserId, updateUserProfile, updateCalendarIntegration, getUser };

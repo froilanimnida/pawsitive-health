@@ -7,9 +7,9 @@ import { UseFormProps, FieldValues } from "react-hook-form";
 export const baseFormConfig = {
     shouldFocusError: true,
     progressive: true,
-    mode: "onChange",
+    mode: "onSubmit",
     shouldUseNativeValidation: false,
-    reValidateMode: "onChange",
+    reValidateMode: "onSubmit",
 } as const;
 
 /**

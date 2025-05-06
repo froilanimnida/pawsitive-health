@@ -280,7 +280,7 @@ describe("Pets Actions", () => {
             healthcare_procedures: [],
             appointments: [],
             prescriptions: [],
-            health_monitoring: [],
+            healthMonitoring: [],
         };
 
         it("should get a pet by ID", async () => {
@@ -297,7 +297,7 @@ describe("Pets Actions", () => {
                     pet: {
                         ...mockPetResponse,
                         weight_kg: "25.50", // formatDecimal applied
-                        health_monitoring: [],
+                        healthMonitoring: [],
                     },
                 },
             });
@@ -323,7 +323,7 @@ describe("Pets Actions", () => {
                     pet: {
                         ...mockPetResponse,
                         weight_kg: "25.50", // formatDecimal applied
-                        health_monitoring: [],
+                        healthMonitoring: [],
                     },
                 },
             });

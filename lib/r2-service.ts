@@ -104,6 +104,9 @@ export async function createPresignedUploadUrl(
 
 /**
  * Delete a file from R2 storage
+ * @param key The key of the file to delete
+ * @param folder The folder where the file is stored
+ * @returns True if the file was deleted successfully, false otherwise
  */
 export async function deleteFileFromR2(key: string): Promise<boolean> {
     try {

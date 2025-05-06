@@ -18,10 +18,9 @@ import {
  * Used for the dashboard "At a Glance" section
  */
 export async function getUpcomingVaccinations(limit = 5): Promise<ActionResponse<UpcomingVaccinationsResponse>> {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) redirect("/signin");
     try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.id) redirect("/signin");
-
         // Get current date for comparison
         const today = new Date();
 
@@ -92,10 +91,9 @@ export async function getUpcomingVaccinations(limit = 5): Promise<ActionResponse
  * Used for the dashboard "At a Glance" section
  */
 export async function getUpcomingPrescriptions(limit = 5): Promise<ActionResponse<UpcomingPrescriptionsResponse>> {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) redirect("/signin");
     try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.id) redirect("/signin");
-
         // Get current date for comparison
         const today = new Date();
 
@@ -357,10 +355,9 @@ export async function getPetHistoricalHealthcareData(petId: number): Promise<
         }[];
     }>
 > {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) redirect("/signin");
     try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.id) redirect("/signin");
-
         // Fetch vaccinations for the pet
         const vaccinations = await prisma.vaccinations.findMany({
             where: {

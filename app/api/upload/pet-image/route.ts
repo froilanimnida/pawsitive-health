@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { uploadFileToR2 } from "@/lib/r2-service";
+import { deleteFileFromR2, uploadFileToR2 } from "@/lib/r2-service";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
@@ -44,5 +44,30 @@ export async function POST(request: NextRequest) {
     } catch (error) {
         console.error("Error uploading pet image:", error);
         return NextResponse.json({ error: "Failed to upload image" }, { status: 500 });
+    }
+}
+
+export async function DELETE(request: NextRequest) {
+    try {
+        const session = await getServerSession(authOptions);
+
+        if (!session?.user) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        const formData = await request.formData();
+        const fileKey = formData.get("fileKey") as string;
+
+        if (!fileKey) {
+            return NextResponse.json({ error: "No file key provided" }, { status: 400 });
+        }
+
+        // Delete from R2
+        const result = await deleteFileFromR2(fileKey);
+
+        return NextResponse.json({ success: true, data: result });
+    } catch (error) {
+        console.error("Error deleting pet image:", error);
+        return NextResponse.json({ error: "Failed to delete image" }, { status: 500 });
     }
 }

@@ -54,6 +54,7 @@ type AppointmentDetailsResponse = {
         state: string;
         postal_code: string;
         phone_number: string;
+        clinic_id: number;
     } | null;
 };
 

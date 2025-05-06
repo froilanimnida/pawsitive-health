@@ -2,7 +2,7 @@
 import { VeterinarianSchema, VeterinarianType } from "@/schemas";
 import { generateVerificationToken, hashPassword, prisma } from "@/lib";
 import { createNewPreferenceDefault } from "@/actions";
-import { role_type, type users, type veterinarians } from "@prisma/client";
+import { role_type, type veterinarians } from "@prisma/client";
 import { type veterinary_specialization } from "@prisma/client";
 import type { ActionResponse } from "@/types";
 import { getServerSession } from "next-auth";
@@ -13,11 +13,11 @@ import { revalidatePath } from "next/cache";
 const newVeterinarian = async (
     values: VeterinarianType,
 ): Promise<ActionResponse<{ user_uuid: string; veterinarian_uuid: string }>> => {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) redirect("/signin");
     try {
         const formData = VeterinarianSchema.safeParse(values);
         if (!formData.success) return { success: false, error: "Invalid input data" };
-        const session = await getServerSession(authOptions);
-        if (!session || !session.user || !session.user.id) redirect("/signin");
 
         const user = await prisma.users.findFirst({
             where: {
@@ -104,66 +104,22 @@ const newVeterinarian = async (
     }
 };
 
-const getClinicVeterinarians = async (): Promise<
-    ActionResponse<{ veterinarians: (veterinarians & { users: users | null })[] }>
-> => {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session || !session.user || !session.user.id) redirect("/signin");
-
-        const clinic = await prisma.clinics.findFirst({
-            where: { user_id: Number(session.user.id) },
-        });
-
-        if (!clinic) return { success: false, error: "Clinic not found" };
-
-        const clinicVeterinarians = await prisma.clinic_veterinarians.findMany({
-            where: {
-                clinic_id: clinic.clinic_id,
-            },
-            include: {
-                veterinarians: {
-                    include: {
-                        users: true,
-                    },
-                },
-            },
-        });
-
-        const veterinarians = clinicVeterinarians.map((cv) => ({
-            ...cv.veterinarians,
-        }));
-
-        return {
-            success: true,
-            data: {
-                veterinarians,
-            },
-        };
-    } catch (error) {
-        return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
-    }
-};
-
-const getVeterinariansByClinic = async (
-    clinicId: string,
-): Promise<
-    ActionResponse<{ veterinarians: { id: number; name: string; specialization: veterinary_specialization }[] }>
-> => {
+async function getVeterinarians(clinicId: number): Promise<ActionResponse<{ veterinarians: veterinarians[] | [] }>> {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) redirect("/signin");
     try {
         if (!clinicId) return { success: false, error: "Clinic ID is required" };
-        const clinicVeterinarians = await prisma.clinic_veterinarians.findMany({
+
+        const clinicVeterinarians = await prisma.veterinarians.findMany({
             where: {
-                clinic_id: Number(clinicId),
-            },
-            include: {
-                veterinarians: {
-                    include: {
-                        users: true,
+                clinic_veterinarians: {
+                    some: {
+                        clinic_id: clinicId,
                     },
                 },
             },
         });
+
         if (!clinicVeterinarians || clinicVeterinarians.length === 0) {
             return { success: true, data: { veterinarians: [] } };
         }
@@ -171,13 +127,7 @@ const getVeterinariansByClinic = async (
         return {
             success: true,
             data: {
-                veterinarians: clinicVeterinarians.map((cv) => ({
-                    id: cv.veterinarians.vet_id,
-                    name: cv.veterinarians.users
-                        ? `${cv.veterinarians.users.first_name} ${cv.veterinarians.users.last_name}`
-                        : "Unknown",
-                    specialization: cv.veterinarians.specialization,
-                })),
+                veterinarians: clinicVeterinarians,
             },
         };
     } catch (error) {
@@ -186,6 +136,32 @@ const getVeterinariansByClinic = async (
             error: error instanceof Error ? error.message : "An unexpected error occurred",
         };
     }
-};
+}
+async function getVeterinarian(veterinarianId: number): Promise<ActionResponse<{ veterinarian: veterinarians }>>;
+async function getVeterinarian(veterinarianUuid: string): Promise<ActionResponse<{ veterinarian: veterinarians }>>;
+// Implementation
+async function getVeterinarian(identifier: number | string): Promise<ActionResponse<{ veterinarian: veterinarians }>> {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) redirect("/signin");
 
-export { newVeterinarian, getClinicVeterinarians, getVeterinariansByClinic };
+    try {
+        if (!identifier) return { success: false, error: "Veterinarian ID or UUID is required" };
+
+        // Define the where clause based on the type of input
+        const whereClause = typeof identifier === "number" ? { vet_id: identifier } : { vet_uuid: identifier };
+
+        const veterinarian = await prisma.veterinarians.findFirst({
+            where: whereClause,
+        });
+
+        if (!veterinarian) return { success: false, error: "Veterinarian not found" };
+        return { success: true, data: { veterinarian } };
+    } catch (error) {
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "An unexpected error occurred",
+        };
+    }
+}
+
+export { newVeterinarian, getVeterinarians, getVeterinarian };

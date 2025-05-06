@@ -1,13 +1,16 @@
 import { Html, Head, Body, Container, Section, Heading, Text, Button, Hr } from "@react-email/components";
 
-export interface OnboardingEmailProps {
+export default function UserOnboardingEmail({
+    firstName,
+    lastName,
+    verificationUrl,
+    expiresIn,
+}: {
     firstName: string;
     lastName: string;
     verificationUrl: string;
     expiresIn: string;
-}
-
-export default function UserOnboardingEmail({ firstName, lastName, verificationUrl, expiresIn }: OnboardingEmailProps) {
+}) {
     return (
         <Html>
             <Head />

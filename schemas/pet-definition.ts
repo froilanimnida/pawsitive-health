@@ -39,9 +39,18 @@ export const UpdatePetSchema = z.object({
         .min(1)
         .max(50)
         .transform((name) => toTitleCase(name.trim())),
-    weight_kg: z.number().refine((value) => value > 0, {
-        message: "Weight must be a positive number",
-    }),
+    weight_kg: z
+        .union([
+            z.string().transform((val) => {
+                const parsed = parseFloat(val);
+                if (isNaN(parsed)) throw new Error("Weight must be a valid number");
+                return parsed;
+            }),
+            z.number(),
+        ])
+        .refine((value) => value > 0, {
+            message: "Weight must be a positive number",
+        }),
     pet_id: z.number().int().positive({
         message: "Pet ID must be a positive integer",
     }),

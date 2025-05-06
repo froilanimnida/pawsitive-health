@@ -1,24 +1,91 @@
 import { notFound } from "next/navigation";
-import { getAppointment } from "@/actions";
+import { getAppointment, getClinic, getMessages, getPet, getUser, getVeterinarian } from "@/actions";
 import { Metadata } from "next";
 import { AppointmentCard } from "@/components/shared/appointment-card";
+import AppointmentChat from "@/components/shared/appointment-chat";
+import { cache } from "react";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 export const metadata: Metadata = {
     title: "View Appointment | PawsitiveHealth",
     description: "View your pet's appointment details",
 };
 
-const ViewAppointment = async ({ params }: { params: Promise<{ appointment_uuid: string }> }) => {
+const getAppointmentCached = cache(async (uuid: string) => {
+    const response = await getAppointment(uuid);
+    if (
+        !response.success ||
+        !response.data?.appointment ||
+        !response.data.appointment.clinic_id ||
+        !response.data.appointment.pet_id ||
+        !response.data.appointment.vet_id
+    ) {
+        return null;
+    }
+    const clinicResponse = await getClinic(response.data.appointment.clinic_id);
+    const veterinarianResponse = await getVeterinarian(response.data.appointment.vet_id);
+    const petResponse = await getPet(response.data.appointment.pet_id);
+    const messagesResponse = await getMessages(response.data.appointment.appointment_id);
+    if (
+        !clinicResponse.success ||
+        !petResponse.success ||
+        !clinicResponse.data.clinic ||
+        !veterinarianResponse.success ||
+        !veterinarianResponse.data.veterinarian.user_id ||
+        !messagesResponse.success
+    ) {
+        return null;
+    }
+    const vetInfoResponse = await getUser(veterinarianResponse.data.veterinarian.user_id);
+    if (!vetInfoResponse.success) {
+        return null;
+    }
+    return {
+        appointment: response.data.appointment,
+        clinics: clinicResponse.data.clinic,
+        pets: petResponse.data.pet,
+        veterinarians: veterinarianResponse.data.veterinarian,
+        vetInfo: vetInfoResponse.data.user,
+        messages: messagesResponse.data.messages,
+    };
+});
+
+async function ViewAppointment({ params }: { params: Promise<{ appointment_uuid: string }> }) {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id || !session.user.role) {
+        return notFound();
+    }
     const { appointment_uuid } = await params;
-    const appointmentResponse = await getAppointment(appointment_uuid, true);
-    if (!appointmentResponse.success || !appointmentResponse.data?.appointment) notFound();
-    const { appointment } = appointmentResponse.data;
+    const response = await getAppointmentCached(appointment_uuid);
+    if (!response) notFound();
+
+    // Infer participants at the top level
+    const chatParticipants = {
+        currentUserId: Number(session.user.id),
+        otherUserId: response.vetInfo.user_id,
+        appointmentId: response.appointment.appointment_id,
+    };
 
     return (
         <div className="container max-w-4xl py-6">
-            <AppointmentCard appointment={appointment} viewerType="user" />
+            <AppointmentCard
+                clinic={response.clinics}
+                vetInfo={response.vetInfo}
+                appointment={response.appointment}
+                pet={response.pets}
+                viewerType="user"
+                veterinarian={response.veterinarians}
+                vetId={response.veterinarians.vet_id}
+            />
+            <AppointmentChat
+                initialMessages={response.messages}
+                appointmentStatus={response.appointment.status}
+                chatParticipants={chatParticipants}
+                isVetView={false}
+            />
         </div>
     );
-};
+}
 
 export default ViewAppointment;

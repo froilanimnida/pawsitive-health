@@ -1,21 +1,5 @@
 import { Html, Head, Body, Container, Section, Heading, Text, Button, Hr } from "@react-email/components";
 
-export interface AppointmentCompletedEmailProps {
-    petName: string;
-    ownerName: string;
-    vetName: string;
-    date: string;
-    time: string;
-    clinicName: string;
-    clinicPhone: string;
-    appointmentType: string;
-    appointmentId: string;
-    diagnosis?: string;
-    followUpDate?: string;
-    prescriptions?: { name: string; dosage: string; instructions: string }[];
-    recommendations?: string;
-}
-
 export default function AppointmentCompleted({
     petName,
     ownerName,
@@ -30,7 +14,21 @@ export default function AppointmentCompleted({
     followUpDate,
     prescriptions,
     recommendations,
-}: AppointmentCompletedEmailProps) {
+}: {
+    petName: string;
+    ownerName: string;
+    vetName: string;
+    date: string;
+    time: string;
+    clinicName: string;
+    clinicPhone: string;
+    appointmentType: string;
+    appointmentId: string;
+    diagnosis?: string;
+    followUpDate?: string;
+    prescriptions?: { name: string; dosage: string; instructions: string }[];
+    recommendations?: string;
+}) {
     return (
         <Html>
             <Head />

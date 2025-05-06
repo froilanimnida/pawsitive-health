@@ -1,4 +1,4 @@
-import { getPets, getClinics } from "@/actions";
+import { getClinics, getUserPetsList } from "@/actions";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui";
 import type { Metadata } from "next";
 import AppointmentForm from "@/components/form/appointment-form/index";
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 const NewAppointment = async ({ params }: UUIDPageParams) => {
     const { uuid } = await params;
-    const petsResponse = await getPets();
+    const petsResponse = await getUserPetsList();
     const pets = petsResponse.success ? (petsResponse.data?.pets ?? []) : [];
     const clinicsResponse = await getClinics();
     const clinics = clinicsResponse.success ? (clinicsResponse.data?.clinics ?? []) : [];

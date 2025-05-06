@@ -1,9 +1,8 @@
 "use server";
-import { prisma } from "@/lib";
+import { getCurrentUtcDate, prisma } from "@/lib";
 import { type PetVaccinationType, PetVaccinationSchema } from "@/schemas";
 import type { ActionResponse } from "@/types";
 import type { vaccinations } from "@prisma/client";
-import { getPet } from "./pets";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
@@ -17,9 +16,9 @@ import { revalidatePath } from "next/cache";
  * @returns {Promise<ActionResponse | void>} - An object indicating success or failure.
  */
 const createVaccination = async (values: PetVaccinationType): Promise<ActionResponse | void> => {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id || !session.user.role) redirect("/signin");
     try {
-        const session = await getServerSession(authOptions);
-        if (!session || !session.user || !session.user.id || !session.user.role) redirect("/signin");
         const data = PetVaccinationSchema.safeParse(values);
         if (!data.success) return { success: false, error: "Please check the form inputs" };
         const pet = await prisma.pets.findFirst({
@@ -45,6 +44,7 @@ const createVaccination = async (values: PetVaccinationType): Promise<ActionResp
                 pet_id: pet.pet_id,
                 administered_by: veterinarian_id,
                 appointment_id: data.data.appointment_id,
+                created_at: getCurrentUtcDate(),
             },
         });
 
@@ -59,37 +59,132 @@ const createVaccination = async (values: PetVaccinationType): Promise<ActionResp
 };
 
 /**
- * This function retrieves a specific vaccination record from the database.
- * It first checks if the vaccination exists, and if it does, it fetches it.
- * @param {string} vaccination_uuid - The UUID of the vaccination.
- * @returns {Promise<ActionResponse<{ vaccination: vaccinations }>>} - An object containing the vaccination or an error message.
+ * Get vaccination record(s) by different identifier types
+ *
+ * This function is overloaded to retrieve vaccination records based on:
+ * 1. vaccination_uuid - For getting a single specific vaccination
+ * 2. vaccination_id - For getting a single vaccination by ID
+ * 3. appointment_id - For getting all vaccinations associated with an appointment
+ * 4. pet_id - For getting all vaccinations for a specific pet
+ *
+ * @returns A promise with an ActionResponse containing the requested vaccination(s)
  */
-const getVaccination = async (vaccination_uuid: string): Promise<ActionResponse<{ vaccination: vaccinations }>> => {
+async function getVaccination(vaccination_uuid: string): Promise<ActionResponse<{ vaccination: vaccinations }>>;
+async function getVaccination(vaccination_id: number): Promise<ActionResponse<{ vaccination: vaccinations }>>;
+async function getVaccination(param: {
+    appointment_id: number;
+}): Promise<ActionResponse<{ vaccinations: vaccinations[] }>>;
+async function getVaccination(param: { pet_id: number }): Promise<ActionResponse<{ vaccinations: vaccinations[] }>>;
+
+// Implementation that handles all the overloaded cases
+async function getVaccination(
+    param: string | number | { appointment_id: number } | { pet_id: number },
+): Promise<ActionResponse<{ vaccination: vaccinations } | { vaccinations: vaccinations[] }>> {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) redirect("/signin");
     try {
-        const vaccination = await prisma.vaccinations.findFirst({
-            where: { vaccination_uuid: vaccination_uuid },
-        });
+        // Case 1: Param is a string (vaccination_uuid)
+        if (typeof param === "string") {
+            const vaccination = await prisma.vaccinations.findFirst({
+                where: { vaccination_uuid: param },
+                include: {
+                    pets: {
+                        select: { name: true, profile_picture_url: true, species: true, breed: true },
+                    },
+                    veterinarians: {
+                        select: {
+                            users: { select: { first_name: true, last_name: true } },
+                        },
+                    },
+                },
+            });
 
-        if (!vaccination) return { success: false, error: "Vaccination not found" };
+            if (!vaccination) return { success: false, error: "Vaccination not found" };
+            return { success: true, data: { vaccination } };
+        }
 
-        return { success: true, data: { vaccination } };
+        // Case 2: Param is a number (vaccination_id)
+        else if (typeof param === "number") {
+            const vaccination = await prisma.vaccinations.findFirst({
+                where: { vaccination_id: param },
+                include: {
+                    pets: {
+                        select: { name: true, profile_picture_url: true, species: true, breed: true },
+                    },
+                    veterinarians: {
+                        select: {
+                            users: { select: { first_name: true, last_name: true } },
+                        },
+                    },
+                },
+            });
+
+            if (!vaccination) return { success: false, error: "Vaccination not found" };
+            return { success: true, data: { vaccination } };
+        }
+
+        // Case 3: Param is an object with appointment_id
+        else if ("appointment_id" in param) {
+            const vaccinations = await prisma.vaccinations.findMany({
+                where: { appointment_id: param.appointment_id },
+                include: {
+                    pets: {
+                        select: { name: true, profile_picture_url: true, species: true, breed: true },
+                    },
+                    veterinarians: {
+                        select: {
+                            users: { select: { first_name: true, last_name: true } },
+                        },
+                    },
+                },
+                orderBy: { administered_date: "desc" },
+            });
+
+            return { success: true, data: { vaccinations } };
+        }
+
+        // Case 4: Param is an object with pet_id
+        else if ("pet_id" in param) {
+            const vaccinations = await prisma.vaccinations.findMany({
+                where: { pet_id: param.pet_id },
+                include: {
+                    veterinarians: {
+                        select: {
+                            users: { select: { first_name: true, last_name: true } },
+                        },
+                    },
+                    appointments: {
+                        select: { appointment_uuid: true },
+                    },
+                },
+                orderBy: { administered_date: "desc" },
+            });
+
+            return { success: true, data: { vaccinations } };
+        }
+
+        // Handle invalid parameter type
+        return { success: false, error: "Invalid parameter type provided" };
     } catch (error) {
-        return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "An unexpected error occurred",
+        };
     }
-};
+}
 
 /**
  * This function retrieves all vaccinations for a specific pet.
  * It first checks if the pet exists, and if it does, it fetches the vaccinations.
- * @param {string} pet_uuid - The UUID of the pet.
+ * @param {number} pet_id - The id of the pet.
  * @returns {Promise<ActionResponse<{ vaccinations: vaccinations[] }>>} - An object containing the vaccinations or an error message.
  */
-const getPetVaccinations = async (pet_uuid: string): Promise<ActionResponse<{ vaccinations: vaccinations[] }>> => {
+const getPetVaccinations = async (pet_id: number): Promise<ActionResponse<{ vaccinations: vaccinations[] | [] }>> => {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) redirect("/signin");
     try {
-        const pet = await getPet(pet_uuid);
-        if (!pet || !pet.success || !pet.data?.pet) return { success: false, error: "Pet not found" };
         const vaccinations = await prisma.vaccinations.findMany({
-            where: { pet_id: pet.data?.pet.pet_id },
+            where: { pet_id: pet_id },
         });
         return { success: true, data: { vaccinations } };
     } catch (error) {
@@ -112,9 +207,9 @@ const deleteVaccination = async (
     appointment_uuid: string,
     petUuid: string,
 ): Promise<ActionResponse | void> => {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) redirect("/signin");
     try {
-        const session = await getServerSession(authOptions);
-        if (!session || !session.user || !session.user.id) redirect("/signin");
         const vaccination = await prisma.vaccinations.findFirst({
             where: { vaccination_id: vaccination_id, appointment_id: appointment_id },
         });

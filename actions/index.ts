@@ -1,4 +1,14 @@
-export { addPet, getPet, updatePet, getPets, getPetId } from "./pets";
+export {
+    addPet,
+    getPet,
+    updatePet,
+    getPets,
+    getPetId,
+    petsCount,
+    getUserPets,
+    getUserPetsList,
+    updatePetProfileImage,
+} from "./pets";
 export { getClinics, getNearbyClinics, getClinic } from "./clinic";
 export {
     createAccount,
@@ -12,8 +22,10 @@ export {
     isEmailTaken,
     changePassword,
     confirmPasswordChange,
+    forgotPassword,
+    resetPassword,
 } from "./auth";
-export { newVeterinarian, getClinicVeterinarians, getVeterinariansByClinic } from "./veterinary";
+export { newVeterinarian, getVeterinarian, getVeterinarians } from "./veterinary";
 export {
     getExistingAppointments,
     getUserAppointments,
@@ -28,10 +40,9 @@ export {
     getAppointmentHistoricalData,
     getAppointmentRecordedServices,
 } from "./appointment";
-export { getUserId, updateCalendarIntegration, updateUserProfile } from "./user";
+export { getUserId, updateCalendarIntegration, updateUserProfile, getUser } from "./user";
 export { getVeterinaryAvailability } from "./veterinarian-availability";
 export { createVaccination, getPetVaccinations, deleteVaccination, getVaccination } from "./vaccination";
-//export {} from "./medical-records";
 export { addHealthMonitoringRecord, getPetHealthMonitoring, deleteHealthMonitoringRecord } from "./health-monitoring";
 export {
     addHealthcareProcedure,
@@ -43,7 +54,13 @@ export { getClinicSchedule } from "./clinic-schedule";
 export { createMedication, getMedicationsList } from "./medications";
 export { sendEmail, sendSimpleEmail } from "./send-email";
 export { getEducationalContent, getEducationalContentByUuid } from "./educational-content";
-export { addPrescription, viewPrescription, deletePrescription } from "./prescription";
+export {
+    addPrescription,
+    viewPrescription,
+    deletePrescription,
+    getPrescription,
+    getPrescriptions,
+} from "./prescription";
 export {
     changeTheme,
     createNewPreferenceDefault,
@@ -72,3 +89,6 @@ export {
     markAllNotificationsAsRead,
     markNotificationAsRead,
 } from "./notification";
+export { getAllUsers, adminResetPassword, toggleUserStatus, deleteUser } from "./admin";
+export { getMessages, sendMessage } from "./messages";
+export { getMedicalRecords } from "./medical-records";
