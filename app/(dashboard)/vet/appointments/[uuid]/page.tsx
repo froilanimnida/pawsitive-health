@@ -55,7 +55,7 @@ const getAppointmentCached = cache(async (uuid: string) => {
     if (
         !petResponse.success ||
         !petResponse.data.pet ||
-        !petResponse.data.pet.user_id === null ||
+        petResponse.data.pet.user_id === null ||
         !pastHealthMonitoringResponse.success ||
         !getVaccinationsResponse.success ||
         !medicationResponse.success ||
