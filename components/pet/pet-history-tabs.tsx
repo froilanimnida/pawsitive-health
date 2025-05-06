@@ -26,28 +26,32 @@ export function PetHistoryTabs({
 
     return (
         <Tabs defaultValue="appointments" className="w-full mt-6">
-            <TabsList className="grid grid-cols-4 mb-4">
+            <TabsList className="w-full">
                 <TabsTrigger value="appointments">Appointments ({appointmentCount})</TabsTrigger>
                 <TabsTrigger value="vaccinations">Vaccinations ({vaccinationCount})</TabsTrigger>
                 <TabsTrigger value="procedures">Procedures ({procedureCount})</TabsTrigger>
                 <TabsTrigger value="prescriptions">Prescriptions ({prescriptionCount})</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="appointments" className="border rounded-md p-4">
-                <PetAppointmentsTable appointments={appointments} />
-            </TabsContent>
+            <div className="w-full border rounded-md p-4 max-w-full overflow-scroll">
+                <div className="min-w-full">
+                    <TabsContent value="appointments" className="mt-0 data-[state=active]:block">
+                        <PetAppointmentsTable appointments={appointments} />
+                    </TabsContent>
 
-            <TabsContent value="vaccinations" className="border rounded-md p-4">
-                <PetVaccinationsTable vaccinations={vaccinations} />
-            </TabsContent>
+                    <TabsContent value="vaccinations" className="mt-0 data-[state=active]:block">
+                        <PetVaccinationsTable vaccinations={vaccinations} />
+                    </TabsContent>
 
-            <TabsContent value="procedures" className="border rounded-md p-4">
-                <PetProceduresTable procedures={procedures} />
-            </TabsContent>
+                    <TabsContent value="procedures" className="mt-0 data-[state=active]:block">
+                        <PetProceduresTable procedures={procedures} />
+                    </TabsContent>
 
-            <TabsContent value="prescriptions" className="border rounded-md p-4">
-                <PetPrescriptionsTable prescriptions={prescriptions} />
-            </TabsContent>
+                    <TabsContent value="prescriptions" className="mt-0 data-[state=active]:block">
+                        <PetPrescriptionsTable prescriptions={prescriptions} />
+                    </TabsContent>
+                </div>
+            </div>
         </Tabs>
     );
 }

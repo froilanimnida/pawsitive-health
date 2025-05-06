@@ -37,7 +37,8 @@ import PetProfileImage from "@/components/form/pet-profile-image";
 import { ActivityLevelChart } from "@/components/pet/activity-level-chart";
 import { PetHealthMetricsChart } from "@/components/pet/pet-health-metrics-chart";
 import { WeightTrendChart } from "@/components/pet/weight-trend-chart";
-import { Stethoscope, ActivityIcon, History, Weight, Pen, Syringe } from "lucide-react";
+import { Stethoscope, ActivityIcon, History, Weight, Pen, Syringe, Mars, VenusAndMars, Venus } from "lucide-react";
+import { pet_sex_type } from "@prisma/client";
 // Create a cached version of getPet
 const getPetCached = cache(async (uuid: string) => {
     const response = await getPet(uuid);
@@ -85,19 +86,36 @@ const PetDetails = async ({ params }: UUIDPageParams) => {
             : [];
 
     return (
-        <div className="container mx-auto p-6 space-y-6">
-            <Card className="w-full">
-                <CardHeader>
-                    <CardTitle className="text-2xl">{name}</CardTitle>
-                    <CardDescription>
-                        {toTitleCase(species)} • {toTitleCase(breed)}
-                    </CardDescription>
+        <div className="w-full mx-auto p-6 space-y-6">
+            <h1 className="text-2xl font-bold">Pet Information</h1>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-start">
+                    <div className="flex justify-center items-center">
+                        <PetProfileImage
+                            pet_id={pet.pet_id}
+                            profile_picture_url={pet.profile_picture_url}
+                            petUuid={pet_uuid}
+                            name={pet.name}
+                        />
+                    </div>
+                    <div className="flex flex-col justify-center items-start ml-4">
+                        <CardTitle className="text-2xl">{name}</CardTitle>
+                        <CardDescription>
+                            {toTitleCase(species)} • {toTitleCase(breed)}
+                        </CardDescription>
+                    </div>
+                    <div className="flex items-center ml-auto">
+                        {pet.sex === "male" && <Mars className="h-5 w-5 text-blue-500" />}
+                        {pet.sex === "female" && <Venus className="h-5 w-5 text-pink-500" />}
+                        {(!pet.sex || pet.sex === pet_sex_type.prefer_not_to_say) && (
+                            <VenusAndMars className="h-5 w-5 text-gray-400" />
+                        )}
+                    </div>
                 </CardHeader>
 
                 <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-4">
-                            <h3 className="text-lg font-semibold">Pet Information</h3>
                             <div className="grid grid-cols-2 gap-2">
                                 <h1 className="text-sm font-medium text-muted-foreground">Species</h1>
                                 <p>{toTitleCase(species)}</p>
@@ -113,18 +131,10 @@ const PetDetails = async ({ params }: UUIDPageParams) => {
                                 <p>{formatDistanceToNow(updated_at, { addSuffix: true, includeSeconds: true })}</p>
                             </div>
                         </div>
-                        <div className="flex justify-center items-center">
-                            <PetProfileImage
-                                pet_id={pet.pet_id}
-                                profile_picture_url={pet.profile_picture_url}
-                                petUuid={pet_uuid}
-                                name={pet.name}
-                            />
-                        </div>
                     </div>
                 </CardContent>
 
-                <CardFooter className="flex flex-wrap gap-2">
+                <CardFooter className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Dialog>
                         <DialogTrigger asChild>
                             <Button variant="outline">
@@ -178,13 +188,13 @@ const PetDetails = async ({ params }: UUIDPageParams) => {
                         petCurrentWeight={Number(pet.weight_kg)}
                     />
 
-                    <Button asChild variant="default">
+                    <Button asChild variant="default" className="md:col-span-2">
                         <Link href={`/user/appointments/${pet_uuid}`}>Schedule Appointment</Link>
                     </Button>
                 </CardFooter>
             </Card>
 
-            <Tabs defaultValue="history" className="w-full">
+            <Tabs defaultValue="history" className="w-full ">
                 <TabsList className="mb-4 w-full">
                     <TabsTrigger value="history">
                         <Stethoscope />

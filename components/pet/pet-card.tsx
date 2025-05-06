@@ -18,13 +18,13 @@ import {
     DialogDescription,
 } from "@/components/ui";
 import { FileUpload } from "@/components/ui/file-upload";
-import { Camera, Loader2 } from "lucide-react";
+import { Camera, Loader2, Venus, Mars, VenusAndMars } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { calculateAge, toTitleCase } from "@/lib";
 import { updatePetProfileImage } from "@/lib/functions/upload/update-pet-profile-image";
 import type { Modify } from "@/types";
-import type { pets } from "@prisma/client";
+import { pet_sex_type, type pets } from "@prisma/client";
 
 export default function PetCard({ pet }: { pet: Modify<pets, { weight_kg: string }> }) {
     const [isHovering, setIsHovering] = useState(false);
@@ -128,8 +128,17 @@ export default function PetCard({ pet }: { pet: Modify<pets, { weight_kg: string
                 </div>
 
                 <CardHeader>
-                    <CardTitle className="text-center">{toTitleCase(pet.name)}</CardTitle>
-                    <CardDescription className="text-center">{toTitleCase(pet.breed)}</CardDescription>
+                    <div>
+                        <CardTitle className="text-center">{toTitleCase(pet.name)}</CardTitle>
+                        <CardDescription className="text-center">{toTitleCase(pet.breed)}</CardDescription>
+                        <div className="flex justify-center mt-1">
+                            {pet.sex === "male" && <Mars className="h-5 w-5 text-blue-500" />}
+                            {pet.sex === "female" && <Venus className="h-5 w-5 text-pink-500" />}
+                            {(!pet.sex || pet.sex === pet_sex_type.prefer_not_to_say) && (
+                                <VenusAndMars className="h-5 w-5 text-gray-400" />
+                            )}
+                        </div>
+                    </div>
                 </CardHeader>
 
                 <CardContent className="flex-grow">

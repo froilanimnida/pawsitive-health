@@ -1,5 +1,4 @@
 "use client";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import {
     FormItem,
@@ -26,20 +25,11 @@ import { addHealthcareProcedure } from "@/actions";
 import { type ProcedureType, ProcedureSchema } from "@/schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { toTitleCase } from "@/lib";
+import { createFormConfig, toTitleCase } from "@/lib";
 import { procedure_type } from "@prisma/client";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib";
-
-interface PetProcedureFormProps {
-    petUuid?: string;
-    petId: number;
-    appointmentId?: number;
-    appointmentUuid?: string;
-    isUserView?: boolean; // Flag to determine if it's user historical entry or vet current entry
-    vetId?: number; // Optional vet ID for when a vet is performing the procedure
-}
 
 const PetProcedureForm = ({
     petUuid,
@@ -48,39 +38,49 @@ const PetProcedureForm = ({
     appointmentUuid,
     isUserView = false,
     vetId,
-}: PetProcedureFormProps) => {
-    const [isLoading, setIsLoading] = useState(false);
-    const petProcedureForm = useForm({
-        resolver: zodResolver(ProcedureSchema),
-        reValidateMode: "onChange",
-        shouldFocusError: true,
-        progressive: true,
-        defaultValues: {
-            pet_uuid: petUuid,
-            pet_id: petId,
-            appointment_id: appointmentId,
-            appointment_uuid: appointmentUuid,
-            administered_by: vetId,
-            external_provider: "",
-            procedure_type: procedure_type.deworming,
-            procedure_date: new Date(),
-            next_due_date: undefined,
-            product_used: "",
-            dosage: "",
-            notes: "",
-        },
-    });
+}: {
+    petUuid?: string;
+    petId: number;
+    appointmentId?: number;
+    appointmentUuid?: string;
+    isUserView?: boolean; // Flag to determine if it's user historical entry or vet current entry
+    vetId?: number; // Optional vet ID for when a vet is performing the procedure
+}) => {
+    const petProcedureForm = useForm<ProcedureType>(
+        createFormConfig({
+            defaultValues: {
+                pet_uuid: petUuid,
+                pet_id: petId,
+                appointment_id: appointmentId,
+                appointment_uuid: appointmentUuid,
+                administered_by: vetId,
+                external_provider: "",
+                procedure_type: procedure_type.deworming,
+                procedure_date: new Date(),
+                next_due_date: undefined,
+                product_used: "",
+                dosage: "",
+                notes: "",
+            },
+            resolver: zodResolver(ProcedureSchema),
+        }),
+    );
+
+    const {
+        handleSubmit,
+        reset,
+        getValues,
+        formState: { isSubmitting },
+    } = petProcedureForm;
 
     const onSubmit = async (values: ProcedureType) => {
-        setIsLoading(true);
-        toast.loading("Saving healthcare procedure...");
+        const t = toast.loading("Saving healthcare procedure...");
         const result = await addHealthcareProcedure(values);
         if (result === undefined) {
-            toast.dismiss();
+            toast.dismiss(t);
             toast.success("Healthcare procedure added successfully");
-            setIsLoading(false);
-            petProcedureForm.reset({
-                ...petProcedureForm.getValues(),
+            reset({
+                ...getValues(),
                 procedure_type: procedure_type.deworming,
                 procedure_date: new Date(),
                 next_due_date: undefined,
@@ -91,19 +91,17 @@ const PetProcedureForm = ({
             return;
         }
         if (result && !result.success && result.error) {
-            toast.dismiss();
+            toast.dismiss(t);
             toast.error(result.error || "Failed to add healthcare procedure");
-            setIsLoading(false);
             return;
         }
-        toast.dismiss();
+        toast.dismiss(t);
         toast.error("Failed to add healthcare procedure");
-        setIsLoading(false);
     };
 
     return (
         <Form {...petProcedureForm}>
-            <form onSubmit={petProcedureForm.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 <div className="flex flex-col gap-6">
                     <FormField
                         control={petProcedureForm.control}
@@ -111,7 +109,11 @@ const PetProcedureForm = ({
                         render={({ field, fieldState }) => (
                             <FormItem>
                                 <FormLabel>Procedure Type</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoading}>
+                                <Select
+                                    onValueChange={field.onChange}
+                                    defaultValue={field.value}
+                                    disabled={isSubmitting}
+                                >
                                     <FormControl>
                                         <SelectTrigger className="w-full">
                                             <SelectValue placeholder="Select procedure type" />
@@ -146,7 +148,7 @@ const PetProcedureForm = ({
                                                     "w-full pl-3 text-left font-normal",
                                                     !field.value && "text-muted-foreground",
                                                 )}
-                                                disabled={isLoading}
+                                                disabled={isSubmitting}
                                                 type="button"
                                             >
                                                 <CalendarIcon className="mr-2 h-4 w-4" />
@@ -189,7 +191,7 @@ const PetProcedureForm = ({
                                                     "w-full pl-3 text-left font-normal",
                                                     !field.value && "text-muted-foreground",
                                                 )}
-                                                disabled={isLoading}
+                                                disabled={isSubmitting}
                                                 type="button"
                                             >
                                                 <CalendarIcon className="mr-2 h-4 w-4" />
@@ -225,7 +227,7 @@ const PetProcedureForm = ({
                                 <FormItem>
                                     <FormLabel>Product Used</FormLabel>
                                     <FormControl>
-                                        <Input placeholder="Enter product name" {...field} disabled={isLoading} />
+                                        <Input placeholder="Enter product name" {...field} disabled={isSubmitting} />
                                     </FormControl>
                                     <FormDescription>The name of the medication or product used</FormDescription>
                                     <FormMessage className="text-red-500">{fieldState.error?.message}</FormMessage>
@@ -240,7 +242,7 @@ const PetProcedureForm = ({
                                 <FormItem>
                                     <FormLabel>Dosage</FormLabel>
                                     <FormControl>
-                                        <Input placeholder="e.g. 10mg/kg" {...field} disabled={isLoading} />
+                                        <Input placeholder="e.g. 10mg/kg" {...field} disabled={isSubmitting} />
                                     </FormControl>
                                     <FormDescription>The dosage of the medication or product</FormDescription>
                                     <FormMessage className="text-red-500">{fieldState.error?.message}</FormMessage>
@@ -260,7 +262,7 @@ const PetProcedureForm = ({
                                         <Input
                                             placeholder="Who performed this procedure?"
                                             {...field}
-                                            disabled={isLoading}
+                                            disabled={isSubmitting}
                                         />
                                     </FormControl>
                                     <FormDescription>
@@ -284,7 +286,7 @@ const PetProcedureForm = ({
                                     placeholder="Additional notes about the procedure"
                                     className="min-h-[120px]"
                                     {...field}
-                                    disabled={isLoading}
+                                    disabled={isSubmitting}
                                 />
                             </FormControl>
                             <FormDescription>
@@ -296,8 +298,8 @@ const PetProcedureForm = ({
                 />
 
                 <div className="flex justify-end space-x-4">
-                    <Button type="submit" disabled={isLoading}>
-                        {isLoading ? "Saving..." : isUserView ? "Add Procedure Record" : "Record Procedure"}
+                    <Button type="submit" disabled={isSubmitting}>
+                        {isSubmitting ? "Saving..." : isUserView ? "Add Procedure Record" : "Record Procedure"}
                     </Button>
                 </div>
             </form>

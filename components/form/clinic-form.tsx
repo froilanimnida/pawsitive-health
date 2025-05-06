@@ -10,6 +10,8 @@ import {
     FormLabel,
     FormMessage,
     Input,
+    Label,
+    Separator,
 } from "@/components/ui";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,6 +20,7 @@ import { toast } from "sonner";
 import { createClinicAccount } from "@/actions";
 import { OperatingHoursField } from "./operating-hours-field";
 import type { TextFormField } from "@/types/forms/text-form-field";
+import { createFormConfig } from "@/lib";
 
 const ClinicSignUp = () => {
     const clinicSignUpFields: TextFormField[] = [
@@ -121,34 +124,38 @@ const ClinicSignUp = () => {
             type: "password",
         },
     ];
-    const clinicSignUpForm = useForm({
-        defaultValues: {
-            name: "",
-            address: "",
-            city: "",
-            state: "",
-            postal_code: "",
-            phone_number: "",
-            emergency_services: false,
-            first_name: "",
-            last_name: "",
-            email: "",
-            password: "",
-            confirm_password: "",
-            operating_hours: Array(7)
-                .fill(0)
-                .map((_, i) => ({
-                    day_of_week: i,
-                    opens_at: "09:00",
-                    closes_at: "17:00",
-                    is_closed: i === 0 || i === 6,
-                })),
-        },
-        resolver: zodResolver(NewClinicAccountSchema),
-        progressive: true,
-        shouldFocusError: true,
-        mode: "onBlur",
-    });
+    const clinicSignUpForm = useForm<NewClinicAccountType>(
+        createFormConfig({
+            defaultValues: {
+                name: "",
+                address: "",
+                city: "",
+                state: "",
+                postal_code: "",
+                phone_number: "",
+                emergency_services: false,
+                first_name: "",
+                last_name: "",
+                email: "",
+                password: "",
+                confirm_password: "",
+                operating_hours: Array(7)
+                    .fill(0)
+                    .map((_, i) => ({
+                        day_of_week: i,
+                        opens_at: "09:00",
+                        closes_at: "17:00",
+                        is_closed: i === 0 || i === 6,
+                    })),
+            },
+            resolver: zodResolver(NewClinicAccountSchema),
+        }),
+    );
+    const {
+        handleSubmit,
+        control,
+        formState: { isSubmitting },
+    } = clinicSignUpForm;
     const onSubmit = (values: NewClinicAccountType) => {
         toast.promise(createClinicAccount(values), {
             loading: "Creating account...",
@@ -165,56 +172,62 @@ const ClinicSignUp = () => {
     };
     return (
         <Form {...clinicSignUpForm}>
-            <form onSubmit={clinicSignUpForm.handleSubmit(onSubmit)} className="space-y-8">
-                {clinicSignUpFields.map((clinicSignUpField) => (
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+                <div className="space-y-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                    {clinicSignUpFields.map((csf) => (
+                        <FormField
+                            key={csf.name}
+                            control={control}
+                            name={
+                                csf.name as
+                                    | "name"
+                                    | "address"
+                                    | "city"
+                                    | "state"
+                                    | "postal_code"
+                                    | "phone_number"
+                                    | "first_name"
+                                    | "last_name"
+                                    | "email"
+                                    | "password"
+                                    | "confirm_password"
+                            }
+                            render={({ field, fieldState }) => (
+                                <FormItem>
+                                    <FormLabel>{csf.label}</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            disabled={isSubmitting}
+                                            required={csf.required}
+                                            type={csf.type}
+                                            autoComplete={csf.autoComplete}
+                                            placeholder={csf.placeholder}
+                                            {...field}
+                                        />
+                                    </FormControl>
+                                    <FormDescription>{csf.description}</FormDescription>
+                                    <FormMessage className="text-red-500">{fieldState.error?.message}</FormMessage>
+                                </FormItem>
+                            )}
+                        />
+                    ))}
                     <FormField
-                        key={clinicSignUpField.name}
-                        control={clinicSignUpForm.control}
-                        name={
-                            clinicSignUpField.name as
-                                | "name"
-                                | "address"
-                                | "city"
-                                | "state"
-                                | "postal_code"
-                                | "phone_number"
-                                | "first_name"
-                                | "last_name"
-                                | "email"
-                                | "password"
-                                | "confirm_password"
-                        }
+                        name="emergency_services"
                         render={({ field, fieldState }) => (
                             <FormItem>
-                                <FormLabel>{clinicSignUpField.label}</FormLabel>
+                                <FormLabel>Emergency Services</FormLabel>
                                 <FormControl>
-                                    <Input
-                                        required={clinicSignUpField.required}
-                                        type={clinicSignUpField.type}
-                                        autoComplete={clinicSignUpField.autoComplete}
-                                        placeholder={clinicSignUpField.placeholder}
-                                        {...field}
-                                    />
+                                    <div className="flex items-center">
+                                        <Checkbox disabled={isSubmitting} required {...field} />
+                                        <Label className="ml-2">Do you provide emergency services?</Label>
+                                    </div>
                                 </FormControl>
-                                <FormDescription>{clinicSignUpField.description}</FormDescription>
                                 <FormMessage className="text-red-500">{fieldState.error?.message}</FormMessage>
                             </FormItem>
                         )}
                     />
-                ))}
-                <FormField
-                    name="emergency_services"
-                    render={({ field, fieldState }) => (
-                        <FormItem>
-                            <FormLabel>Emergency Services</FormLabel>
-                            <FormControl>
-                                <Checkbox required {...field} />
-                            </FormControl>
-                            <FormDescription>Do you provide emergency services?</FormDescription>
-                            <FormMessage className="text-red-500">{fieldState.error?.message}</FormMessage>
-                        </FormItem>
-                    )}
-                />
+                </div>
+                <Separator />
                 <OperatingHoursField />
                 <Button type="submit">Sign Up</Button>
             </form>

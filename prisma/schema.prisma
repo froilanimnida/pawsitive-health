@@ -784,3 +784,42 @@ enum prescription_schedule_type {
     as_needed
     custom
 }
+
+enum pet_vaccine_type {
+    // Core Dog Vaccines
+    rabies // Required by law in most areas
+    distemper // Canine distemper virus
+    parvovirus // Highly contagious viral disease
+    adenovirus // Infectious hepatitis
+    bordetella // Kennel cough
+    parainfluenza // Respiratory disease
+    leptospirosis // Bacterial infection
+    lyme // Tick-borne disease
+    canine_influenza // Dog flu (H3N8 and H3N2)
+    coronavirus // Intestinal disease in dogs
+
+    // Core Cat Vaccines
+    feline_rabies // Required by law in most areas
+    feline_distemper // Also called panleukopenia
+    feline_herpesvirus // Respiratory infection
+    feline_calicivirus // Respiratory infection
+    feline_leukemia // FeLV
+    chlamydia // Bacterial infection
+    feline_infectious_peritonitis // FIP
+    bordetella_feline // Kennel cough in cats
+    giardia // Intestinal parasite
+
+    // Annual/Maintenance Vaccines
+    annual_dhpp // Annual distemper, hepatitis, parainfluenza, parvovirus (dogs)
+    annual_fvrcp // Annual feline viral rhinotracheitis, calicivirus, panleukopenia (cats)
+    annual_rabies_booster // Annual rabies booster for both cats and dogs
+    three_year_rabies // Three-year rabies vaccine
+    annual_bordetella_booster // Annual kennel cough booster
+    annual_leptospirosis_booster // Annual lepto booster
+    annual_lyme_booster // Annual Lyme disease booster
+
+    // Other/General
+    rattlesnake // For dogs in high-risk areas
+    anthrax // Rare, used in specific areas
+    other // For other specialized vaccines
+}

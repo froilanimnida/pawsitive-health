@@ -115,7 +115,7 @@ export function ActivityLevelChart({ healthRecords, petName, className }: Activi
                             name="Activity Level"
                             fill="var(--chart-1)"
                             radius={[4, 4, 0, 0]}
-                            fillOpacity={0.9}
+                            fillOpacity={1}
                             isAnimationActive={true}
                             animationDuration={500}
                             barSize={30}

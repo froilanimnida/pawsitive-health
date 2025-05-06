@@ -94,11 +94,7 @@ const columns: ColumnDef<AppointmentData>[] = [
         header: "Notes",
         cell: ({ row }) => {
             const notes = row.original.notes;
-            return (
-                <div className="max-w-[200px] truncate" title={notes || ""}>
-                    {notes || "No notes"}
-                </div>
-            );
+            return <div title={notes || ""}>{notes || "No notes"}</div>;
         },
     },
 ];

@@ -1,19 +1,22 @@
 "use client";
 
-import { Button, Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
-import { formatDistanceToNow } from "date-fns";
-import { Activity, BarChart2, ThermometerIcon, Weight, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui";
+import { format } from "date-fns";
+import { Activity, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { deleteHealthMonitoringRecord } from "@/actions";
-import { HealthMonitoring } from "@/types";
 import { toast } from "sonner";
-
+import { DataTable } from "@/components/ui/data-table";
+import { ColumnDef } from "@tanstack/react-table";
+import { Badge } from "@/components/ui/badge";
+import type { health_monitoring } from "@prisma/client";
+import type { Modify } from "@/types";
 export function HealthMonitoringHistory({
     healthRecords,
     petUuid,
     onDelete,
 }: {
-    healthRecords: HealthMonitoring[];
+    healthRecords: Modify<health_monitoring, { temperature_celsius: string; weight_kg: string }>[];
     petUuid: string;
     onDelete?: () => void;
 }) {
@@ -34,13 +37,13 @@ export function HealthMonitoringHistory({
 
     const getActivityLevelColor = (level: string) => {
         const colorMap: Record<string, string> = {
-            very_low: "text-red-500",
-            low: "text-amber-500",
-            normal: "text-green-500",
-            high: "text-blue-500",
-            very_high: "text-purple-500",
+            very_low: "bg-red-100 text-red-800",
+            low: "bg-amber-100 text-amber-800",
+            normal: "bg-green-100 text-green-800",
+            high: "bg-blue-100 text-blue-800",
+            very_high: "bg-purple-100 text-purple-800",
         };
-        return colorMap[level] || "text-slate-500";
+        return colorMap[level] || "bg-slate-100 text-slate-800";
     };
 
     const handleDelete = async (monitoringId: number) => {
@@ -60,78 +63,85 @@ export function HealthMonitoringHistory({
         }
     };
 
+    const columns: ColumnDef<Modify<health_monitoring, { temperature_celsius: string; weight_kg: string }>>[] = [
+        {
+            accessorKey: "recorded_at",
+            header: "Date",
+            cell: ({ row }) => {
+                const date = row.getValue("recorded_at") as Date;
+                return <div>{format(new Date(date), "PPP")}</div>;
+            },
+        },
+        {
+            accessorKey: "activity_level",
+            header: "Activity Level",
+            cell: ({ row }) => {
+                const level = row.getValue("activity_level") as string;
+                return (
+                    <Badge className={getActivityLevelColor(level)} variant="outline">
+                        {formatActivityLevel(level)}
+                    </Badge>
+                );
+            },
+        },
+        {
+            accessorKey: "weight_kg",
+            header: "Weight (kg)",
+            cell: ({ row }) => {
+                const weight = row.getValue("weight_kg") as string;
+                return <div>{weight}</div>;
+            },
+        },
+        {
+            accessorKey: "temperature_celsius",
+            header: "Temperature (°C)",
+            cell: ({ row }) => {
+                const temperature = row.getValue("temperature_celsius") as string;
+                return <div>{temperature}</div>;
+            },
+        },
+        {
+            accessorKey: "notes",
+            header: "Notes",
+            cell: ({ row }) => {
+                const notes = row.original.notes;
+                const symptoms = row.original.symptoms;
+                return (
+                    <div>
+                        {symptoms && <div className="font-medium mb-1">Symptoms: {symptoms}</div>}
+                        {notes}
+                    </div>
+                );
+            },
+        },
+        {
+            id: "actions",
+            header: "Actions",
+            cell: ({ row }) => {
+                const monitoringId = row.original.monitoring_id;
+                return (
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDelete(monitoringId)}
+                        disabled={isDeleting === monitoringId}
+                    >
+                        {isDeleting === monitoringId ? (
+                            <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                        ) : (
+                            <Trash2 className="h-4 w-4 text-red-500" />
+                        )}
+                        <span className="sr-only">Delete</span>
+                    </Button>
+                );
+            },
+        },
+    ];
+
     return (
         <div className="space-y-4">
-            <h3 className="text-lg font-semibold mb-3">Health Monitoring History</h3>
-
-            {healthRecords.map((record) => (
-                <Card key={record.monitoring_id} className="overflow-hidden">
-                    <CardHeader className="pb-2">
-                        <div className="flex justify-between items-start">
-                            <CardTitle className="text-base">
-                                Health Record - {formatDistanceToNow(new Date(record.recorded_at), { addSuffix: true })}
-                            </CardTitle>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 w-8 p-0"
-                                onClick={() => handleDelete(record.monitoring_id)}
-                                disabled={isDeleting === record.monitoring_id}
-                            >
-                                {isDeleting === record.monitoring_id ? (
-                                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                                ) : (
-                                    <Trash2 className="h-4 w-4 text-red-500" />
-                                )}
-                                <span className="sr-only">Delete</span>
-                            </Button>
-                        </div>
-                    </CardHeader>
-                    <CardContent className="pb-4">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                            <div className="flex items-center gap-2">
-                                <BarChart2 className={`h-5 w-5 ${getActivityLevelColor(record.activity_level)}`} />
-                                <div>
-                                    <p className="text-sm font-medium">Activity Level</p>
-                                    <p className={`text-sm ${getActivityLevelColor(record.activity_level)}`}>
-                                        {formatActivityLevel(record.activity_level)}
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                                <Weight className="h-5 w-5 text-blue-500" />
-                                <div>
-                                    <p className="text-sm font-medium">Weight</p>
-                                    <p className="text-sm">{record.weight_kg} kg</p>
-                                </div>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                                <ThermometerIcon className="h-5 w-5 text-red-500" />
-                                <div>
-                                    <p className="text-sm font-medium">Temperature</p>
-                                    <p className="text-sm">{record.temperature_celsius} °C</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {record.symptoms && (
-                            <div className="mt-3">
-                                <p className="text-sm font-medium">Symptoms</p>
-                                <p className="text-sm text-slate-600 mt-1">{record.symptoms}</p>
-                            </div>
-                        )}
-
-                        {record.notes && (
-                            <div className="mt-3">
-                                <p className="text-sm font-medium">Notes</p>
-                                <p className="text-sm text-slate-600 mt-1">{record.notes}</p>
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
-            ))}
+            <h2 className="text-xl font-semibold">Health Records</h2>
+            <DataTable columns={columns} data={healthRecords} pageSize={5} showPagination={true} />
         </div>
     );
 }

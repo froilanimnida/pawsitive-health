@@ -84,10 +84,8 @@ function PetProfileImage({
 
             if (result.success) {
                 toast.success("Profile picture removed");
-                // Update local state
                 setImageUrl(null);
                 setProfileImage(null);
-                // Close the dialog
                 setShowImageDialog(false);
             } else {
                 toast.error(result.error || "Failed to remove profile picture");
@@ -112,7 +110,7 @@ function PetProfileImage({
                 onMouseLeave={handleMouseLeave}
                 onClick={handleImageClick}
             >
-                <Avatar className="h-32 w-32 border-2 border-primary/10">
+                <Avatar className="h-16 w-16 border-2 border-primary/10">
                     {imageUrl ? (
                         <AvatarImage src={imageUrl} alt={name} />
                     ) : (
