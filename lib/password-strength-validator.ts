@@ -37,7 +37,7 @@ export function isStrongPassword(password: string): boolean {
     }
 
     // Check for presence of special character
-    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>/?]/.test(password)) {
+    if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) {
         return false;
     }
 
@@ -72,7 +72,7 @@ export function getPasswordStrengthFeedback(password: string): {
         feedback.push("Password should contain at least one number");
     }
 
-    if (password && !/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>/?]/.test(password)) {
+    if (password && !/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) {
         feedback.push("Password should contain at least one special character");
     }
 
