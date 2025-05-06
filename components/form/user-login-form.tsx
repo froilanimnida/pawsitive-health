@@ -34,15 +34,16 @@ import { NotificationPermissionDialog } from "@/components/shared/notification-p
 import { createFormConfig } from "@/lib";
 import { notificationSynchronizer } from "@/lib/notification";
 import { role_type } from "@prisma/client";
-import { ArrowRightCircle } from "lucide-react";
 import Link from "next/link";
 
 const UserLoginForm = ({
     role,
     sessionEmail,
+    sessionName,
     exists = false,
 }: {
     role?: role_type;
+    sessionName?: string;
     sessionEmail?: string;
     exists: boolean;
 }) => {
@@ -246,22 +247,49 @@ const UserLoginForm = ({
         <>
             {exists && (
                 <>
-                    <div className="mb-6 p-3 border rounded-lg bg-muted/30 ">
-                        <div className="flex flex-row items-center justify-between gap-4">
-                            <p className="text-sm text-muted-foreground">
-                                You are already logged in as <strong>{sessionEmail}</strong>.
-                            </p>
-                            <div className="flex-shrink-0">
-                                <Button onClick={navigateToDashboard} variant="outline" className="flex items-center">
-                                    <ArrowRightCircle />
-                                </Button>
+                    <div
+                        className="mb-6 p-4 border rounded-lg bg-background hover:bg-gray-50 cursor-pointer transition-colors duration-200 relative"
+                        onClick={navigateToDashboard}
+                    >
+                        <div className="flex flex-col space-y-3">
+                            <div className="flex items-center gap-3">
+                                <div className="bg-primary/10 text-primary rounded-full h-12 w-12 flex items-center justify-center">
+                                    <span className="text-lg font-medium">
+                                        {sessionEmail?.[0]?.toUpperCase() || "U"}
+                                    </span>
+                                </div>
+                                <div className="flex-1">
+                                    <p className="font-medium text-sm">{sessionEmail}</p>
+                                    <p className="text-xs text-muted-foreground">{sessionName}</p>
+                                    <p className="text-xs text-muted-foreground">Signed in</p>
+                                </div>
+                                <div className="text-primary">
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="20"
+                                        height="20"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                    >
+                                        <path d="m9 18 6-6-6-6" />
+                                    </svg>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
-                        <span className="relative z-10 bg-background px-2 text-muted-foreground">
-                            Or sign in with other account
-                        </span>
+                    <div className="relative my-6">
+                        <div className="absolute inset-0 flex items-center">
+                            <span className="w-full border-t border-border"></span>
+                        </div>
+                        <div className="relative flex justify-center">
+                            <span className="bg-background px-4 text-xs uppercase text-muted-foreground">
+                                Or use another account
+                            </span>
+                        </div>
                     </div>
                 </>
             )}

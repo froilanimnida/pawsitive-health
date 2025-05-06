@@ -12,6 +12,7 @@ export const metadata = {
 
 const LoginPage = async () => {
     const session = await getServerSession(authOptions);
+    console.log(session);
     return (
         <div className="flex justify-center flex-col items-center gap-5 w-full h-screen bg-yellow-50">
             <div className="flex items-center justify-center gap-4">
@@ -25,6 +26,7 @@ const LoginPage = async () => {
                 <CardContent>
                     <UserLoginForm
                         role={session?.user?.role}
+                        sessionName={session?.user?.name ?? ""}
                         exists={session?.user?.email ? true : false}
                         sessionEmail={session?.user?.email ?? ""}
                     />
