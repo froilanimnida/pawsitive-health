@@ -6,6 +6,7 @@ import AppointmentChat from "@/components/shared/appointment-chat";
 import { cache } from "react";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { role_type } from "@prisma/client";
 
 export const metadata: Metadata = {
     title: "View Appointment | PawsitiveHealth",
@@ -70,11 +71,12 @@ async function ViewAppointment({ params }: { params: Promise<{ appointment_uuid:
     return (
         <div className="container max-w-4xl py-6">
             <AppointmentCard
+                status={response.appointment.status}
                 clinic={response.clinics}
                 vetInfo={response.vetInfo}
                 appointment={response.appointment}
                 pet={response.pets}
-                viewerType="user"
+                role={role_type.user}
                 veterinarian={response.veterinarians}
                 vetId={response.veterinarians.vet_id}
             />

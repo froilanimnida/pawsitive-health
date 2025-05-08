@@ -106,6 +106,42 @@ const ClinicSignUp = () => {
             type: "email",
         },
         {
+            label: "Website",
+            placeholder: "Website",
+            name: "website",
+            description: "The website of the clinic.",
+            required: false,
+            autoComplete: "url",
+            type: "url",
+        },
+        {
+            label: "Google Maps URL",
+            placeholder: "Google Maps URL",
+            name: "google_maps_url",
+            description: "The Google Maps URL of the clinic.",
+            required: false,
+            autoComplete: "url",
+            type: "url",
+        },
+        {
+            label: "Latitude",
+            placeholder: "Latitude",
+            name: "latitude",
+            description: "The latitude of the clinic.",
+            required: false,
+            autoComplete: "latitude",
+            type: "number",
+        },
+        {
+            label: "Longitude",
+            placeholder: "Longitude",
+            name: "longitude",
+            description: "The longitude of the clinic.",
+            required: false,
+            autoComplete: "longitude",
+            type: "number",
+        },
+        {
             label: "Password",
             placeholder: "Password",
             name: "password",
@@ -147,6 +183,10 @@ const ClinicSignUp = () => {
                         closes_at: "17:00",
                         is_closed: i === 0 || i === 6,
                     })),
+                website: "",
+                google_maps_url: "",
+                latitude: 0,
+                longitude: 0,
             },
             resolver: zodResolver(NewClinicAccountSchema),
         }),
@@ -162,7 +202,6 @@ const ClinicSignUp = () => {
             success: "Successfully created account",
             error: (error) => {
                 const errorMessage = error instanceof Error ? error.message : String(error);
-
                 if (errorMessage.includes("email_or_phone_number_already_exists")) {
                     return "Email or phone number already exists";
                 }
@@ -191,6 +230,8 @@ const ClinicSignUp = () => {
                                     | "email"
                                     | "password"
                                     | "confirm_password"
+                                    | "website"
+                                    | "google_maps_url"
                             }
                             render={({ field, fieldState }) => (
                                 <FormItem>

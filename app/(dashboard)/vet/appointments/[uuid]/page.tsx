@@ -27,7 +27,7 @@ import CurrentAppointmentRecordedService from "@/components/shared/veterinary/se
 import AppointmentChat from "@/components/shared/appointment-chat";
 import type { UUIDPageParams } from "@/types";
 import { cache } from "react";
-import { appointment_status, species_type } from "@prisma/client";
+import { appointment_status, role_type, species_type } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { ActivityLevelChart } from "@/components/pet/activity-level-chart";
@@ -96,7 +96,6 @@ const ViewAppointment = async ({ params }: UUIDPageParams) => {
     const { appointment, healthMonitoring, medicalHistory, vaccinations, medications, pet, procedures, messages } =
         appointmentData;
 
-    // Infer participants at the top level
     const chatParticipants = {
         currentUserId: Number(session.user.id),
         otherUserId: pet.user_id as number,
@@ -107,9 +106,11 @@ const ViewAppointment = async ({ params }: UUIDPageParams) => {
         <section className="space-y-6 grid grid-cols-1 gap-4 xl:grid-cols-2">
             <AppointmentCard
                 pet={pet}
+                status={appointment.status}
                 appointment={appointment}
-                viewerType="vet"
+                role={role_type.veterinarian}
                 vetId={appointment.vet_id as number}
+                showAdditionalAction={true}
             />
             {(appointment.status === appointment_status.checked_in ||
                 appointment.status === appointment_status.confirmed) && (

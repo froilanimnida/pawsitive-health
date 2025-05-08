@@ -17,7 +17,7 @@ const LoginPage = async () => {
             <div className="flex items-center justify-center gap-4">
                 <Logo />
             </div>
-            <Card className="max-w-[350px] bg-white rounded-lg">
+            <Card className="max-w-[768px] bg-white rounded-lg">
                 <CardHeader className="text-center">
                     <CardTitle className="text-xl">Welcome Back</CardTitle>
                     <CardDescription>Login to continue</CardDescription>

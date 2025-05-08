@@ -122,6 +122,9 @@ const getUserAppointments = async (): Promise<ActionResponse<{ appointments: Get
                     },
                 },
             },
+            orderBy: {
+                created_at: "desc",
+            },
         });
 
         return { success: true, data: { appointments } };

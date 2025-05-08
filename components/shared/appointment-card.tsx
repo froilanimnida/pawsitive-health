@@ -8,7 +8,7 @@ import { AcceptAppointmentButton } from "./accept-appointment-button";
 import { CheckInButton } from "./checked-in-button";
 import { RescheduleAppointmentDialog } from "./reschedule-appointment-dialog";
 import { ConfirmationDialog } from "./confirmation-dialog";
-import type { appointments, clinics, pets, users, veterinarians } from "@prisma/client";
+import { appointment_status, appointments, clinics, pets, role_type, users, veterinarians } from "@prisma/client";
 import type { Modify } from "@/types";
 import type { ReactNode } from "react";
 
@@ -28,13 +28,15 @@ export function AppointmentCard({
     pet,
     veterinarian,
     vetInfo,
-    viewerType,
+    role,
     additionalActions,
     showAdditionalAction,
+    status,
     vetId,
 }: {
     appointment: appointments;
-    viewerType: "user" | "vet" | "clinic";
+    status: appointment_status;
+    role: role_type;
     clinic?: clinics;
     pet: Modify<pets, { weight_kg: string }>;
     veterinarian?: Pick<veterinarians, "vet_id" | "specialization">;
@@ -53,12 +55,12 @@ export function AppointmentCard({
             <CardHeader className="pb-0">
                 <div className="flex items-center justify-between flex-wrap gap-4">
                     <CardTitle className="text-2xl">Appointment Details</CardTitle>
-                    <Badge className={cn("px-3 py-1 text-sm", statusColors[appointment.status] || "bg-gray-100")}>
-                        {toTitleCase(appointment.status)}
+                    <Badge className={cn("px-3 py-1 text-sm", statusColors[status] || "bg-gray-100")}>
+                        {toTitleCase(status)}
                     </Badge>
                 </div>
                 <CardDescription>
-                    Appointment #{appointment.appointment_uuid} • Created{" "}
+                    Appointment {appointment.appointment_uuid} • Created{" "}
                     {format(new Date(appointment.created_at || new Date()), "MMM d, yyyy")}
                 </CardDescription>
             </CardHeader>
@@ -92,7 +94,7 @@ export function AppointmentCard({
 
                 <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-6">
-                        {(viewerType === "vet" || viewerType === "clinic") && (
+                        {(role === role_type.veterinarian || role === role_type.client) && (
                             <div className="space-y-2">
                                 <h3 className="text-lg font-medium">Pet Information</h3>
                                 <div className="border rounded-lg overflow-hidden">
@@ -112,7 +114,7 @@ export function AppointmentCard({
                             </div>
                         )}
 
-                        {(viewerType === "user" || viewerType === "clinic") && veterinarian && (
+                        {(role === role_type.user || role === role_type.client) && veterinarian && (
                             <div className="space-y-2">
                                 <h3 className="text-lg font-medium">Veterinarian</h3>
                                 <div className="border rounded-lg overflow-hidden">
@@ -133,7 +135,7 @@ export function AppointmentCard({
                     </div>
 
                     <div className="space-y-6">
-                        {viewerType === "user" && clinic && (
+                        {role === role_type.user && clinic && (
                             <div className="space-y-2">
                                 <h3 className="text-lg font-medium">Clinic</h3>
                                 <div className="border rounded-lg overflow-hidden">
@@ -175,10 +177,10 @@ export function AppointmentCard({
                 </div>
             </CardContent>
             <CardFooter className="flex items-center justify-between pt-0">
-                {showAdditionalAction && appointment.status !== "completed" && (
+                {showAdditionalAction && status !== appointment_status.completed && (
                     <aside className="flex items-center justify-between">
                         <div className="flex gap-2">
-                            {appointment.status !== "cancelled" && (
+                            {status !== appointment_status.cancelled && (
                                 <ConfirmationDialog
                                     trigger={
                                         <Button variant="destructive">
@@ -194,7 +196,7 @@ export function AppointmentCard({
                                     size="md"
                                 />
                             )}
-                            {appointment.status === "confirmed" && viewerType === "vet" && (
+                            {status === appointment_status.confirmed && role === role_type.veterinarian && (
                                 <ConfirmationDialog
                                     trigger={
                                         <Button variant="default">
@@ -208,8 +210,8 @@ export function AppointmentCard({
                                     size="md"
                                 />
                             )}
-                            {appointment.status === "requested" &&
-                                (viewerType === "vet" || viewerType === "clinic") && (
+                            {status === appointment_status.requested &&
+                                (role === role_type.veterinarian || role === role_type.client) && (
                                     <ConfirmationDialog
                                         trigger={
                                             <Button>
@@ -225,7 +227,7 @@ export function AppointmentCard({
                                         size="md"
                                     />
                                 )}
-                            {appointment.status === "checked_in" && viewerType === "vet" && (
+                            {status === appointment_status.checked_in && role === role_type.veterinarian && (
                                 <ConfirmationDialog
                                     trigger={
                                         <Button>
@@ -241,7 +243,7 @@ export function AppointmentCard({
                                     size="md"
                                 />
                             )}
-                            {appointment.status !== "cancelled" && appointment.status !== "checked_in" && (
+                            {status !== appointment_status.cancelled && status !== appointment_status.checked_in && (
                                 <RescheduleAppointmentDialog
                                     appointmentUuid={appointment.appointment_uuid}
                                     vetId={vetId}

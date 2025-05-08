@@ -15,14 +15,34 @@ const getClinics = async (): Promise<ActionResponse<{ clinics: clinics[] }>> => 
     }
 };
 
-function getClinic(clinic_id: number): Promise<ActionResponse<{ clinic: clinics }>>;
+// Fixed function overloads with proper typing
+function getClinic(clinic_id: number, type?: "clinic_id"): Promise<ActionResponse<{ clinic: clinics }>>;
 function getClinic(clinic_uuid: string): Promise<ActionResponse<{ clinic: clinics }>>;
-async function getClinic(identifier: string | number): Promise<ActionResponse<{ clinic: clinics }>> {
+function getClinic(user_id: number, type: "user_id"): Promise<ActionResponse<{ clinic: clinics }>>;
+function getClinic(user_id: { user_id: number }): Promise<ActionResponse<{ clinic: clinics }>>;
+async function getClinic(
+    identifier: string | number | { user_id: number },
+    type?: "clinic_id" | "user_id",
+): Promise<ActionResponse<{ clinic: clinics }>> {
     try {
-        const where = typeof identifier === "string" ? { clinic_uuid: identifier } : { clinic_id: identifier };
-        const clinic = await prisma.clinics.findUnique({
+        let where: { clinic_uuid?: string; clinic_id?: number; user_id?: number };
+        if (typeof identifier === "string") {
+            where = { clinic_uuid: identifier };
+        } else if (typeof identifier === "number") {
+            if (type === "user_id") {
+                where = { user_id: identifier };
+            } else {
+                where = { clinic_id: identifier };
+            }
+        } else {
+            // Object with user_id
+            where = { user_id: identifier.user_id };
+        }
+
+        const clinic = await prisma.clinics.findFirst({
             where,
         });
+
         if (!clinic) return { success: false, error: "Clinic not found" };
         return { success: true, data: { clinic } };
     } catch (error) {

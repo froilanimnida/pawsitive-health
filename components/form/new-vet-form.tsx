@@ -117,76 +117,83 @@ const NewVeterinaryForm = () => {
     return (
         <Form {...newVeterinaryForm}>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-                {newVetFields.map((newVetField) => (
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    {newVetFields.map((nvff) => (
+                        <FormField
+                            control={control}
+                            key={nvff.name}
+                            name={
+                                nvff.name as
+                                    | "first_name"
+                                    | "last_name"
+                                    | "email"
+                                    | "phone_number"
+                                    | "password"
+                                    | "confirm_password"
+                                    | "license_number"
+                                    | "specialization"
+                            }
+                            render={({ field, fieldState }) => {
+                                return (
+                                    <FormItem>
+                                        <FormLabel>{nvff.label}</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                disabled={isSubmitting}
+                                                {...field}
+                                                type={nvff.type}
+                                                required={nvff.required}
+                                                placeholder={nvff.placeholder}
+                                                name={nvff.name}
+                                            />
+                                        </FormControl>
+                                        <FormDescription>{nvff.description}</FormDescription>
+                                        <FormMessage className="text-red-500">{fieldState.error?.message}</FormMessage>
+                                    </FormItem>
+                                );
+                            }}
+                        />
+                    ))}
+
                     <FormField
-                        control={control}
-                        key={newVetField.name}
-                        name={
-                            newVetField.name as
-                                | "first_name"
-                                | "last_name"
-                                | "email"
-                                | "phone_number"
-                                | "password"
-                                | "confirm_password"
-                                | "license_number"
-                                | "specialization"
-                        }
+                        name="specialization"
                         render={({ field, fieldState }) => {
                             return (
                                 <FormItem>
-                                    <FormLabel>{newVetField.label}</FormLabel>
+                                    <FormLabel>Specialization</FormLabel>
                                     <FormControl>
-                                        <Input
+                                        <Select
                                             disabled={isSubmitting}
-                                            {...field}
-                                            type={newVetField.type}
-                                            required={newVetField.required}
-                                            placeholder={newVetField.placeholder}
-                                            name={newVetField.name}
-                                        />
+                                            defaultValue={field.value}
+                                            onValueChange={(value) => {
+                                                field.onChange(value);
+                                            }}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue>
+                                                    {toTitleCase(field.value) || "Select a specialization"}
+                                                </SelectValue>
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectGroup>
+                                                    <SelectLabel>Specialization</SelectLabel>
+                                                    {Object.values(veterinary_specialization).map((option) => (
+                                                        <SelectItem key={option} value={option}>
+                                                            {toTitleCase(option)}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectGroup>
+                                            </SelectContent>
+                                        </Select>
                                     </FormControl>
-                                    <FormDescription>{newVetField.description}</FormDescription>
-                                    <FormMessage className="text-red-500">{fieldState.error?.message}</FormMessage>
+                                    <FormDescription>Select the specialization of the veterinarian.</FormDescription>
+                                    <FormMessage>{fieldState.error?.message}</FormMessage>
                                 </FormItem>
                             );
                         }}
                     />
-                ))}
-                <FormField
-                    name="specialization"
-                    render={({ field, fieldState }) => {
-                        return (
-                            <FormItem>
-                                <FormLabel>Specialization</FormLabel>
-                                <FormControl>
-                                    <Select
-                                        disabled={isSubmitting}
-                                        defaultValue={field.value}
-                                        onValueChange={(value) => {
-                                            field.onChange(value);
-                                        }}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue>{field.value || "Select a specialization"}</SelectValue>
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectGroup>
-                                                <SelectLabel>Specialization</SelectLabel>
-                                                {Object.values(veterinary_specialization).map((option) => (
-                                                    <SelectItem key={option} value={option}>
-                                                        {toTitleCase(option)}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectGroup>
-                                        </SelectContent>
-                                    </Select>
-                                </FormControl>
-                                <FormMessage>{fieldState.error?.message}</FormMessage>
-                            </FormItem>
-                        );
-                    }}
-                />
+                </div>
+
                 <Button disabled={isSubmitting} type="submit">
                     Submit
                 </Button>
