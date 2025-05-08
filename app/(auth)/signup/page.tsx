@@ -1,11 +1,10 @@
-import { Metadata } from "next";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import UserSignUpForm from "@/components/form/user-sign-up-form";
 import Logo from "@/components/shared/logo";
 import { Button } from "@/components/ui";
 
-export const metadata: Metadata = {
+export const metadata = {
     title: "PawsitiveHealth | Sign Up",
     description: "Create your account",
 };

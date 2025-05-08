@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
 import { getAppointment, getClinic, getMessages, getPet, getUser, getVeterinarian } from "@/actions";
-import { Metadata } from "next";
 import { AppointmentCard } from "@/components/shared/appointment-card";
 import AppointmentChat from "@/components/shared/appointment-chat";
 import { cache } from "react";
@@ -8,7 +7,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { role_type } from "@prisma/client";
 
-export const metadata: Metadata = {
+export const metadata = {
     title: "View Appointment | PawsitiveHealth",
     description: "View your pet's appointment details",
 };
@@ -69,7 +68,7 @@ async function ViewAppointment({ params }: { params: Promise<{ appointment_uuid:
     };
 
     return (
-        <div className="container max-w-4xl py-6">
+        <div className="w-full py-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
             <AppointmentCard
                 status={response.appointment.status}
                 clinic={response.clinics}

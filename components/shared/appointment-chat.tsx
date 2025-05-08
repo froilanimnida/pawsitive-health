@@ -134,7 +134,7 @@ export default function AppointmentChat({
                 </div>
             </CardHeader>
             <CardContent>
-                <div className="space-y-4 max-h-[400px] overflow-y-auto p-2">
+                <div className="space-y-4 max-h-[500px] overflow-y-auto p-2">
                     {messages.length === 0 ? (
                         <p className="text-center text-muted-foreground py-8">
                             No messages yet. Start the conversation!
