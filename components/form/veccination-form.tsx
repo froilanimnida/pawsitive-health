@@ -1,5 +1,4 @@
 "use client";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -23,6 +22,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { PetVaccinationSchema, type PetVaccinationType } from "@/schemas";
+import { createFormConfig } from "@/lib";
 
 interface VaccinationFormProps {
     petUuid: string;
@@ -39,55 +39,58 @@ export function VaccinationForm({
     appointmentUuid,
     isUserView = false,
 }: VaccinationFormProps) {
-    const [isSubmitting, setIsLoading] = useState(false);
-
-    const form = useForm({
-        resolver: zodResolver(PetVaccinationSchema),
-        defaultValues: {
-            external_provider: "",
-            vaccine_name: "",
-            administered_date: new Date(),
-            batch_number: "",
-            pet_uuid: petUuid,
-            pet_id: petId,
-            appointment_id: appointmentId,
-            appointment_uuid: appointmentUuid,
-            next_due_date: undefined,
-        },
-    });
+    const petVaccinationForm = useForm<PetVaccinationType>(
+        createFormConfig({
+            defaultValues: {
+                external_provider: "",
+                vaccine_name: "",
+                administered_date: new Date(),
+                batch_number: "",
+                pet_uuid: petUuid,
+                pet_id: petId,
+                appointment_id: appointmentId,
+                appointment_uuid: appointmentUuid,
+                next_due_date: undefined,
+            },
+            resolver: zodResolver(PetVaccinationSchema),
+        }),
+    );
+    const {
+        handleSubmit,
+        reset,
+        control,
+        formState: { isSubmitting },
+    } = petVaccinationForm;
 
     async function onSubmit(data: PetVaccinationType) {
-        setIsLoading(true);
-        toast.loading("Recording vaccination...");
+        const t = toast.loading("Recording vaccination...");
         const result = await createVaccination(data);
         if (result === undefined) {
+            toast.dismiss(t);
             toast.success("Vaccination recorded successfully");
-            form.reset({
-                ...form.getValues(),
+            reset({
+                ...petVaccinationForm.getValues(),
                 vaccine_name: "",
                 administered_date: new Date(),
                 batch_number: "",
                 next_due_date: undefined,
             });
-            setIsLoading(false);
             return;
         }
         if (result && !result.success && result.error) {
-            toast.dismiss();
+            toast.dismiss(t);
             toast.error(result.error || "An error occurred while recording vaccination");
-            setIsLoading(false);
             return;
         }
-        toast.dismiss();
+        toast.dismiss(t);
         toast.error("An error occurred while recording vaccination");
-        setIsLoading(false);
     }
 
     return (
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <Form {...petVaccinationForm}>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 <FormField
-                    control={form.control}
+                    control={control}
                     name="vaccine_name"
                     render={({ field, fieldState }) => (
                         <FormItem>
@@ -103,7 +106,7 @@ export function VaccinationForm({
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
-                        control={form.control}
+                        control={control}
                         name="administered_date"
                         render={({ field, fieldState }) => (
                             <FormItem className="flex flex-col">
@@ -146,7 +149,7 @@ export function VaccinationForm({
                     />
 
                     <FormField
-                        control={form.control}
+                        control={control}
                         name="batch_number"
                         render={({ field, fieldState }) => (
                             <FormItem>
@@ -162,7 +165,7 @@ export function VaccinationForm({
                 </div>
 
                 <FormField
-                    control={form.control}
+                    control={control}
                     name="next_due_date"
                     render={({ field, fieldState }) => (
                         <FormItem className="flex flex-col">
@@ -204,14 +207,7 @@ export function VaccinationForm({
                     )}
                 />
 
-                <Button
-                    onClick={() => {
-                        console.log(form.formState.errors);
-                    }}
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full md:w-auto"
-                >
+                <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto">
                     {isSubmitting ? "Recording..." : isUserView ? "Add Vaccination Record" : "Record Vaccination"}
                 </Button>
             </form>

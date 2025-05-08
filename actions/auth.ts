@@ -183,6 +183,8 @@ const createClinicAccount = async (values: NewClinicAccountType): Promise<Action
                 postal_code: formData.data.postal_code,
                 phone_number: formData.data.phone_number,
                 emergency_services: formData.data.emergency_services,
+                website: formData.data.website,
+                google_maps_url: formData.data.google_maps_url,
                 user_id: result.user_id,
             },
         });

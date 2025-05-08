@@ -689,48 +689,72 @@ enum species_type {
 }
 
 enum appointment_type {
-    wellness_exam
-    vaccination
-    sick_visit
-    follow_up
-    surgery
-    dental_cleaning
-    emergency
-    laboratory_work
-    imaging
-    grooming
-    physical_therapy
-    behavioral_consultation
-    nutrition_consultation
-    euthanasia
-    new_pet_consultation
-    senior_pet_care
-    parasite_control
-    microchipping
-    medication_refill
-    spay_neuter
     allergy_testing
-    orthopedic_evaluation
-    ophthalmology
-    dermatology
+    behavioral_consultation
     cardiology
-    neurology
-    oncology
+    dental_cleaning
+    dermatology
+    emergency
+    euthanasia
+    follow_up
+    grooming
     hospice_care
+    imaging
+    laboratory_work
+    medication_refill
+    microchipping
+    neurology
+    new_pet_consultation
+    nutrition_consultation
+    oncology
+    ophthalmology
+    orthopedic_evaluation
+    parasite_control
+    physical_therapy
+    senior_pet_care
+    sick_visit
+    spay_neuter
+    surgery
+    vaccination
+    wellness_exam
 }
 
 enum veterinary_specialization {
-    general_practitioner
-    surgeon
-    dermatologist
-    cardiologist
-    orthopedic
-    dentist
-    ophthalmologist
-    oncologist
-    internal_medicine
-    emergency_and_critical_care
+    anesthesiology
+    avian_medicine
     behaviorist
+    cardiologist
+    clinical_pharmacology
+    dentist
+    dermatologist
+    diagnostic_imaging
+    emergency_and_critical_care
+    equine_medicine
+    exotic_animal_medicine
+    feline_medicine
+    food_animal_medicine
+    general_practitioner
+    integrative_medicine
+    internal_medicine
+    laboratory_animal_medicine
+    microbiology
+    neurology
+    nutrition
+    oncologist
+    ophthalmologist
+    orthopedic
+    parasitology
+    pathology
+    preventive_medicine
+    radiology
+    rehabilitation
+    reproduction
+    sports_medicine
+    surgeon
+    theriogenology
+    toxicology
+    wildlife_medicine
+    zoological_medicine
 }
 
 enum appointment_status {
@@ -783,4 +807,43 @@ enum prescription_schedule_type {
     weekly
     as_needed
     custom
+}
+
+enum pet_vaccine_type {
+    // Core Dog Vaccines
+    rabies // Required by law in most areas
+    distemper // Canine distemper virus
+    parvovirus // Highly contagious viral disease
+    adenovirus // Infectious hepatitis
+    bordetella // Kennel cough
+    parainfluenza // Respiratory disease
+    leptospirosis // Bacterial infection
+    lyme // Tick-borne disease
+    canine_influenza // Dog flu (H3N8 and H3N2)
+    coronavirus // Intestinal disease in dogs
+
+    // Core Cat Vaccines
+    feline_rabies // Required by law in most areas
+    feline_distemper // Also called panleukopenia
+    feline_herpesvirus // Respiratory infection
+    feline_calicivirus // Respiratory infection
+    feline_leukemia // FeLV
+    chlamydia // Bacterial infection
+    feline_infectious_peritonitis // FIP
+    bordetella_feline // Kennel cough in cats
+    giardia // Intestinal parasite
+
+    // Annual/Maintenance Vaccines
+    annual_dhpp // Annual distemper, hepatitis, parainfluenza, parvovirus (dogs)
+    annual_fvrcp // Annual feline viral rhinotracheitis, calicivirus, panleukopenia (cats)
+    annual_rabies_booster // Annual rabies booster for both cats and dogs
+    three_year_rabies // Three-year rabies vaccine
+    annual_bordetella_booster // Annual kennel cough booster
+    annual_leptospirosis_booster // Annual lepto booster
+    annual_lyme_booster // Annual Lyme disease booster
+
+    // Other/General
+    rattlesnake // For dogs in high-risk areas
+    anthrax // Rare, used in specific areas
+    other // For other specialized vaccines
 }

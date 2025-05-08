@@ -12,13 +12,12 @@ export const metadata = {
 
 const LoginPage = async () => {
     const session = await getServerSession(authOptions);
-    console.log(session);
     return (
-        <div className="flex justify-center flex-col items-center gap-5 w-full h-screen bg-yellow-50">
+        <div className="flex justify-center flex-col items-center p-5 gap-5 w-full h-screen bg-yellow-50">
             <div className="flex items-center justify-center gap-4">
                 <Logo />
             </div>
-            <Card>
+            <Card className="max-w-[768px] bg-white rounded-lg">
                 <CardHeader className="text-center">
                     <CardTitle className="text-xl">Welcome Back</CardTitle>
                     <CardDescription>Login to continue</CardDescription>

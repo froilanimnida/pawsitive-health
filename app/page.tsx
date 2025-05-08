@@ -15,7 +15,7 @@ import {
     Button,
 } from "@/components/ui";
 import { Navbar } from "@/components/shared/home-navbar";
-import { PawPrint, Activity, Calendar, Bell, Shield, Star, ArrowRight, CheckCircle2 } from "lucide-react";
+import { PawPrint, Activity, Calendar, Shield, Star, ArrowRight, CheckCircle2 } from "lucide-react";
 
 export default function LandingPage() {
     return (
@@ -34,8 +34,8 @@ export default function LandingPage() {
                                     Complete healthcare monitoring for your pets
                                 </h1>
                                 <p className="max-w-[600px] text-muted-foreground md:text-xl">
-                                    Track your pet&apos;s health, schedule vet appointments, and receive real-time
-                                    alerts about your furry friend&apos;s wellbeing.
+                                    Track your pet&apos;s health, schedule vet appointments, and check historical data
+                                    about your furry friend&apos;s wellbeing.
                                 </p>
                             </div>
                             <div className="flex flex-col gap-2 min-[400px]:flex-row">
@@ -96,20 +96,6 @@ export default function LandingPage() {
                             <Card className="border-2 border-transparent transition-all hover:shadow-md">
                                 <CardHeader className="pb-2">
                                     <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-lg ">
-                                        <Bell className="h-6 w-6" />
-                                    </div>
-                                    <CardTitle>Health Alerts</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <p className="text-muted-foreground">
-                                        Receive timely notifications about medication schedules, abnormal health
-                                        patterns, and preventive care.
-                                    </p>
-                                </CardContent>
-                            </Card>
-                            <Card className="border-2 border-transparent transition-all hover:shadow-md">
-                                <CardHeader className="pb-2">
-                                    <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-lg ">
                                         <Shield className="h-6 w-6" />
                                     </div>
                                     <CardTitle>Medical Records</CardTitle>
@@ -130,22 +116,8 @@ export default function LandingPage() {
                                 </CardHeader>
                                 <CardContent>
                                     <p className="text-muted-foreground">
-                                        Connect with licensed veterinarians through video calls for quick advice and
+                                        Connect with licensed veterinarians through chats for quick advice and
                                         consultations.
-                                    </p>
-                                </CardContent>
-                            </Card>
-                            <Card className="border-2 border-transparent transition-all hover:shadow-md">
-                                <CardHeader className="pb-2">
-                                    <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-lg ">
-                                        <PawPrint className="h-6 w-6" />
-                                    </div>
-                                    <CardTitle>Wellness Programs</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <p className="text-muted-foreground">
-                                        Personalized wellness plans based on your pet&apos;s breed, age, and health
-                                        conditions for optimal care.
                                     </p>
                                 </CardContent>
                             </Card>

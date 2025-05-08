@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import {
     Dialog,
     Calendar,
@@ -36,7 +36,7 @@ interface RescheduleAppointmentDialogProps {
     vetId: number;
     currentDate: Date;
     currentNotes: string;
-    children: React.ReactNode;
+    children: ReactNode;
 }
 
 export function RescheduleAppointmentDialog({
@@ -57,7 +57,6 @@ export function RescheduleAppointmentDialog({
     // Load available time slots when date changes
     useEffect(() => {
         if (!selectedDate || !isOpen) return;
-
         async function loadTimeSlots() {
             setIsLoadingTimeSlots(true);
             try {
@@ -196,7 +195,7 @@ export function RescheduleAppointmentDialog({
                                 );
                             }}
                             initialFocus
-                            disabled={(date) => date < addDays(new Date(), 1)}
+                            disabled={(date) => date < addDays(new Date(), 0)}
                             className="rounded-md border"
                         />
                     </div>

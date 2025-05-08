@@ -1,44 +1,17 @@
 "use client";
-
-import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, Badge, Button } from "@/components/ui";
 import { Syringe, Pill, ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { getDashboardHealthcare } from "@/actions/dashboard-healthcare";
 import { formatDistanceToNow, isPast } from "date-fns";
 import { UpcomingVaccination, UpcomingPrescription } from "@/types/actions";
 
-export function UpcomingHealthcareDashboard() {
-    const [healthcareData, setHealthcareData] = useState<{
-        vaccinations: UpcomingVaccination[];
-        prescriptions: UpcomingPrescription[];
-    }>({
-        vaccinations: [],
-        prescriptions: [],
-    });
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        const fetchHealthcareData = async () => {
-            setLoading(true);
-            try {
-                const response = await getDashboardHealthcare();
-                if (response.success && response.data) {
-                    setHealthcareData({
-                        vaccinations: response.data.vaccinations,
-                        prescriptions: response.data.prescriptions,
-                    });
-                }
-            } catch (error) {
-                console.error("Error fetching healthcare data:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchHealthcareData();
-    }, []);
-
+export function UpcomingHealthcareDashboard({
+    vaccinations,
+    prescriptions,
+}: {
+    vaccinations: UpcomingVaccination[] | [];
+    prescriptions: UpcomingPrescription[] | [];
+}) {
     // Helper function to get status badge
     const getDueDateStatus = (dueDate: Date | string | null) => {
         if (!dueDate) return null;
@@ -69,42 +42,8 @@ export function UpcomingHealthcareDashboard() {
         }
     };
 
-    if (loading) {
-        return (
-            <section className="grid gap-4 md:grid-cols-2">
-                <Card className="animate-pulse">
-                    <CardHeader>
-                        <div className="h-7 bg-gray-200 rounded-md w-3/4 mb-2"></div>
-                        <div className="h-5 bg-gray-200 rounded-md w-1/2"></div>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-3">
-                            {[1, 2, 3].map((i) => (
-                                <div key={i} className="h-12 bg-gray-200 rounded-md"></div>
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card className="animate-pulse">
-                    <CardHeader>
-                        <div className="h-7 bg-gray-200 rounded-md w-3/4 mb-2"></div>
-                        <div className="h-5 bg-gray-200 rounded-md w-1/2"></div>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-3">
-                            {[1, 2, 3].map((i) => (
-                                <div key={i} className="h-12 bg-gray-200 rounded-md"></div>
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
-            </section>
-        );
-    }
-
     return (
-        <section className="grid gap-4 md:grid-cols-2">
-            {/* Upcoming Vaccinations Card */}
+        <section className="grid gap-4 xl:grid-cols-2 grid-cols-1">
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                     <div className="space-y-1">
@@ -121,13 +60,13 @@ export function UpcomingHealthcareDashboard() {
                     </Button>
                 </CardHeader>
                 <CardContent>
-                    {healthcareData.vaccinations.length === 0 ? (
+                    {vaccinations.length === 0 ? (
                         <div className="text-center py-6 text-muted-foreground">
                             No upcoming vaccinations. All your pets are up to date!
                         </div>
                     ) : (
                         <div className="space-y-3">
-                            {healthcareData.vaccinations.map((vax) => {
+                            {vaccinations.map((vax) => {
                                 const status = getDueDateStatus(vax.next_due_date);
                                 const formattedDate = vax.next_due_date
                                     ? formatDistanceToNow(new Date(vax.next_due_date), { addSuffix: true })
@@ -153,7 +92,6 @@ export function UpcomingHealthcareDashboard() {
                 </CardContent>
             </Card>
 
-            {/* Upcoming Prescriptions Card */}
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                     <div className="space-y-1">
@@ -170,13 +108,13 @@ export function UpcomingHealthcareDashboard() {
                     </Button>
                 </CardHeader>
                 <CardContent>
-                    {healthcareData.prescriptions.length === 0 ? (
+                    {prescriptions.length === 0 ? (
                         <div className="text-center py-6 text-muted-foreground">
                             No current prescriptions for your pets
                         </div>
                     ) : (
                         <div className="space-y-3">
-                            {healthcareData.prescriptions.map((rx) => {
+                            {prescriptions.map((rx) => {
                                 const status = getDueDateStatus(rx.end_date);
                                 const formattedDate = rx.end_date
                                     ? formatDistanceToNow(new Date(rx.end_date), { addSuffix: true })

@@ -51,6 +51,7 @@ const createVaccination = async (values: PetVaccinationType): Promise<ActionResp
         if (!result) return { success: false, error: "Failed to add vaccination" };
         if (session.user.role === "veterinarian") {
             revalidatePath(`/vet/appointments/${values.appointment_uuid}`);
+            return;
         }
         revalidatePath(`/user/pet/${values.pet_uuid}`);
     } catch (error) {

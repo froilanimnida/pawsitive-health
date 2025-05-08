@@ -88,13 +88,15 @@ function UserSignUpForm() {
             resolver: zodResolver(SignUpSchema),
         }),
     );
+    const {
+        handleSubmit,
+        control,
+        formState: { isSubmitting },
+    } = signUpForm;
 
     const onSubmit = async (values: SignUpType) => {
         toast.promise(createAccount(values), {
-            success: () => {
-                signUpForm.reset();
-                return "Account created successfully!";
-            },
+            success: "Account created successfully!",
             loading: "Creating account...",
             error: (error) => {
                 if (error === "failed_to_create_user") {
@@ -109,38 +111,43 @@ function UserSignUpForm() {
     };
     return (
         <Form {...signUpForm}>
-            <form onSubmit={signUpForm.handleSubmit(onSubmit)} className="space-y-8" noValidate>
-                {signUpFormField.map((signUpFormField) => (
-                    <FormField
-                        key={signUpFormField.name}
-                        control={signUpForm.control}
-                        name={
-                            signUpFormField.name as
-                                | "first_name"
-                                | "last_name"
-                                | "email"
-                                | "password"
-                                | "confirm_password"
-                                | "phone_number"
-                        }
-                        render={({ field, fieldState }) => (
-                            <FormItem>
-                                <FormLabel htmlFor={field.name}>{signUpFormField.label}</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        id={field.name}
-                                        type={signUpFormField.type}
-                                        autoComplete={signUpFormField.autoComplete}
-                                        placeholder={signUpFormField.placeholder}
-                                        {...field}
-                                    />
-                                </FormControl>
-                                <FormDescription>{signUpFormField.description}</FormDescription>
-                                <FormMessage className="text-red-500">{fieldState.error?.message}</FormMessage>
-                            </FormItem>
-                        )}
-                    />
-                ))}
+            <form onSubmit={handleSubmit(onSubmit)} noValidate>
+                <div className="space-y-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                    {signUpFormField.map((signUpFormField) => (
+                        <FormField
+                            key={signUpFormField.name}
+                            control={control}
+                            name={
+                                signUpFormField.name as
+                                    | "first_name"
+                                    | "last_name"
+                                    | "email"
+                                    | "password"
+                                    | "confirm_password"
+                                    | "phone_number"
+                            }
+                            render={({ field, fieldState }) => (
+                                <FormItem>
+                                    <FormLabel htmlFor={field.name}>{signUpFormField.label}</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            disabled={isSubmitting}
+                                            required={signUpFormField.required}
+                                            id={field.name}
+                                            type={signUpFormField.type}
+                                            autoComplete={signUpFormField.autoComplete}
+                                            placeholder={signUpFormField.placeholder}
+                                            {...field}
+                                        />
+                                    </FormControl>
+                                    <FormDescription>{signUpFormField.description}</FormDescription>
+                                    <FormMessage className="text-red-500">{fieldState.error?.message}</FormMessage>
+                                </FormItem>
+                            )}
+                        />
+                    ))}
+                </div>
+
                 <Button className="w-full">Create account</Button>
             </form>
         </Form>
