@@ -39,6 +39,7 @@ export {
     rescheduleAppointment,
     getAppointmentHistoricalData,
     getAppointmentRecordedServices,
+    completeAppointment,
 } from "./appointment";
 export { getUserId, updateCalendarIntegration, updateUserProfile, getUser } from "./user";
 export { getVeterinaryAvailability } from "./veterinarian-availability";

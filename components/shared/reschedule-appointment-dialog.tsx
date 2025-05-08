@@ -18,13 +18,13 @@ import {
     SelectLabel,
     SelectTrigger,
     SelectValue,
-    Textarea,
 } from "@/components/ui";
 import { Loader2 } from "lucide-react";
 import { format, addMinutes, addDays } from "date-fns";
-import { getExistingAppointments, rescheduleAppointment } from "@/actions";
+import { getExistingAppointments, rescheduleAppointment, getVeterinaryAvailability } from "@/actions";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+
 interface TimeSlot {
     time: string;
     available: boolean;
@@ -35,7 +35,6 @@ interface RescheduleAppointmentDialogProps {
     appointmentUuid: string;
     vetId: number;
     currentDate: Date;
-    currentNotes: string;
     children: ReactNode;
 }
 
@@ -43,13 +42,11 @@ export function RescheduleAppointmentDialog({
     appointmentUuid,
     vetId,
     currentDate,
-    currentNotes,
     children,
 }: RescheduleAppointmentDialogProps) {
     const [selectedDate, setSelectedDate] = useState<Date>(new Date(currentDate));
     const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
     const [selectedTime, setSelectedTime] = useState<string | undefined>();
-    const [notes, setNotes] = useState(currentNotes || "");
     const [isLoadingTimeSlots, setIsLoadingTimeSlots] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
@@ -57,26 +54,57 @@ export function RescheduleAppointmentDialog({
     // Load available time slots when date changes
     useEffect(() => {
         if (!selectedDate || !isOpen) return;
+
         async function loadTimeSlots() {
             setIsLoadingTimeSlots(true);
             try {
-                const response = await getExistingAppointments(selectedDate, vetId);
+                // Get both veterinarian availability and existing appointments in parallel
+                const [availabilityResponse, appointmentsResponse] = await Promise.all([
+                    getVeterinaryAvailability(vetId),
+                    getExistingAppointments(selectedDate, vetId),
+                ]);
 
-                if (!response.success) {
-                    toast.error("Failed to load available time slots");
+                if (!availabilityResponse.success) {
+                    toast.error("Failed to load veterinarian's schedule");
                     setTimeSlots([]);
                     return;
                 }
 
-                const appointments = response.data?.appointments || [];
+                if (!appointmentsResponse.success) {
+                    toast.error("Failed to load existing appointments");
+                    setTimeSlots([]);
+                    return;
+                }
 
-                // Generate time slots from 8 AM to 5 PM
+                const availability = availabilityResponse.data?.availability || [];
+                const appointments = appointmentsResponse.data?.appointments || [];
+
+                // Get the day of week (0 = Sunday, 1 = Monday, etc.)
+                const dayOfWeek = selectedDate.getDay();
+
+                // Find the vet's availability for this day of week
+                const dayAvailability = availability.find((a) => a.day_of_week === dayOfWeek && a.is_available);
+
+                // If the vet is not available on this day, return empty slots
+                if (!dayAvailability) {
+                    setTimeSlots([]);
+                    return;
+                }
+
+                // Generate time slots based on the veterinarian's availability for this day
                 const slots: TimeSlot[] = [];
-                let currentSlot = new Date(selectedDate);
-                currentSlot.setHours(8, 0, 0, 0);
+
+                // Convert availability times to Date objects for the selected date
+                const startTime = new Date(selectedDate);
+                const availabilityStartTime = new Date(dayAvailability.start_time);
+                startTime.setHours(availabilityStartTime.getUTCHours(), availabilityStartTime.getUTCMinutes(), 0, 0);
 
                 const endTime = new Date(selectedDate);
-                endTime.setHours(17, 0, 0, 0);
+                const availabilityEndTime = new Date(dayAvailability.end_time);
+                endTime.setHours(availabilityEndTime.getUTCHours(), availabilityEndTime.getUTCMinutes(), 0, 0);
+
+                // Generate slots at 30-minute intervals within the vet's available hours
+                let currentSlot = new Date(startTime);
 
                 while (currentSlot < endTime) {
                     const slotStartTime = new Date(currentSlot);
@@ -84,6 +112,9 @@ export function RescheduleAppointmentDialog({
 
                     // Check if this slot conflicts with any existing appointments
                     const matchingAppointments = appointments.filter((appointment) => {
+                        // Skip the current appointment that's being rescheduled
+                        if (appointment.appointment_uuid === appointmentUuid) return false;
+
                         const appointmentTime = new Date(appointment.appointment_date);
                         const appointmentEndTime = addMinutes(appointmentTime, appointment.duration_minutes || 30);
 
@@ -99,7 +130,7 @@ export function RescheduleAppointmentDialog({
                     // Format status message if slot is unavailable
                     let statusMessage = null;
                     if (matchingAppointments.length > 0) {
-                        statusMessage = "Unavailable";
+                        statusMessage = "Booked";
                     }
 
                     slots.push({
@@ -115,6 +146,7 @@ export function RescheduleAppointmentDialog({
                 setSelectedTime(undefined);
             } catch (error) {
                 console.error("Error loading time slots:", error);
+                toast.error("Failed to load available time slots");
                 setTimeSlots([]);
             } finally {
                 setIsLoadingTimeSlots(false);
@@ -122,7 +154,7 @@ export function RescheduleAppointmentDialog({
         }
 
         loadTimeSlots();
-    }, [selectedDate, vetId, isOpen]);
+    }, [selectedDate, vetId, appointmentUuid, isOpen]);
 
     const handleSubmit = async () => {
         if (!selectedDate || !selectedTime) {
@@ -147,7 +179,7 @@ export function RescheduleAppointmentDialog({
             newDate.setHours(hour, minute, 0, 0);
 
             // Call the reschedule API
-            const result = await rescheduleAppointment(appointmentUuid, newDate, notes);
+            const result = await rescheduleAppointment(appointmentUuid, newDate);
 
             if (result === undefined) {
                 toast.success("Appointment successfully rescheduled");
@@ -156,7 +188,6 @@ export function RescheduleAppointmentDialog({
             }
 
             toast.error(!result.success ? result.error : "Failed to reschedule appointment. Please try again later.");
-            setIsOpen(false);
         } catch (error) {
             toast.error(error instanceof Error ? error.message : "Failed to reschedule appointment");
         } finally {
@@ -171,13 +202,12 @@ export function RescheduleAppointmentDialog({
                 <DialogHeader>
                     <DialogTitle>Reschedule Appointment</DialogTitle>
                     <DialogDescription>
-                        Select a new date and time for this appointment. Make sure it doesn&apos;t conflict with other
-                        appointments.
+                        Select a new date and time for this appointment based on the veterinarian&apos;s availability.
                     </DialogDescription>
                 </DialogHeader>
 
                 <div className="grid gap-6 py-4">
-                    <div className="grid gap-2">
+                    <div className="grid gap-2 w-full">
                         <Label htmlFor="date">Date</Label>
                         <Calendar
                             mode="single"
@@ -185,25 +215,19 @@ export function RescheduleAppointmentDialog({
                             onSelect={(date) => {
                                 if (date) {
                                     setSelectedDate(date);
+                                    setSelectedTime(undefined);
                                 }
-                                setSelectedTime(
-                                    new Date().toLocaleTimeString("en-US", {
-                                        hour: "2-digit",
-                                        minute: "2-digit",
-                                        hour12: true,
-                                    }),
-                                );
                             }}
                             initialFocus
                             disabled={(date) => date < addDays(new Date(), 0)}
-                            className="rounded-md border"
+                            className="rounded-md border w-full"
                         />
                     </div>
 
                     <div className="grid gap-2">
                         <Label htmlFor="time">Time</Label>
                         {isLoadingTimeSlots ? (
-                            <div className="flex items-center justify-center h-[200px]">
+                            <div className="flex items-center justify-center h-[80px]">
                                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
                             </div>
                         ) : timeSlots.length > 0 ? (
@@ -231,20 +255,9 @@ export function RescheduleAppointmentDialog({
                             </Select>
                         ) : (
                             <div className="text-center p-4 border rounded-md text-muted-foreground">
-                                No available time slots. Please select another date.
+                                No available time slots for this date. The veterinarian may not be working on this day.
                             </div>
                         )}
-                    </div>
-
-                    <div className="grid gap-2">
-                        <Label htmlFor="notes">Notes (Optional)</Label>
-                        <Textarea
-                            id="notes"
-                            value={notes}
-                            onChange={(e) => setNotes(e.target.value)}
-                            placeholder="Add any notes about this appointment..."
-                            rows={3}
-                        />
                     </div>
                 </div>
 

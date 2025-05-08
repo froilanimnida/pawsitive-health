@@ -45,7 +45,6 @@ interface PrescriptionFormProps {
     vetId?: number;
     isCheckIn?: boolean;
     medicationList: medications[] | [];
-    petName?: string;
 }
 
 // Default time slots based on frequency
@@ -80,7 +79,6 @@ const PrescriptionForm = ({
     vetId,
     isCheckIn = true,
     medicationList,
-    petName = "your pet",
 }: PrescriptionFormProps) => {
     const [isLoading, setIsLoading] = useState(false);
     const [scheduleType, setScheduleType] = useState<prescription_schedule_type | undefined>();
@@ -100,8 +98,8 @@ const PrescriptionForm = ({
                 frequency: "",
                 schedule_type: undefined,
                 time_slots: [],
-                add_to_calendar: false,
-                calendar_sync_enabled: false,
+                add_to_calendar: true,
+                calendar_sync_enabled: true,
                 reminder_minutes_before: 15,
                 start_date: new Date(),
                 end_date: addDays(new Date(), 7),
@@ -110,7 +108,6 @@ const PrescriptionForm = ({
             },
         }),
     );
-    console.log(petName);
 
     // When schedule type changes, update the time slots
     useEffect(() => {

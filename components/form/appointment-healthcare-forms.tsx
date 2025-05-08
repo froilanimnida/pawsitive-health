@@ -15,7 +15,6 @@ export function AppointmentHealthcareForms({
     isVetView = false,
     isCheckedIn = true,
     medicationList,
-    petName,
 }: {
     petId: number;
     petUuid: string;
@@ -25,7 +24,6 @@ export function AppointmentHealthcareForms({
     isVetView?: boolean;
     isCheckedIn?: boolean;
     medicationList: medications[] | [];
-    petName: string;
 }) {
     const [activeTab, setActiveTab] = useState("vaccination");
 
@@ -97,7 +95,6 @@ export function AppointmentHealthcareForms({
                         appointmentUuid={appointmentUuid}
                         vetId={vetId}
                         isCheckIn={isCheckedIn}
-                        petName={petName}
                     />
                 </TabsContent>
             </Tabs>
