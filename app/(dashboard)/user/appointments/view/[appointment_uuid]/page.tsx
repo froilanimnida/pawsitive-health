@@ -78,6 +78,7 @@ async function ViewAppointment({ params }: { params: Promise<{ appointment_uuid:
                 role={role_type.user}
                 veterinarian={response.veterinarians}
                 vetId={response.veterinarians.vet_id}
+                showAdditionalAction={true}
             />
             <AppointmentChat
                 initialMessages={response.messages}
