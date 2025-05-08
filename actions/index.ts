@@ -92,3 +92,4 @@ export {
 export { getAllUsers, adminResetPassword, toggleUserStatus, deleteUser } from "./admin";
 export { getMessages, sendMessage } from "./messages";
 export { getMedicalRecords } from "./medical-records";
+export { getForumPosts, getForumPost, createForumPost, addForumComment, getForumMetadata } from "./forum";

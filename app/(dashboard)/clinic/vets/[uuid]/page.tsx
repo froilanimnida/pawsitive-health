@@ -174,7 +174,7 @@ async function VeterinaryInfo({ params }: UUIDPageParams) {
                     </CardContent>
                 </Card>
 
-                <div className="flex-1">
+                <div>
                     <Tabs defaultValue="schedule" className="w-full">
                         <TabsList className="grid w-full grid-cols-2">
                             <TabsTrigger value="schedule">
