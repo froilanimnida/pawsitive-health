@@ -68,6 +68,7 @@ const getNearbyClinics = async (
                     lt: longitude + 1,
                     gt: longitude - 1,
                 },
+                emergency_services: true,
             },
         });
         return { success: true, data: { clinics } };
