@@ -1,7 +1,14 @@
 "use server";
+
 import { prisma } from "@/lib";
 import type { educational_content } from "@prisma/client";
 import type { EducationalContentFilters, ActionResponse } from "@/types";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
+import { type EducationalContentType } from "@/schemas";
+
 /**
  * Fetch educational content with optional filtering
  */
@@ -146,6 +153,104 @@ export async function getEducationalContentByUuid(
         };
     } catch (error) {
         console.error("Error fetching educational content:", error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "An unexpected error occurred",
+        };
+    }
+}
+
+/**
+ * Create new educational content (veterinarian only)
+ */
+export async function createEducationalContent(
+    data: EducationalContentType,
+): Promise<ActionResponse<{ contentUuid: string }>> {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user?.id) redirect("/signin");
+
+    // Verify the user is a veterinarian
+    const user = await prisma.users.findUnique({
+        where: { user_id: Number(session.user.id) },
+        include: { veterinarians: true },
+    });
+
+    if (!user || user.role !== "veterinarian" || !user.veterinarians) {
+        return {
+            success: false,
+            error: "Only veterinarians can publish educational content",
+        };
+    }
+
+    try {
+        // Create the content
+        const content = await prisma.educational_content.create({
+            data: {
+                title: data.title,
+                content: data.content,
+                category: data.category,
+                tags: data.tags,
+                author_id: user.user_id,
+                published_at: new Date(),
+                content_uuid: crypto.randomUUID(),
+            },
+        });
+
+        revalidatePath("/education");
+        revalidatePath(`/education/${content.content_uuid}`);
+
+        return {
+            success: true,
+            data: { contentUuid: content.content_uuid },
+        };
+    } catch (error) {
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "An unexpected error occurred",
+        };
+    }
+}
+
+/**
+ * Get available categories for educational content
+ */
+export async function getEducationalContentCategories(): Promise<ActionResponse<{ categories: string[] }>> {
+    try {
+        const categoryResults = await prisma.educational_content.groupBy({
+            by: ["category"],
+        });
+
+        const categories = categoryResults.map((item) => item.category);
+
+        // Add default categories if none exist yet
+        if (categories.length === 0) {
+            return {
+                success: true,
+                data: {
+                    categories: [
+                        "Nutrition",
+                        "Training",
+                        "Health",
+                        "Behavior",
+                        "Grooming",
+                        "Preventative Care",
+                        "Pet Safety",
+                        "Common Diseases",
+                        "Elderly Pet Care",
+                        "Puppy & Kitten Care",
+                        "Dental Health",
+                        "Emergency Care",
+                    ],
+                },
+            };
+        }
+
+        return {
+            success: true,
+            data: { categories },
+        };
+    } catch (error) {
+        console.error("Error fetching educational categories:", error);
         return {
             success: false,
             error: error instanceof Error ? error.message : "An unexpected error occurred",

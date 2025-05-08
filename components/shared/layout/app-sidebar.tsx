@@ -49,6 +49,11 @@ const vetNavLinks = [
         url: "/vet/forum",
         icon: PanelsTopLeft,
     },
+    {
+        name: "Educational Content",
+        url: "/vet/educontent",
+        icon: Stethoscope,
+    },
 ];
 
 const clientNavLinks = [

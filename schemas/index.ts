@@ -38,6 +38,4 @@ export {
     type BaseUserProfileType,
 } from "./base-schema";
 export { ForumPostSchema, type ForumPostType, ForumCommentSchema, type ForumCommentType } from "./forum-definition";
-
-// Message schemas
-export * from "./message-definition";
+export { EducationalContentSchema, type EducationalContentType } from "./education-definition";
