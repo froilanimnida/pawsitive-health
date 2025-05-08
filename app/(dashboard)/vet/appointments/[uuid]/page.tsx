@@ -139,7 +139,6 @@ const ViewAppointment = async ({ params }: UUIDPageParams) => {
                             petId={pet.pet_id}
                             appointmentId={appointment.appointment_id}
                             appointmentUuid={appointment.appointment_uuid}
-                            petName={pet.name}
                         />
                     </CardContent>
                 </Card>

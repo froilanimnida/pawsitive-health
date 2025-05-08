@@ -39,6 +39,7 @@ export {
     rescheduleAppointment,
     getAppointmentHistoricalData,
     getAppointmentRecordedServices,
+    completeAppointment,
 } from "./appointment";
 export { getUserId, updateCalendarIntegration, updateUserProfile, getUser } from "./user";
 export { getVeterinaryAvailability } from "./veterinarian-availability";
@@ -53,7 +54,6 @@ export {
 export { getClinicSchedule } from "./clinic-schedule";
 export { createMedication, getMedicationsList } from "./medications";
 export { sendEmail, sendSimpleEmail } from "./send-email";
-export { getEducationalContent, getEducationalContentByUuid } from "./educational-content";
 export {
     addPrescription,
     viewPrescription,
@@ -92,3 +92,10 @@ export {
 export { getAllUsers, adminResetPassword, toggleUserStatus, deleteUser } from "./admin";
 export { getMessages, sendMessage } from "./messages";
 export { getMedicalRecords } from "./medical-records";
+export { getForumPosts, getForumPost, createForumPost, addForumComment, getForumMetadata } from "./forum";
+export {
+    createEducationalContent,
+    getEducationalContent,
+    getEducationalContentByUuid,
+    getEducationalContentCategories,
+} from "./educational-content";

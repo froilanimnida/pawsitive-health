@@ -9,14 +9,14 @@ class EmailService {
         this.transporter = nodemailer.createTransport({
             host: "smtp.gmail.com",
             port: 465,
-            secure: process.env.NODE_ENV === "production",
+            secure: true,
             auth: {
                 user: process.env.EMAIL_USER,
                 pass: process.env.EMAIL_PASSWORD?.trim(),
             },
-            tls: {
-                rejectUnauthorized: false,
-            },
+            connectionTimeout: 5000, // 5 seconds
+            greetingTimeout: 5000, // 5 seconds
+            socketTimeout: 10000, // 10 seconds
         });
     }
 

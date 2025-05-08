@@ -45,11 +45,11 @@ export const PrescriptionDefinition = z.object({
         )
         .default(prescription_schedule_type.once_daily),
     time_slots: z.array(TimeSlotSchema).default([]),
-    add_to_calendar: z.boolean().default(false),
+    add_to_calendar: z.boolean().default(true),
     reminder_minutes_before: z.number().default(15),
     custom_schedule_description: z.string().optional(),
     custom_instructions: z.string().optional(),
-    calendar_sync_enabled: z.boolean().default(false),
+    calendar_sync_enabled: z.boolean().default(true),
 });
 
 export type TimeSlotType = z.infer<typeof TimeSlotSchema>;

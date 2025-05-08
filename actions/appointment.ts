@@ -26,7 +26,7 @@ import type {
     GetExistingAppointmentsType,
     GetVeterinarianAppointmentsType,
 } from "@/types";
-import { AppointmentConfirmation, AppointmentConfirmed } from "@/templates";
+import { AppointmentCompleted, AppointmentConfirmation, AppointmentConfirmed } from "@/templates";
 import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
@@ -463,14 +463,110 @@ const changeAppointmentStatus = async (
     }
 };
 
+const completeAppointment = async (appointment_uuid: string): Promise<ActionResponse | void> => {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) redirect("/signin");
+    try {
+        const appointment = await prisma.appointments.update({
+            where: { appointment_uuid },
+            data: { status: "completed" },
+            include: {
+                pets: {
+                    include: {
+                        users: true,
+                    },
+                },
+                veterinarians: {
+                    include: {
+                        users: true,
+                    },
+                },
+                clinics: true,
+                prescriptions: {
+                    include: {
+                        medications: true,
+                    },
+                },
+            },
+        });
+
+        if (!appointment) return { success: false, error: "Appointment not found" };
+        if (!appointment.pets) return { success: false, error: "Pet not found" };
+        if (!appointment.veterinarians) return { success: false, error: "Veterinarian not found" };
+        if (!appointment.clinics) return { success: false, error: "Clinic not found" };
+        if (!appointment.pets.users) return { success: false, error: "User not found" };
+        if (!appointment.veterinarians.users) return { success: false, error: "Veterinarian user not found" };
+
+        // Format date and time for email
+        const appointmentDate = new Intl.DateTimeFormat("en-US", {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+        }).format(appointment.appointment_date);
+
+        const appointmentTime = new Intl.DateTimeFormat("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+        }).format(appointment.appointment_date);
+
+        // Format prescriptions for email if any
+        const prescriptions =
+            appointment.prescriptions?.map((prescription) => ({
+                name: prescription.medications?.name || "Medication",
+                dosage: prescription.dosage || "",
+                instructions: prescription.custom_instructions || prescription.frequency || "",
+            })) || [];
+
+        // Send email to the pet owner
+        await sendEmail(
+            AppointmentCompleted,
+            {
+                petName: appointment.pets.name,
+                ownerName: `${appointment.pets.users.first_name} ${appointment.pets.users.last_name}`,
+                vetName: `${appointment.veterinarians.users.first_name} ${appointment.veterinarians.users.last_name}`,
+                date: appointmentDate,
+                time: appointmentTime,
+                clinicName: appointment.clinics.name,
+                clinicPhone: appointment.clinics.phone_number,
+                appointmentType: toTitleCase(appointment.appointment_type),
+                appointmentId: appointment.appointment_uuid,
+                diagnosis: appointment.notes || undefined,
+                prescriptions: prescriptions.length > 0 ? prescriptions : undefined,
+                // You can add these fields if you capture them elsewhere
+                followUpDate: undefined, // Add if you have follow-up scheduling
+                recommendations: undefined, // Add if you capture recommendations
+            },
+            {
+                to: appointment.pets.users.email,
+                subject: `Appointment Summary for ${appointment.pets.name} | PawsitiveHealth`,
+            },
+        );
+
+        // Create a notification for the pet owner
+        await createNotification({
+            userId: appointment.pets.users.user_id,
+            title: "Appointment Completed",
+            content: `Your appointment for ${appointment.pets.name} with Dr. ${appointment.veterinarians.users.last_name} has been completed. Check your email for a summary.`,
+            type: "appointment_confirmation",
+            petId: appointment.pets.pet_id,
+            appointmentId: appointment.appointment_id,
+            expiresAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days
+            actionUrl: `/user/appointments/view/${appointment.appointment_uuid}`,
+        });
+
+        revalidatePath(`/vet/appointments/${appointment.appointment_uuid}`);
+        revalidatePath(`/user/appointments`);
+    } catch (error) {
+        return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred" };
+    }
+};
+
 /**
  * Reschedule an existing appointment to a new date/time
  */
-const rescheduleAppointment = async (
-    appointment_uuid: string,
-    new_date: Date,
-    notes?: string,
-): Promise<ActionResponse | void> => {
+const rescheduleAppointment = async (appointment_uuid: string, new_date: Date): Promise<ActionResponse | void> => {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) redirect("/signin");
     try {
@@ -534,7 +630,6 @@ const rescheduleAppointment = async (
             where: { appointment_uuid },
             data: {
                 appointment_date: new_date,
-                ...(notes !== undefined ? { notes } : {}),
             },
             include: {
                 pets: {
@@ -752,4 +847,5 @@ export {
     rescheduleAppointment,
     getAppointmentHistoricalData,
     getAppointmentRecordedServices,
+    completeAppointment,
 };

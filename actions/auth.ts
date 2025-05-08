@@ -35,7 +35,7 @@ const createAccount = async (values: SignUpType): Promise<ActionResponse | void>
         if (userEmailTaken) return { success: false, error: "email_or_phone_number_already_exists" };
         const userEmail = formData.data.email;
         const verification_token = generateVerificationToken(userEmail);
-        const verification_url = `${process.env.FRONTEND_URL}/auth/verify-email/${verification_token}`;
+        const verification_url = `${process.env.FRONTEND_URL}/verify-email/${verification_token}`;
         const expires_at = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
         const result = await prisma.users.create({
             data: {

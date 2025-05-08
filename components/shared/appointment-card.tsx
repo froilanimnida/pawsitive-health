@@ -11,6 +11,7 @@ import { ConfirmationDialog } from "./confirmation-dialog";
 import { appointment_status, appointments, clinics, pets, role_type, users, veterinarians } from "@prisma/client";
 import type { Modify } from "@/types";
 import type { ReactNode } from "react";
+import { CompleteAppointmentButton } from "./complete-appointment-button";
 
 export const statusColors: Record<string, string> = {
     confirmed: "bg-green-100 text-green-800 border-green-200",
@@ -238,7 +239,7 @@ export function AppointmentCard({
                                     title="Are you absolutely sure?"
                                     description="This action cannot be undone. This will permanently mark this appointment as completed. We'll send a confirmation to the user."
                                     actionButtons={
-                                        <AcceptAppointmentButton appointmentUuid={appointment.appointment_uuid} />
+                                        <CompleteAppointmentButton appointmentUuid={appointment.appointment_uuid} />
                                     }
                                     size="md"
                                 />
@@ -248,7 +249,6 @@ export function AppointmentCard({
                                     appointmentUuid={appointment.appointment_uuid}
                                     vetId={vetId}
                                     currentDate={appointmentDate}
-                                    currentNotes={appointment.notes || ""}
                                 >
                                     <Button variant="outline">
                                         <Calendar className="mr-2 h-4 w-4" />

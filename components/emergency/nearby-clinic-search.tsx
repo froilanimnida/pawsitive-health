@@ -6,6 +6,7 @@ import { Badge, Button, Input } from "@/components/ui";
 import { Search, MapPin, Phone, Clock } from "lucide-react";
 import type { clinics } from "@prisma/client";
 import { toast } from "sonner";
+import Link from "next/link";
 
 const NearbyClinicSearch = () => {
     const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
@@ -86,7 +87,8 @@ const NearbyClinicSearch = () => {
         if (location) {
             searchClinics();
         }
-    });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [location]); // Add location as a dependency to prevent infinite loop
 
     return (
         <div className="space-y-4">
@@ -132,16 +134,16 @@ const NearbyClinicSearch = () => {
                                 </div>
 
                                 <div className="mt-4 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6">
-                                    <a
+                                    <Link
                                         href={`tel:${clinic.phone_number}`}
                                         className="flex items-center text-primary hover:underline"
                                     >
                                         <Phone className="mr-2 h-4 w-4" />
                                         {clinic.phone_number}
-                                    </a>
+                                    </Link>
 
                                     {clinic.google_maps_url && (
-                                        <a
+                                        <Link
                                             href={clinic.google_maps_url}
                                             target="_blank"
                                             rel="noopener noreferrer"
@@ -149,18 +151,29 @@ const NearbyClinicSearch = () => {
                                         >
                                             <MapPin className="mr-2 h-4 w-4" />
                                             Directions
-                                        </a>
+                                        </Link>
                                     )}
 
                                     {clinic.website && (
-                                        <a
+                                        <Link
                                             href={clinic.website}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="flex items-center text-primary hover:underline"
                                         >
                                             View Website
-                                        </a>
+                                        </Link>
+                                    )}
+                                    {clinic.latitude && clinic.longitude && (
+                                        <Link
+                                            href={`https://www.google.com/maps/dir/?api=1&destination=${clinic.latitude},${clinic.longitude}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center text-primary hover:underline"
+                                        >
+                                            <MapPin className="mr-2 h-4 w-4" />
+                                            Get Directions
+                                        </Link>
                                     )}
                                 </div>
 
