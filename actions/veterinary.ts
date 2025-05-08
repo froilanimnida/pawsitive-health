@@ -65,23 +65,46 @@ const newVeterinarian = async (
                 vet_id: veterinarian.vet_id,
             },
         });
+        if (!values.veterinary_availability) {
+            const clinicHours = await prisma.clinic_hours.findMany({
+                where: {
+                    clinic_id: clinic.clinic_id,
+                    is_closed: false,
+                },
+            });
+            const availabilityPromises = clinicHours.map((h) =>
+                prisma.vet_availability.create({
+                    data: {
+                        vet_id: veterinarian.vet_id,
+                        clinic_id: clinic.clinic_id,
+                        day_of_week: h.day_of_week,
+                        start_time: h.opens_at,
+                        end_time: h.closes_at,
+                        is_available: h.is_closed,
+                    },
+                }),
+            );
+            await Promise.all(availabilityPromises);
+            await createNewPreferenceDefault(result.user_id);
+            revalidatePath("/clinic/veterinarians");
+            return {
+                success: true,
+                data: {
+                    user_uuid: result.user_uuid,
+                    veterinarian_uuid: veterinarian.vet_uuid,
+                },
+            };
+        }
 
-        const clinicHours = await prisma.clinic_hours.findMany({
-            where: {
-                clinic_id: clinic.clinic_id,
-                is_closed: false,
-            },
-        });
-
-        const availabilityPromises = clinicHours.map((hour) =>
+        const availabilityPromises = values.veterinary_availability.map((h) =>
             prisma.vet_availability.create({
                 data: {
                     vet_id: veterinarian.vet_id,
                     clinic_id: clinic.clinic_id,
-                    day_of_week: hour.day_of_week,
-                    start_time: hour.opens_at,
-                    end_time: hour.closes_at,
-                    is_available: true,
+                    day_of_week: h.day_of_week,
+                    start_time: h.start_time,
+                    end_time: h.end_time,
+                    is_available: h.is_available,
                 },
             }),
         );

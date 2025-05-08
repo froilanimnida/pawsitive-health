@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 // Skeleton loader for the dashboard components
 function DashboardSkeleton() {
     return (
-        <div className="grid gap-4 md:grid-cols-2 animate-pulse">
+        <div className="grid gap-4 lg:grid-cols-2 animate-pulse">
             <Card>
                 <CardHeader>
                     <div className="h-7 bg-gray-200 rounded-md w-3/4 mb-2"></div>

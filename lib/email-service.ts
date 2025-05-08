@@ -1,59 +1,65 @@
 import nodemailer from "nodemailer";
 import { render } from "@react-email/render";
 import type { EmailTemplate, EmailOptions } from "@/types/email-types";
-import SMTPTransport from "nodemailer/lib/smtp-transport";
 
 class EmailService {
     private transporter: nodemailer.Transporter;
 
     constructor() {
-        const transportOptions: SMTPTransport.Options = {
-            host: process.env.EMAIL_HOST,
-            port: parseInt(process.env.EMAIL_PORT || "587"),
-            secure: process.env.EMAIL_SECURE === "true",
+        this.transporter = nodemailer.createTransport({
+            service: "gmail",
             auth: {
                 user: process.env.EMAIL_USER,
                 pass: process.env.EMAIL_PASSWORD,
             },
-            tls: {
-                ciphers: "SSLv3",
-                rejectUnauthorized: false,
-            },
-        };
-
-        this.transporter = nodemailer.createTransport(transportOptions);
+            debug: process.env.NODE_ENV !== "production",
+            logger: process.env.NODE_ENV !== "production",
+        });
     }
 
     async sendMail<T>(template: EmailTemplate<T>, data: T, options: EmailOptions): Promise<boolean> {
         try {
             const html = await render(template(data));
-
-            await this.transporter.sendMail({
+            const result = await this.transporter.sendMail({
                 from: options.from || process.env.EMAIL_FROM,
                 to: options.to,
                 subject: options.subject,
                 html,
                 text: options.text,
             });
-
+            console.log("Email sent:", result.messageId);
             return true;
-        } catch {
+        } catch (error) {
+            console.error("Failed to send email:", error);
             return false;
         }
     }
 
     async sendSimpleEmail(options: EmailOptions): Promise<boolean> {
         try {
-            await this.transporter.sendMail({
+            const result = await this.transporter.sendMail({
                 from: options.from || process.env.EMAIL_FROM,
                 to: options.to,
                 subject: options.subject,
                 text: options.text,
                 html: options.html,
             });
-
+            console.log("Simple email sent:", result.messageId);
             return true;
-        } catch {
+        } catch (error) {
+            console.error("Failed to send simple email:", error);
+            return false;
+        }
+    }
+
+    // Add a verification method to test the connection
+    async verifyConnection(): Promise<boolean> {
+        try {
+            await this.transporter.verify();
+            console.log("Email server connection verified");
+            return true;
+        } catch (error) {
+            console.error("Email server connection failed:", error);
             return false;
         }
     }

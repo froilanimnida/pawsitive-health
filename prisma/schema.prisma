@@ -689,48 +689,72 @@ enum species_type {
 }
 
 enum appointment_type {
-    wellness_exam
-    vaccination
-    sick_visit
-    follow_up
-    surgery
-    dental_cleaning
-    emergency
-    laboratory_work
-    imaging
-    grooming
-    physical_therapy
-    behavioral_consultation
-    nutrition_consultation
-    euthanasia
-    new_pet_consultation
-    senior_pet_care
-    parasite_control
-    microchipping
-    medication_refill
-    spay_neuter
     allergy_testing
-    orthopedic_evaluation
-    ophthalmology
-    dermatology
+    behavioral_consultation
     cardiology
-    neurology
-    oncology
+    dental_cleaning
+    dermatology
+    emergency
+    euthanasia
+    follow_up
+    grooming
     hospice_care
+    imaging
+    laboratory_work
+    medication_refill
+    microchipping
+    neurology
+    new_pet_consultation
+    nutrition_consultation
+    oncology
+    ophthalmology
+    orthopedic_evaluation
+    parasite_control
+    physical_therapy
+    senior_pet_care
+    sick_visit
+    spay_neuter
+    surgery
+    vaccination
+    wellness_exam
 }
 
 enum veterinary_specialization {
-    general_practitioner
-    surgeon
-    dermatologist
-    cardiologist
-    orthopedic
-    dentist
-    ophthalmologist
-    oncologist
-    internal_medicine
-    emergency_and_critical_care
+    anesthesiology
+    avian_medicine
     behaviorist
+    cardiologist
+    clinical_pharmacology
+    dentist
+    dermatologist
+    diagnostic_imaging
+    emergency_and_critical_care
+    equine_medicine
+    exotic_animal_medicine
+    feline_medicine
+    food_animal_medicine
+    general_practitioner
+    integrative_medicine
+    internal_medicine
+    laboratory_animal_medicine
+    microbiology
+    neurology
+    nutrition
+    oncologist
+    ophthalmologist
+    orthopedic
+    parasitology
+    pathology
+    preventive_medicine
+    radiology
+    rehabilitation
+    reproduction
+    sports_medicine
+    surgeon
+    theriogenology
+    toxicology
+    wildlife_medicine
+    zoological_medicine
 }
 
 enum appointment_status {

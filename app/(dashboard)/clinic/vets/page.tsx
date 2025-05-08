@@ -18,7 +18,7 @@ import {
     AvatarFallback,
 } from "@/components/ui";
 import NewVeterinaryForm from "@/components/form/new-vet-form";
-import { getClinic, getUser, getVeterinarians } from "@/actions";
+import { getClinic, getUser, getVeterinarians, getClinicSchedule } from "@/actions";
 import Link from "next/link";
 import { toTitleCase } from "@/lib";
 import type { veterinarians } from "@prisma/client";
@@ -79,9 +79,7 @@ const Veterinaries = async () => {
         return null;
     }
 
-    // Use the proper type parameter "user_id" to indicate we're looking up by user_id
     const clinicInfo = await getClinic(Number(session.user.id), "user_id");
-    console.log(clinicInfo);
 
     if (!clinicInfo.success) {
         return (
@@ -106,7 +104,7 @@ const Veterinaries = async () => {
 
     return (
         <div className="w-full">
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
                 {veterinaries.map((veterinary) => (
                     <VeterinaryCard key={veterinary.license_number} veterinary={veterinary} />
                 ))}
@@ -115,7 +113,27 @@ const Veterinaries = async () => {
     );
 };
 
-const Veterinary = () => {
+const Veterinary = async () => {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) {
+        return null;
+    }
+
+    // Get the clinic information
+    const clinicInfo = await getClinic(Number(session.user.id), "user_id");
+    if (!clinicInfo.success) {
+        return (
+            <div className="text-center py-10">
+                <h3 className="text-lg font-medium">Clinic not found</h3>
+                <p className="text-muted-foreground">Please register your clinic first</p>
+            </div>
+        );
+    }
+
+    // Fetch clinic hours
+    const clinicHoursResponse = await getClinicSchedule(clinicInfo.data.clinic.clinic_id);
+    const clinicHours = clinicHoursResponse.success ? clinicHoursResponse.data.clinic_hours : [];
+
     return (
         <section className="p-4 w-full">
             <div className="flex justify-between items-center mb-6">
@@ -124,14 +142,14 @@ const Veterinary = () => {
                     <DialogTrigger asChild>
                         <Button>Add Veterinarian</Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent className="overflow-scroll max-h-[90vh]">
                         <DialogHeader>
                             <DialogTitle>Add New Veterinarian</DialogTitle>
                             <DialogDescription>
                                 Please provide the details of the new veterinarian you want to add.
                             </DialogDescription>
                         </DialogHeader>
-                        <NewVeterinaryForm />
+                        <NewVeterinaryForm initialClinicHours={clinicHours} />
                     </DialogContent>
                 </Dialog>
             </div>

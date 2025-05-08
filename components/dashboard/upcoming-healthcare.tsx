@@ -43,7 +43,7 @@ export function UpcomingHealthcareDashboard({
     };
 
     return (
-        <section className="grid gap-4 md:grid-cols-2 grid-cols-1">
+        <section className="grid gap-4 xl:grid-cols-2 grid-cols-1">
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                     <div className="space-y-1">
