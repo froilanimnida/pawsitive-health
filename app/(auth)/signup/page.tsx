@@ -11,7 +11,7 @@ export const metadata = {
 
 const SignUp = () => {
     return (
-        <div className="flex justify-center flex-col items-center p-5 gap-5 w-full h-screen bg-yellow-50">
+        <div className="flex justify-center flex-col items-center p-5 gap-5 w-full min-h-screen bg-yellow-50">
             <div className="flex items-center justify-center gap-4">
                 <Logo />
             </div>

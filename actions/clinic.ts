@@ -61,12 +61,12 @@ const getNearbyClinics = async (
         const clinics = await prisma.clinics.findMany({
             where: {
                 latitude: {
-                    lt: latitude + 1,
-                    gt: latitude - 1,
+                    lt: latitude + 2,
+                    gt: latitude - 2,
                 },
                 longitude: {
-                    lt: longitude + 1,
-                    gt: longitude - 1,
+                    lt: longitude + 2,
+                    gt: longitude - 2,
                 },
                 emergency_services: true,
             },

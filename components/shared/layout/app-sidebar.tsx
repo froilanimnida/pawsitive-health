@@ -51,7 +51,7 @@ const vetNavLinks = [
     },
     {
         name: "Educational Content",
-        url: "/vet/educontent",
+        url: "/vet/education",
         icon: Stethoscope,
     },
 ];

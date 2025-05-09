@@ -373,7 +373,7 @@ const UserLoginForm = ({
                                     </FormItem>
                                 )}
                             />
-                            <DialogFooter className="flex-row flex justify-center items-center gap-2">
+                            <DialogFooter className="flex-col md:flex-row flex justify-center items-center gap-2">
                                 <Button type="submit" className="sm:w-auto w-full" disabled={isLoading}>
                                     {isLoading ? "Verifying..." : "Verify"}
                                 </Button>

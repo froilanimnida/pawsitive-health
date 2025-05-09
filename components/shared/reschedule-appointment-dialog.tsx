@@ -207,7 +207,7 @@ export function RescheduleAppointmentDialog({
                 </DialogHeader>
 
                 <div className="grid gap-6 py-4">
-                    <div className="grid gap-2 w-full">
+                    <div className="flex flex-col gap-2 justify-center items-center">
                         <Label htmlFor="date">Date</Label>
                         <Calendar
                             mode="single"
@@ -220,7 +220,7 @@ export function RescheduleAppointmentDialog({
                             }}
                             initialFocus
                             disabled={(date) => date < addDays(new Date(), 0)}
-                            className="rounded-md border w-full"
+                            className="rounded-md border w-fit"
                         />
                     </div>
 

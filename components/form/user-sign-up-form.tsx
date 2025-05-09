@@ -16,7 +16,7 @@ import { SignUpSchema, SignUpType } from "@/schemas";
 import { createAccount } from "@/actions";
 import { toast } from "sonner";
 import type { TextFormField } from "@/types/forms/text-form-field";
-import { createFormConfig } from "@/lib";
+import { createFormConfig, toTitleCase } from "@/lib";
 
 function UserSignUpForm() {
     const signUpFormField: TextFormField[] = [
@@ -95,24 +95,23 @@ function UserSignUpForm() {
     } = signUpForm;
 
     const onSubmit = async (values: SignUpType) => {
-        toast.promise(createAccount(values), {
-            success: "Account created successfully!",
-            loading: "Creating account...",
-            error: (error) => {
-                if (error === "failed_to_create_user") {
-                    return "Failed to create user";
-                }
-                if (error === "user_already_exists") {
-                    return "User already exists";
-                }
-                return "Failed to create user";
-            },
-        });
+        const t = toast.loading("Creating account...");
+        const result = await createAccount(values);
+        if (result === undefined) {
+            toast.success("Account created successfully", { id: t });
+            signUpForm.reset();
+            return;
+        }
+        if (result && !result.success) {
+            toast.error(toTitleCase(result.error), { id: t });
+            return;
+        }
+        toast.error("An unexpected error occurred", { id: t });
     };
     return (
         <Form {...signUpForm}>
             <form onSubmit={handleSubmit(onSubmit)} noValidate>
-                <div className="space-y-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                     {signUpFormField.map((signUpFormField) => (
                         <FormField
                             key={signUpFormField.name}
@@ -148,7 +147,7 @@ function UserSignUpForm() {
                     ))}
                 </div>
 
-                <Button className="w-full">Create account</Button>
+                <Button className="w-full mt-5">Create account</Button>
             </form>
         </Form>
     );

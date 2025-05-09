@@ -212,7 +212,7 @@ const ClinicSignUp = () => {
     return (
         <Form {...clinicSignUpForm}>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-                <div className="space-y-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                     {clinicSignUpFields.map((csf) => (
                         <FormField
                             key={csf.name}

@@ -180,7 +180,7 @@ export function AppointmentCard({
             <CardFooter className="flex items-center justify-between pt-0">
                 {showAdditionalAction && status !== appointment_status.completed && (
                     <aside className="flex items-center justify-between">
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 flex-col lg:flex-row">
                             {status !== appointment_status.cancelled && (
                                 <ConfirmationDialog
                                     trigger={

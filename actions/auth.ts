@@ -77,7 +77,7 @@ const createAccount = async (values: SignUpType): Promise<ActionResponse | void>
     }
 };
 
-const verifyEmail = async (token: string): Promise<ActionResponse<{ verified: boolean }>> => {
+const verifyEmail = async (token: string): Promise<ActionResponse | void> => {
     try {
         const decoded = jwt.verify(token, process.env.EMAIL_VERIFICATION_SECRET as string) as {
             email: string;
@@ -89,8 +89,6 @@ const verifyEmail = async (token: string): Promise<ActionResponse<{ verified: bo
         });
 
         if (result.count === 0) return { success: false, error: "User not found" };
-
-        return { success: true, data: { verified: true } };
     } catch (error) {
         return { success: false, error: error instanceof Error ? error.message : "Invalid or expired token" };
     }
