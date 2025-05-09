@@ -87,7 +87,6 @@ const verifyEmail = async (token: string): Promise<ActionResponse | void> => {
             where: { email: decoded.email },
             data: { email_verified: true, email_verification_token: null, email_verification_expires_at: null },
         });
-        console.log("result", result);
 
         if (result.count === 0) return { success: false, error: "User not found" };
     } catch (error) {
