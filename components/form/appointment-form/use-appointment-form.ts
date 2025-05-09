@@ -78,8 +78,7 @@ export function useAppointmentForm(uuid: string) {
                 // Wait for all promises to resolve before updating state
                 const resolvedVets = await Promise.all(vetPromises);
                 setVeterinarians(resolvedVets);
-            } catch (error) {
-                console.error("Failed to load veterinarians:", error);
+            } catch {
                 setVeterinarians([]);
             } finally {
                 setIsLoadingVets(false);
@@ -103,64 +102,75 @@ export function useAppointmentForm(uuid: string) {
                 const availability = data.success ? data.data.availability : [];
                 setVetAvailability(availability);
 
-                const dayAvailability = availability.find((a) => {
-                    const matches =
+                // Find the availability record for the selected day, vet, and clinic
+                const dayAvailability = availability.find(
+                    (a) =>
                         a.day_of_week === dayOfWeek &&
                         a.vet_id === Number(selectedVetId) &&
-                        a.clinic_id === Number(selectedClinicId) &&
-                        a.is_available;
-                    return matches;
-                });
-                if (!dayAvailability) {
+                        a.clinic_id === Number(selectedClinicId),
+                );
+
+                // If no availability record is found or is_available is explicitly false, return empty slots
+                if (!dayAvailability || dayAvailability.is_available === false) {
                     setTimeSlots([]);
                     return;
                 }
+
                 const existingData = await getExistingAppointments(selectedDate, Number(selectedVetId));
                 const appointments = existingData.success ? existingData.data.appointments : [];
 
                 const slots: TimeSlot[] = [];
 
+                // Fix: Properly handle UTC time conversion for time slots
                 const startTime = new Date(dayAvailability.start_time);
                 const endTime = new Date(dayAvailability.end_time);
 
+                // Create a new Date using the selected date, but with hours/minutes from availability
                 let currentSlot = new Date(selectedDate);
-                currentSlot.setHours(startTime.getHours(), startTime.getMinutes(), 0, 0);
+                currentSlot.setHours(startTime.getUTCHours(), startTime.getUTCMinutes(), 0, 0);
 
                 const slotEndTime = new Date(selectedDate);
-                slotEndTime.setHours(endTime.getHours(), endTime.getMinutes(), 0, 0);
+                slotEndTime.setHours(endTime.getUTCHours(), endTime.getUTCMinutes(), 0, 0);
 
-                while (currentSlot < slotEndTime) {
-                    const slotStartTime = new Date(currentSlot);
-                    const slotEndTime = addMinutes(currentSlot, 30);
+                // Only generate slots if the end time is after the start time
+                if (slotEndTime > currentSlot) {
+                    while (currentSlot < slotEndTime) {
+                        const slotStartTime = new Date(currentSlot);
+                        const slotEndTime = addMinutes(currentSlot, 30);
 
-                    const matchingAppointments = appointments.filter((appointment) => {
-                        const appointmentTime = new Date(appointment.appointment_date);
-                        const appointmentEndTime = addMinutes(appointmentTime, appointment.duration_minutes || 30);
-                        const hasOverlap =
-                            (slotStartTime >= appointmentTime && slotStartTime < appointmentEndTime) ||
-                            (slotEndTime > appointmentTime && slotEndTime <= appointmentEndTime) ||
-                            (slotStartTime <= appointmentTime && slotEndTime >= appointmentEndTime);
+                        const matchingAppointments = appointments.filter((appointment) => {
+                            const appointmentTime = new Date(appointment.appointment_date);
+                            const appointmentEndTime = addMinutes(appointmentTime, appointment.duration_minutes || 30);
+                            const hasOverlap =
+                                (slotStartTime >= appointmentTime && slotStartTime < appointmentEndTime) ||
+                                (slotEndTime > appointmentTime && slotEndTime <= appointmentEndTime) ||
+                                (slotStartTime <= appointmentTime && slotEndTime >= appointmentEndTime);
 
-                        return hasOverlap;
-                    });
+                            return hasOverlap;
+                        });
 
-                    let statusMessage = null;
-                    if (matchingAppointments.length > 0) {
-                        statusMessage = `Booked: ${matchingAppointments[0].status}`;
+                        let statusMessage = null;
+                        if (matchingAppointments.length > 0) {
+                            statusMessage = `Booked: ${matchingAppointments[0].status}`;
+                        }
+
+                        slots.push({
+                            time: format(currentSlot, "h:mm a"),
+                            available: matchingAppointments.length === 0,
+                            statusMessage: statusMessage,
+                            appointmentId:
+                                matchingAppointments.length > 0 ? matchingAppointments[0].appointment_uuid : null,
+                        });
+
+                        currentSlot = addMinutes(currentSlot, 30);
                     }
-
-                    slots.push({
-                        time: format(currentSlot, "h:mm a"),
-                        available: matchingAppointments.length === 0,
-                        statusMessage: statusMessage,
-                        appointmentId:
-                            matchingAppointments.length > 0 ? matchingAppointments[0].appointment_uuid : null,
-                    });
-
-                    currentSlot = addMinutes(currentSlot, 30);
+                } else {
+                    console.log("Invalid time range: end time is not after start time");
                 }
+
                 setTimeSlots(slots);
-            } catch {
+            } catch (error) {
+                console.error("Error loading time slots:", error);
                 setTimeSlots([]);
             } finally {
                 setIsLoadingTimeSlots(false);

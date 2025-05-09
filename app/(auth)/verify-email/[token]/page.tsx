@@ -8,7 +8,7 @@ export const metadata = {
     description: "Verify your email address to complete registration",
 };
 
-const VerifyEmail = async ({ params }: { params: { token: string } }) => {
+const VerifyEmail = async ({ params }: { params: Promise<{ token: string }> }) => {
     const { token } = await params;
     const result = await verifyEmail(token);
 
