@@ -98,7 +98,9 @@ function UserSignUpForm() {
         const t = toast.loading("Creating account...");
         const result = await createAccount(values);
         if (result === undefined) {
-            toast.success("Account created successfully", { id: t });
+            toast.success("Account created successfully, please check the email's inbox for verification link.", {
+                id: t,
+            });
             signUpForm.reset();
             return;
         }
