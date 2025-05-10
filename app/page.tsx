@@ -39,11 +39,18 @@ export default function LandingPage() {
                                 </p>
                             </div>
                             <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                                <Button>
-                                    Get Started
-                                    <ArrowRight className="ml-2 h-4 w-4" />
+                                <Button asChild>
+                                    <Link href={"/signup"} className="flex items-center">
+                                        Get Started
+                                        <ArrowRight className="ml-2 h-4 w-4" />
+                                    </Link>
                                 </Button>
-                                <Button variant="outline">Book a Demo</Button>
+                                <Button variant="outline" asChild>
+                                    <Link href={"/signin"} className="flex items-center">
+                                        Log In
+                                        <ArrowRight className="ml-2 h-4 w-4" />
+                                    </Link>
+                                </Button>
                             </div>
                         </div>
                     </div>
